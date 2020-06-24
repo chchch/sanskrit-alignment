@@ -4,13 +4,13 @@ This repository contains some work-in-progress centered on aligning Sanskrit tex
 
 ## Scoring matrix for MAFFT
 
-The file substitution_matrix.ods is a LibreOffice spreadsheet with a basic scoring matrix that can be used with MAFFT, when performing a multiple sequence alignment of Sanskrit texts. Texts should be in SLP1 format (with some substitutions; see the schema in Transcribe.hs). To use the scoring matrix:
+The file `substitution_matrix.ods` is a LibreOffice spreadsheet with a basic scoring matrix that can be used with MAFFT, when performing a multiple sequence alignment of Sanskrit texts. Texts should be in SLP1 format (with some substitutions; see the schema in `Transcribe.hs`). To use the scoring matrix:
 
 * Export the spreadsheet to CSV
 * convert the CSV file to the format used by MAFFT
   * e.g., `csv2mafft substitution_matrix.csv > substitution_matrix_mafft`
 * align your sequences with the scoring matrix
-  * e.g., `mafft --text-matrix substitution_matrix_mafft unaligned.fas > aligned.fas
+  * e.g., `mafft --text-matrix substitution_matrix_mafft unaligned.fas > aligned.fas`
 
 Scoring scheme:
     
