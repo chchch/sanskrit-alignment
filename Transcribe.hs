@@ -3,6 +3,7 @@ ScriptScheme,
 TransScheme,
 iast,
 slp1,
+fasta,
 transliterateString) where
 
 import Data.Array
@@ -19,13 +20,18 @@ iast = ScriptScheme {vowels = ["a","ā","i","ī","u","ū","ṛ","ṝ","ḷ","ḹ
                      consonants = ["k","kh","g","gh","ṅ","c","ch","j","jh","ñ","ṭ","ṭh","ḍ","ḍh","ṇ","t","th","d","dh","n","p","ph","b","bh","m","y","r","l","v","ś","ṣ","s","h","ḻ","ḻh"],
                      marks = ["ṃ","ḥ","m̐","oṁ","oḿ"]}
 
-deva = ScriptScheme {vowels = ["अ","आ","इ","ई","उ","ऊ","ए","ऐ","ओ","औ"],
-                     consonants = ["क","ख","ग","घ","ङ"],
-                     marks = []}
+--deva = ScriptScheme {vowels = ["अ","आ","इ","ई","उ","ऊ","ए","ऐ","ओ","औ"],
+--                     consonants = ["क","ख","ग","घ","ङ"],
+--                     marks = []}
 
 slp1 = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"],
                      consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"],
                      marks = ["M","H","~","'","`"]}
+
+-- SLP1 with variations for use with bioinformatics software
+fasta = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"],
+                     consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","1"],
+                     marks = ["M","H","2","4","6"]}
 
 data TransScheme = TransScheme { fromScheme :: ScriptScheme,
                                  toScheme :: ScriptScheme,

@@ -23,8 +23,8 @@ data Matrix = Matrix {columns :: [String],
 makeMatrix :: [[String]] -> Matrix
 makeMatrix (ss:sss) = Matrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
-        xaxis = map (\s -> concat . map charToHex $ transliterateString s iast slp1) ss
-        yaxis = map (\ss -> concat . map charToHex $ transliterateString (head ss) iast slp1) sss
+        xaxis = map (\s -> concat . map charToHex $ transliterateString s iast fasta) ss
+        yaxis = map (\ss -> concat . map charToHex $ transliterateString (head ss) iast fasta) sss
         size = length xaxis * length yaxis - 1
         scores = map (drop 1) sss
 
