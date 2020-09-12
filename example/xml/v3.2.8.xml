@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
+
+<TEI n="GV">
+<text>
+<w n="0" lemma="vi">|| vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">tam || </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te &#166;|| 8 || </w>
+</text></TEI>
+<TEI n="CT">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">ttvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">tam | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do '</w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te || </w>
+</text></TEI>
+<TEI n="T">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">ka</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te | </w>
+</text></TEI>
+<TEI n="H">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">ttvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te || &#43256; || </w>
+</text></TEI>
+<TEI n="P">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">tam </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te 8 | </w>
+</text></TEI>
+<TEI n="M">
+<text>
+<w n="0" lemma="vi">|| vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">tam | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te || 8 || </w>
+</text></TEI>
+<TEI n="G2">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ || </w><w n="5">bha</w><w n="6">je</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13"></w><w n="14">lpi</w><w n="15">ta</w><w n="16" lemma="mā">mā </w><w n="17" lemma="na">na </w><w n="18">vā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23"></w><w n="24"></w><w n="25"></w><w n="26"></w><w n="27"></w><w n="28">da</w><w n="29" lemma="kta">kta </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="G1">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ || </w><w n="5">bha</w><w n="6">je</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13"></w><w n="14">lpi</w><w n="15">ta</w><w n="16" lemma="mā">mā </w><w n="17" lemma="na">na </w><w n="18">vā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23"></w><w n="24"></w><w n="25"></w><w n="26"></w><w n="27"></w><w n="28">da</w><w n="29" lemma="kta">kta </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="L">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ || </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23"></w><w n="24"></w><w n="25"></w><w n="26"></w><w n="27"></w><w n="28" lemma="daḥ">das </w><w n="29" lemma="tu">tu </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="O">
+<text>
+<w n="0" lemma="vi">|| vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19">trā</w><w n="20">kā</w><w n="21">ra</w><w n="22">bhe</w><w n="23"></w><w n="24"></w><w n="25"></w><w n="26"></w><w n="27"></w><w n="28" lemma="daḥ">das </w><w n="29" lemma="tu">tu </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="A">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="pa">pa </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="V">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="ta">ta </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca&#166; </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="K">
+<text>
+<w n="0">vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="ta">ta | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+<TEI n="D">
+<text>
+<w n="0" lemma="vi">|| vi</w><w n="1">ka</w><w n="2">lpa</w><w n="3">rū</w><w n="4" lemma="paṃ">paṃ </w><w n="5">bha</w><w n="6">ja</w><w n="7" lemma="te">te </w><w n="8">ta</w><w n="9" lemma="tvaṃ">tvam </w><w n="10">e</w><w n="11">vā</w><w n="12">vi</w><w n="13">ka</w><w n="14">lpi</w><w n="15" lemma="taṃ">taṃ | </w><w n="16"></w><w n="17" lemma="na">na </w><w n="18">cā</w><w n="19" lemma="tra">tra </w><w n="20">kā</w><w n="21">la</w><w n="22">bhe</w><w n="23" lemma="do">do </w><w n="24" lemma="sti">sti </w><w n="25">kā</w><w n="26">la</w><w n="27">bhe</w><w n="28" lemma="daḥ">daś </w><w n="29" lemma="ca">ca </w><w n="30">gṛ</w><w n="31">hya</w><w n="32" lemma="te">te </w>
+</text></TEI>
+</teiCorpus>

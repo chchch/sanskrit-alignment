@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teiCorpus xmlns="http://www.tei-c.org/ns/1.0">
+
+<TEI n="GV">
+<text>
+<w n="0"></w><w n="1"></w><w n="2"></w><w n="3"></w><w n="4"></w><w n="5"></w><w n="6"></w><w n="7"></w><w n="8"></w><w n="9"></w><w n="10"></w><w n="11"></w><w n="12"></w><w n="13"></w><w n="14"></w><w n="15"></w><w n="16"></w><w n="17"></w><w n="18"></w><w n="19"></w><w n="20"></w><w n="21"></w>
+</text></TEI>
+<TEI n="CT">
+<text>
+<w n="0" lemma="a">a-</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18" lemma="ha">ha-</w><w n="19" lemma="rtuṃ">rtum </w><w n="20">ā</w><w n="21" lemma="ha">ha&#8212;</w>
+</text></TEI>
+<TEI n="T">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t_ sāṃ</w><w n="12">ka</w><w n="13" lemma="rya">ryya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha | </w>
+</text></TEI>
+<TEI n="H">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsā">t sā</w><w n="12">ka</w><w n="13">rya</w><w n="14">dvo</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha || &#43256; || </w>
+</text></TEI>
+<TEI n="P">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2" lemma="e">e&#166;</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha | </w>
+</text></TEI>
+<TEI n="M">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha ||_ </w>
+</text></TEI>
+<TEI n="G2">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5"></w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">va</w><w n="9">saṃ</w><w n="10" lemma="gā">gā </w><w n="11">sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha | </w>
+</text></TEI>
+<TEI n="G1">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5"></w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">va</w><w n="9">saṃ</w><w n="10" lemma="gā">gā </w><w n="11">sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha |</w>
+</text></TEI>
+<TEI n="L">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rtum </w><w n="20">ā</w><w n="21" lemma="ha">ha ||</w>
+</text></TEI>
+<TEI n="O">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rtum </w><w n="20">ā</w><w n="21" lemma="ha">ha || </w>
+</text></TEI>
+<TEI n="A">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha || </w>
+</text></TEI>
+<TEI n="V">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="yaṃ">yaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtaṃ">rtam </w><w n="20">ā</w><w n="21" lemma="ha">ha </w>
+</text></TEI>
+<TEI n="K">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="yaṃ">yaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtaṃ">rttam </w><w n="20">ā</w><w n="21" lemma="ha">ha || </w>
+</text></TEI>
+<TEI n="D">
+<text>
+<w n="0">a</w><w n="1" lemma="ta">ta </w><w n="2">e</w><w n="3" lemma="va">va </w><w n="4">vi</w><w n="5">śe</w><w n="6">ṣa</w><w n="7">ṇo</w><w n="8">pa</w><w n="9">rā</w><w n="10">gā</w><w n="11" lemma="tsāṃ">t sāṃ</w><w n="12">ka</w><w n="13">rya</w><w n="14">do</w><w n="15" lemma="ṣaṃ">ṣaṃ </w><w n="16">pa</w><w n="17">ri</w><w n="18">ha</w><w n="19" lemma="rtuṃ">rttum </w><w n="20">ā</w><w n="21" lemma="ha">ha ||</w>
+</text></TEI>
+</teiCorpus>

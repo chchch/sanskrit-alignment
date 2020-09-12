@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Reconstructing a Sanskrit text using computers</title>
+    <link rel="stylesheet" href="tufte.css">
+</head>
+<body>
+    <article>
+        <h1>Reconstructing a Sanskrit text</h1>
+        <p class="subtitle">Charles Li</p>
+        <p>Last updated: 12 September 2020.</p>
+        <section>
+            <blockquote>
+                <p>
+    This document is a companion to the <a href="https://github.com/chchch/sanskrit-alignment">sanskrit-alignment GitHub repository</a>, where you will find open source software developed to work with multi-witness Sanskrit texts. The software is in its nascent stages, but it has been used to reconstruct Bhartṛhari's <cite><a href="https://saktumiva.org/wiki/dravyasamuddesa/">Dravyasamuddeśa</a></cite>, which serves here as the example text for the tutorial.
+                </p>
+                <p>
+    The tutorial assumes some knowledge of both Sanskrit philology and phylogeny. For a short, gentle introduction to phylogeny, see <a href="https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial">Baldauf 2003, <q>Phylogeny for the faint of heart: a tutorial</q></a>.
+                </p>
+                <p>
+    The <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor">matrix-editor</a> had its beginnings in 2019, as part of the <cite>Vetālapañcaviṃśati</cite> project at the University of British Columbia, led by <a href="https://asia.ubc.ca/profile/adheesh-sathaye/">Adheesh Sathaye</a>. The <a href="https://github.com/chchch/sanskrit-alignment/helayo">sequence aligner</a> was made possible by the Government of Canada, through the COVID-19 <a href="https://www.canada.ca/en/services/benefits/ei/cerb-application.html">Canada Emergency Response Benefit</a> in 2020.
+                <p>
+                <p>
+    <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a> This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. Its change history can be accessed through GitHub as part of the <a href="https://github.com/chchch/sanskrit-alignment">sanskrit-alignment GitHub repository</a>. It is under active revision. If you have any comments, suggestions, corrections, or other changes, don't hesitate to contact me or to create an <a href="https://github.com/chchch/sanskrit-alignment/issues">issue</a> or submit a <a href="https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests">pull request</a>.
+                </p>
+            </blockquote>
+        </section>
+        <section>
+            <h2 id="table-of-contents">Table of Contents</h2>
+                <ul>
+                    <li><a href="#tldr">tl;dr</a></li>
+                    <li><a href="#introduction">Introduction</a>
+                        <ul>
+                            <li><a href="#intro-repo">The GitHub repository</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#transcription">Transcription</a></li>
+                    <li><a href="#alignment">Alignment</a>
+                        <ul>
+                            <li><a href="#alignment-fasta">Getting FASTA files from saktumiva.org</a></li>
+                            <li><a href="#alignment-prep">Preparing the alignment tool</a></li>
+                            <li><a href="#alignment-matrix">The substitution matrix</a></li>
+                            <li><a href="#alignment-using">Using the alignment tool</a></li>
+                            <li><a href="#alignment-options1">Alignment options: -l (lemma size)</a></li>
+                            <li><a href="#alignment-options2">Alignment options: -M, -m, -i, -g</a></li>
+                            <li><a href="#alignment-multiple">Working with multiple files</a></li>
+                            <li><a href="#alignment-editor">Using the matrix-editor</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#tree">Building a tree</a>
+                        <ul>
+                            <li><a href="#tree-root">Rooting the tree</a></li>
+                            <li><a href="#tree-bootstrapping">Bootstrapping</a></li>
+                            <li><a href="#tree-export">Exporting to NeXML</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#reconstruction">Reconstructing a text</a>
+                        <ul>
+                            <li><a href="#reconstruction-lemma">Reconstructing a single lemma</a></li>
+                            <li><a href="#reconstruction-passage">Reconstructing an entire passage</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#further">Going further</a></li>
+                    <li><a href="#bibliography">Bibliography</a></li>
+                <ul>
+        </section>
+        <section>
+            <h2 id="tldr"><acronym title="too long; didn't read">tl;dr</acronym></h2>
+            <ol>
+                <li>Transcription
+                    <ul>
+                        <li>transcribe your manuscripts in TEI XML on <a href="https://saktumiva.org/">saktumiva.org</a>.</li>
+                        <li>export your transcriptions using the <code>Export to FASTT</code> option.</li>
+                    </ul>
+                </li>
+                <li>Alignment
+                    <ul>
+                        <li>download the <a href="https://www.haskell.org/platform/">Haskell Platform</a>.</li>
+                        <li>go to the <code>helayo/</code> directory and run <code>stack build</code>.</li>
+                        <li>run <code>stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f [input.fas] &gt; [output.xml]</code> for each <code>.fas</code> file.</li>
+                        <li>open your <code>.xml</code> files in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> and fix any big alignment errors. Save each file individually.</li>
+                        <li>open all your <code>.xml</code> files in the matrix-editor at once (use Ctrl-Click or Shift-Click to select multiple files). Export to NEXUS.</li>
+                    </ul>
+                </li>
+                <li>Building a tree
+                    <ul>
+                        <li>open your NEXUS file in tree-building software (like <a href="https://software-ab.informatik.uni-tuebingen.de/download/splitstree5/welcome.html">SplitsTree5</a>).</li>
+                        <li>build a tree and root it.</li>
+                        <li>export the tree as NeXML.</li>
+                    </ul>
+                </li>
+                <li>Reconstructing a text
+                    <ul>
+                        <li>open the NeXML tree in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a>.</li>
+                        <li>make sure that the texts are normalized (<code>View -&gt; Normalize</code>).</li>
+                        <li>click on the node that you want to reconstruct (probably the root).</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+        <section>
+            <h2 id="introduction">Introduction</h2>
+            <p>
+<span class="newthought">Karl Lachmann's stemmatic method</span> has often been derided as overly <q>mechanical</q><label class="margin-toggle sidenote-number" for="n-trovato1"></label><input type="checkbox" id="n-trovato1" class="margin-toggle" /><span class="sidenote"><a href="#b-trovato2014">Trovato 2014</a>, 79, 82.</span> by its opponents. But, in view of our ability to automate mechanical tasks using computers, this is, decidedly, a great virtue. That is not to say that a well-trained philologist is no longer needed; as this document will show, every step of the process requires careful decision-making on the part of the scholar. However, by offloading much of the work onto computer software, each automated task becomes reproducible. As you will see in this tutorial, given some data (i.e., a set of transcriptions), any scholar will be able to reproduce the resultant text, and to easily critique the philological decisions that led up to it.
+            </p>
+            <p>
+There are four main steps in this tutorial:
+                <ol>
+                    <li>Transcription, in which each witness is carefully and diplomatically transcribed,</li>
+                    <li>Alignment, or Collation, in which the similarities and differences between each witness are tabulated,</li>
+                    <li>Building a tree, in which the alignment is used to infer a process of evolution, and</li>
+                    <li>Reconstructing a text, in which a critical text is created, based on the tree.</li>
+                </ol>
+            </p>
+            <p>
+In this tutorial, we will be using my edition of Bhartṛhari's <cite>Dravyasamuddeśa</cite> with Helārāja's 10<sup>th</sup> century <cite>Prakīrṇaprakāśa</cite> commentary as an example. All manuscript transcriptions are available at <a href="https://saktumiva.org/wiki/dravyasamuddesa/">https://saktumiva.org/wiki/dravyasamuddesa/</a>.
+            </p>
+            <h3 id="intro-repo">The GitHub repository</h3>
+            <p>
+You will need to download the files in the <a href="https://github.com/chchch/sanskrit-alignment">GitHub repository</a>. The easiest way to do this is to download a zip file; click the green <q>Code</q> button. Then extract the zip file into your working directory. You will find the following subdirectories:
+            <ul>
+                <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/csv2mafft/"><code>csv2mafft/</code></a> — tools for working with MAFFT (not covered here)</li>
+                <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/docs/"><code>docs/</code></a> — the location of this tutorial</li>
+                <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/"><code>example/</code></a> — containing the example files used in this tutorial
+                    <ul>
+                        <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fasta/"><code>example/fasta/</code></a> — FASTA files exported from saktumiva.org</li>
+                        <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/xml/"><code>example/xml/</code></a> — those files aligned, which can be opened in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/"><code>matrix-editor</code></a></li>
+                    </ul>
+                </li>
+                <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/"><code>helayo/</code></a> — the alignment tool (see <a href="#alignment">Alignment</a>)</li>
+                <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/matrix-editor/"><code>matrix-editor/</code></a> — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees
+            </ul>
+            </p>
+        </section>
+        <section>
+            <h2 id="transcription">Transcription</h2>
+            <p>
+            <label class="margin-toggle" for="n-ms1"></label>
+            <input id="n-ms1" class="margin-toggle" type="checkbox"/>
+            <span class="marginnote">
+                <img src="img/rori-ms-4781-small.png" alt="image of a manuscript"/>
+                Rajasthan Oriental Research Institute, MS 4781.
+            </span>
+The most arduous task in this process is the collection of witnesses and their transcription. Previously, transcribing each witness individually was considered to be too daunting a task; when a text is collated by hand, the editor only notes the differences between a witness and their edition. But in this process, a lot of information is lost; orthography and punctuation are ignored, and any variant readings that are considered insignificant are not mentioned. But with computer-aided collation, we can create diplomatic transcriptions of our witnesses and then automatically filter out variations that we wish to ignore. In this tutorial, all of the manuscripts have been transcribed in <a href="https://en.wikipedia.org/wiki/International_Alphabet_of_Sanskrit_Transliteration">IAST</a> using <a href="https://tei-c.org/">TEI XML</a>. They have been uploaded to <a href="https://saktumiva.org/">saktumiva.org</a>, where you can automatically generate a critical apparatus comparing one version of the text to the others. For more information on how this works, see <a href="#b-li2017">Li 2017</a> and <a href="#b-li2018">Li 2018</a>.
+            </p>
+        </section>
+        <section>
+            <h2 id="alignment">Alignment</h2>
+            <p>
+Saktumiva.org generates a critical apparatus using a <em>pairwise sequence alignment algorithm</em>. This is quick, and suits its purpose; in a critical apparatus, we are mainly interested in differences between our base text and each of the other witnesses. However, in order to create a phylogenetic tree, we want to align our texts using a <em>multiple sequence alignment algorithm</em>, which is more accurate but much slower.
+            </p>
+            <p>
+The alignment tool takes, as its input, files in the FASTA format, which is commonly used in bioinformatics. It looks like this:<label class="margin-toggle sidenote-number" for="n-alignment1"></label><input type="checkbox" id="n-alignment1" class="margin-toggle" /><span class="sidenote">This is not quite what FASTA looks like; it has been slightly adapted to representing texts rather than biological sequences.</span> 
+            </p>
+            <pre>
+                <code>&gt;D
+|| ātmā vastu svabhāvaś ca śarīraṃ tattvam ity api |
+dravyam ity asya paryāyās tac ca nityam iti smṛtaṃ || || 
+
+&gt;K
+|| ātmā vastu svabhāvaḥś ca śarīraṃ tatvam ity api |
+dravyam ity asyāpardyāyās tac ca nityam iti smṛtaṃ || 
+
+&gt;V
+ātmā vastu svabhāvaḥś ca śarīraṃ tattvaṃm ity api 
+dravyam ity asyāpardyāyās tac ca nityam iti smṛtaṃ </code>
+            </pre>
+            <p>
+In this example, we have three versions of the same text (the first verse of the <cite>Dravyasamudeśa</cite>). Each text begins with the greater-than sign, followed by a siglum (D, K, or V here), a newline, and then the text. 
+            </p>
+            <h3 id="alignment-fasta">Getting FASTA files from saktumiva.org</h3>
+            <p>
+If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, then we can generate this file automatically, following these steps:
+            </p>
+            <p>
+                <ol>
+                    <li>Navigate to any one of the witnesses you want to include in your alignment, for example, <a href="https://saktumiva.org/wiki/dravyasamuddesa/05-delhi">Delhi University Library MS 5954.29</a>.</li>
+                    <li>In the left-hand sidebar, under <q>Other witnesses</q>, select all of the other witnesses that you want in your alignment. You probably want to omit edited texts.</li>
+                    <li>Click <q>Generate apparatus</q>.</li>
+                    <li>
+                        <label class="margin-toggle" for="n-alignment2"></label><input id="n-alignment2" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/fastt.png" style="border: 1px solid black" alt="the FASTT export dialog box"/><br/>The FASTT export dialog.</span>
+                        In the toolbar on the right-hand side, click <q>Export As...</q> and choose <q>FASTT</q>. This is an ad-hoc acronym for <q>FASTA for Texts</q>.</li>
+                    <li>In the options, select the range of the text that you want to align. The start node is the first paragraph/verse included, and the end node ls the last paragraph/verse.</li>
+                    <li>If the text is long, you will want to have separate files for each node (as in the tutorial files).</li>
+                    <li>You do not need to apply the filters, since the alignment tool will do that.</li>
+                    <li>Click <q>Export</q>.</li>
+                </ol>
+            </p>
+            <p>
+You should end up with a zip archive full of <code>.fas</code> files, as in the directory <a href="https://github.com/chchch/sanskrit-alignment/master/tree/example/fasta/"><code>example/fasta/</code></a>. Files starting with <em>c</em> are paragraphs from the commentary, and files starting with <em>v</em> are verses from the <cite>Dravyasamuddeśa</cite>.
+            </p>
+            <h3 id="aligment-prep">Preparing the alignment tool</h3>
+            <p>
+There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> b In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote"><a href="b-chin2003">Chin et al. 2003</a>. As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package.</span> and is written in Haskell. To build it for your system, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
+            </p>
+            <pre>
+                <code>stack build</code>
+            </pre>
+            <p>
+Now, we are ready to align our texts.
+            </p>
+            <h3 id="alignment-matrix">The substitution matrix</h3>
+            <p>
+            <label class="margin-toggle" for="n-alignment2"></label>
+            <input id="n-alignment2" class="margin-toggle" type="checkbox"/>
+            <span class="marginnote">
+                <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
+                The substitution matrix, colour-coded, displayed in LibreOffice Calc.
+            </span>
+Helayo can optionally use a <em>substitution matrix</em> in order to improve the alignment. This is highly recommended. The matrix is a spreadsheet that gives different weights to different alignments. I have provided a simple matrix (<a href="https://github.com/chchch/sanskrit-alignment/master/tree/helayo/substitution_matrix.csv"><code>substitution_matrix.csv</code></a>) that tries to align vowels with vowels and consonants with consonants. For example, if the software tries to align <em>t</em> with <em>ā</em>, that alignment will be given the score -3. But if it tries to align <em>t</em> with <em>g</em>, that alignment will be given the score -2. Both are considered as mismatches, but mismatches between consonants and vowels are given a higher penalty.
+            </p>
+            <p>
+You can edit the substition matrix in any spreadsheet software (LibreOffice Calc, Microsoft Excel, etc.) and save it as a <code>csv</code> file. See the <a href="https://github.com/chchch/sanskrit-alignement/master/tree/csv2mafft/README.md"><code>csv2mafft/</code></a> directory for more details.
+            </p>
+            <h3 id="alignment-using">Using the alignment tool</h3>
+            <p>
+Helayo takes a FASTA file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:
+            </p>
+            <blockquote>
+                <code>stack exec helayo-exe -- -x substitution_matrix.csv -f [input file] &gt; [output file]</code>
+            </blockquote>
+            <p>
+For example, to align the first verse of the <cite>Dravyasamuddeśa</cite>, run
+            </p>
+            <blockquote>
+                <code>stack exec helayo-exe -- -x substitution_matrix.csv -f ../example/fasta/v3.2.1.fas &gt; v3.2.1.xml</code>
+            </blockquote>
+            <p>
+This will produce a file, called <code>v3.2.1.xml</code>, containing the aligned texts.
+            </p>
+            <h3 id="alignment-options1">Alignment options: -l (lemma size)</h3>
+            <p>
+Helayo can align texts as characters, akṣaras, or as words, using the <code>-l [character|aksara|word]</code> option. For example, to re-do the alignment of the first verse of the <cite>Dravyasamuddeśa</cite> as akṣaras, run
+            </p>
+            <blockquote>
+                <code>stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f ../example/fasta/v3.2.1.fas &gt; v3.2.1-aksaras.xml</code>
+            </blockquote>
+            <p>
+When experimenting with character, akṣara, or word lemmas, think about how your text might have been transmitted, and the mechanism by which changes occur. For example, if a scribe misinterprets a <em>pṛṣṭhamātrā</em>, then change is occuring on the character level. If a scribe writes <em>rā</em> instead of <em>śa</em>, then change is occuring on the akṣara level. If a scribe substitutes <em>satyam</em> with <em>vidyām</em>, then change is occuring on the word level.
+            </p>
+            <p>
+Here is the same text aligned as characters, akṣaras, or words:
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+v a s t u s v a r ū p - - - - - a m a r th a k r i y ā k ā r i d r a v y a ṃ<br/>
+v a s t a s v a l a k ṣ a - - n a - - - -  - k r i y ā k ā r i d r a v y a ṃ<br/>
+v a s t u s v a l a k ṣ a m ā n a m a r th a k r i y ā k ā r i d r a v y a ṃ
+                </pre>
+            </blockquote>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+va stu sva rū pa  - - - ma rtha kri yā kā ri dra vyaṃ<br/>
+va sta sva la kṣa -  na - - - - kri yā kā ri dra vyaṃ<br/>
+va stu sva la kṣa mā na ma rtha kri yā kā ri dra vyaṃ<br/>
+                </pre>
+            </blockquote>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+vastu svarūpam arthakriyākāri      dravyaṃ<br/>
+vasta svalakṣanakriyākāri          dravyaṃ<br/>
+vastu svalakṣamānam arthakriyākāri dravyaṃ<br/>
+                </pre>
+            </blockquote>
+            <h3 id="alignment-options2">Alignment options: -M, -m, -i, -g</h3>
+            <p>
+By default, the alignment is scored like this:
+            </p>
+            <ul>
+                <li>Match: 3</li>
+                <li>Mismatch: -3</li>
+                <li>Gap opening: -3</li>
+                <li>Gap extension: -2</li>
+            </ul>
+            <p>
+These options can be changed with the <code>-M</code> (match), <code>-m</code> (mismatch), <code>-i</code> (gap opening), and <code>-g</code> (gap extension) options. In addition, when using the substitution matrix, vowel/vowel and consonant/consonant mismatches are scored -2. 
+            </p>
+            <h3 id="alignment-multiple">Working with multiple files</h3>
+            <p>
+If you used the <code>Separate files for each node</code> option when exporting from saktumiva.org, then you might have a lot of files. You can run a simple command to align all the <code>.fas</code> files in a directory, and output them into a new directory. For example, to align all of the files in the <code>example/fasta/</code> directory, and output them to the <code>example/xml/</code> directory, run
+            </p>
+            <blockquote>
+                <code>for f in ../example/fasta/*.fas; do stack exec helayo-exe -- -x substitution_matrix.csv -f ${f} &gt; ../example/xml/$(basename $f fas)xml; done</code>
+            </blockquote>
+            <p>
+WARNING: Especially when you have a lot of files, this is very slow. For the purposes of this tutorial, the <code>example/xml/</code> directory has already been pre-filled with files aligned with the <code>-l aksara</code> option.
+            </p>
+            <h3 id="alignment-editor">Using the matrix-editor</h3>
+            <p>
+Now that the texts are aligned, you can check them in the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/matrix-editor/">matrix-editor</a>. Simply open the <code>matrix-editor/index.html</code> file in a web browser (or use the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">online version</a>) and load one of the XML files.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-1.png" alt="image of the matrix editor"/>
+            </figure>
+            <p>
+To see how the alignment tool has normalized the text, use the <code>View</code> menu and click <code>Normalize</code>.
+            </p>
+           <figure>
+                <img src="img/matrix-editor-2.png" alt="image of the matrix editor"/>
+            </figure>
+            <p>
+There may be some minor mis-alignments; the matrix-editor contains some basic functions for editing the alignment, but the software is still in development. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect. The <cite>Dravyasamuddeśa</cite> with commentary, split up as akṣaras, amounts to 7486 lemmata.
+            </p>
+            <p>
+It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data.
+            </p>
+            <p>
+<label class="margin-toggle" for="n-alignment3"></label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
+When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
+            </p>
+            <p>
+The resulting NEXUS file is available in the GitHub repository at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/full-alignment.nex">example/full-alignment.nex</a>.
+            </p>
+        </section>
+        <section>
+            <h2 id="tree">Building a tree</h2>
+            <p>
+Now that we have a full alignment, we can use phylogenetics software to build a tree. There are many options for this, but in this tutorial we will use <a href="https://software-ab.informatik.uni-tuebingen.de/download/splitstree5/welcome.html">SplitsTree5</a>.
+            </p>
+            <p>
+When you open the NEXUS file in SplitsTree, you will see a splits network representing the relationships between the witnesses.
+            </p>
+            <figure>
+                <img src="img/splitstree-1.png">
+            </figure>
+            <p>
+For more information on what this network represents, and how to interpret it, see <a href="#b-rodriguez2007">Phillips-Rodriguez 2007</a> and <a href="#b-huson2006">Huson & Bryant 2006</a>.
+            </p>
+            <p>
+We can filter our lemmata so that only parsimony-informative lemmata are used in the construction of our network. Use the <code>Data</code> menu, click <code>Filter Characters</code>, and check the box next to <code>Exclude Parsimony Uninformative Sites</code>. Of the 7486 total lemmata, only 5499 were used in the creation of this network.
+            </p>
+            <figure>
+                <img src="img/splitstree-2.png">
+            </figure>
+            <p>
+Now, we will use the Neighbor-joining algorithm to construct a tree from this network. Use the <code>Tree</code> menu and click <code>NJ</code>.
+            </p>
+            <figure>
+                <img src="img/splitstree-3.png">
+            </figure>
+            <h3 id="#tree-root">Rooting the tree</h3>
+            <p>
+Next, we will root our tree. The decision about how to root a tree is dependent on many factors, and relies entirely on the expertise of the philolgist. In the case of this particular text tradition, I decided that there were two main branches — a <em>southern</em> branch, consisting of the witnesses C<sub>T</sub>, T, and H, and a <em>northern</em> branch, consisting of the remaining witnesses. Therefore, I rooted my tree with C<sub>T</sub>, T, and H as my outgroup.
+            </p>
+            <figure>
+                <img src="img/splitstree-4.png">
+            </figure>
+            <h3 id="tree-bootstrapping">Bootstrapping</h3>
+            <p>
+In order to test how well our tree fits our data, we can do a simple test called <em>bootstrapping</em>. As Sandra L. Baldauf puts it,
+            </p>
+            <blockquote>
+                <p>
+            This is done by taking random subsamples of the dataset, building trees from each of these and calculating the frequency with which the various parts of your tree are reproduced in each of these random subsamples. If group X is found in every subsample tree, then its bootstrap support is 100%, if its(!) found in only two-thirds of the subsample trees, its bootstrap support is 67%.
+                </p>
+                <footer><a href="#b-baldauf2003">Baldauf 2003, 350</a>.</footer>
+            </blockquote>
+            <figure>
+                <img src="img/splitstree-5-alt.png">
+            </figure>
+            <p>
+I used an <a href="https://software-ab.informatik.uni-tuebingen.de/download/splitstree4/welcome.html">older verison of SplitsTree</a> to perform bootstrapping (<code>Analysis -&gt; Bootstrap</code>), since SplitsTree5 does not yet support it. As you can see, almost every branch has 100% or &gt;90% bootstrap support. There are two exceptions:
+            </p>
+            <ol>
+                <li>the branching of G<sub>V</sub> and P has only 27.7% support. This is very low, but G<sub>V</sub> is an extremely fragmentary manuscript, containing only the commentary on two verses, so this low score is understandable;</li>
+                <li>the branching of D from the group A, K, and V has only 77.6% support. This is probably because D is a <em>contaminated</em> manuscript; the scribe/scholar has taken some readings from another branch and used them to correct his manuscript. In order to get better results, it may be better to omit D from our tree, or, alternatively, to use the <em>ante correctionem</em> readings from it, wherever legible.</li>
+            </ol>
+            <h3 id="tree-export">Exporting to NeXML</h3>
+            <p>
+In order to use our tree in the matrix-editor, we need to export it to <a href="https://nexml.org/">NeXML</a> format. Right-click on <code>Trees</code> in the sidebar (the second one, which is the rooted tree) and click <code>Export...</code>.
+            </p>
+            <figure>
+                <img src="img/splitstree-6.png">
+            </figure>
+            <p>
+The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/exported-from-splitstree.xml"><code>example/exported-from-splitstree.xml</code></a>. However, this exported file is lacking in a few respects:
+            </p>
+            <ol>
+                <li>it needs the top-level <code>&lt;nex:nexml&gt;</code> tag, and</li>
+                <li>the nodes for our witnesses need to have their siglum as the <code>@label</code> attribute.</li>
+            </ol>
+            <p>
+Practically, this means that the beginning of the file needs this:
+            </p>
+            <blockquote>
+                <code>
+&lt;nex:nexml xmlns="http://www.nexml.org/2009"<br/>
+xsi:schemaLocation="http://www.nexml.org/2009 http://www.nexml.org/2009/nexml.xsd"<br/>
+xmlns:nex="http://www.nexml.org/2009"<br/>
+xmlns:xml="http://www.w3.org/XML/1998/namespace"<br/> 
+xmlns:dc="http://purl.org/dc/elements/1.1/"<br/> 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<br/>
+xmlns:xsd="http://www.w3.org/2001/XMLSchema#"&gt;
+                </code>
+            </blockquote>
+            <p>
+And the end of the file needs <code>&lt;/nex:nexml&gt;</code>.
+            </p>
+            <p>
+In addition, for each <code>&lt;node&gt;</code> that is one of our witnesses, change
+            </p>
+            <blockquote>
+                <code>
+&lt;node id="n1" <span style="font-weight:bold">label="n1"</span> otu="GV"/&gt;
+                </code>
+            </blockquote>
+            <p>
+to this:
+            </p>
+            <blockquote>
+                <code>
+&lt;node id="n1" <span style="font-weight:bold">label="GV"</span> otu="GV"/&gt;
+                </code>
+            </blockquote>        
+            <p>
+To see the file with all of the requisite changes, look at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/rooted-tree.xml"><code>example/rooted-tree.xml</code></a>.
+            </p>
+        </section>
+        <section>
+            <h2 id="reconstruction">Reconstructing a text</h2>
+            <h3 id="reconstruction-lemma">Reconstructing a single lemma</h3>
+            <p>
+Now that we have prepared the tree, we can open it in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> to do some reconstruction. First, in the matrix-editor, open up one or more of the aligned files again. It is probably easier to do them one at a time, or a couple at a time. Then, from the <code>Trees</code> menu, open the NeXML tree.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-3.png">
+            </figure>
+            <p>
+In this example, I have opened the file <code>c3.2.4-2.xml</code>, and then opened <code>rooted-tree.xml</code>. As you can see, if you hover your mouse over any one of the nodes in the tree, the editor will give you a reconstructed reading based on <a href="#b-fitch1971">Fitch's algorithm</a>.
+            </p>
+            <p>
+As I mentioned previously, I hypothesized there to be two main branches in this text tradition: a southern branch, consisting of witnesses C<sub>T</sub>, T, and H, and a northern branch. Here, the southern branch consistently reads <q>dhya</q>. The northern branch is split between <q>dhya</q> and <q>kya</q>.<label class="margin-toggle sidenote-number" for="n-li1"></label><input type="checkbox" id="n-li1" class="margin-toggle" /><span class="sidenote">For a discussion of this lemma and its significance, see <a href="#b-li2018">Li 2018</a>, 48n118.</span> Because of the way I've rooted the tree, the algorithm has decided that <q>dhya</q> is the correct reading, since it has support in both main branches. But what if I had decided that all of the witnesses with the reading <q>dhya</q> form one outgroup?
+            </p>
+            <figure>
+                <img src="img/matrix-editor-4.png">
+            </figure>
+            <p>
+I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</sub> as my outgroup (this file is available at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/alternative-rooted-tree.xml"><code>example/alternative-rooted-tree.xml</code></a>). Now, both readings, <q>dhya</q> and <q>kya</q>, are equally weighted.<label class="margin-toggle sidenote-number" for="n-maas1"></label><input type="checkbox" id="n-maas1" class="margin-toggle" /><span class="sidenote">This is exactly the situation described in <a href="#b-maas1958">Maas 1958, 6</a>: <q>The reconstruction of α is a different matter. If its tradition has two branches only, β and γ, and β and γ agree, we have the text of α. If they do not agree, then either of the two readings may be the text of α; we have here <em>variants</em>, between which it is not possible to decide on the lines of our procedure hitherto.</q></span>
+            </p>
+            <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
+            <p>
+Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalize</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
+                <label class="margin-toggle" for="n-root1"></label>
+                <input id="n-root1" class="margin-toggle" type="checkbox"/>
+                <span class="marginnote">
+                    <img src="img/reconstruct-dialog.png" style="border:1px solid black;" alt="image of the reconstruction dialog"/><br />
+                    The node reconstruction dialog box.
+                </span>
+            </p>
+            <p>
+Give the node a label; here I have labelled it <q>root</q>. Then click <code>Add to matrix</code>. This will add a new row to the bottom of the matrix, with the reconstructed text. It may take up to a few minutes to complete.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-5.png">
+            </figure>
+            <p>
+Where the algorithm is able to come up with a definitive reading, it will be displayed in the cell. But if there is more than one possibility, it will give you all possible readings, like so: <q>{dhā, dhe}</q>. In this case, there are two, equally-weighted possibilities: <q>dhā</q> and <q>dhe</q>. Thus, the word here could equally be <q>abhidhāyakena</q> or <q>abhidheyakena</q>. Now, it is up to the philologist to decide the correct reading. But note that, up until this point, every step in the process has been reproducible. In a case such as this, where the reading cannot be determined stematically, it would be appropriate for the editor to include a note in their critical text, stating their choice, and, if, the reasoning behind it is not immediately obvious, a justification.
+            </p>
+        </section>
+        <section>
+            <h2 id="further">Going further</h2>
+            <p>
+Both the software described in this document, as well as this document itself, are in development, and there is much more work to be done. The formal algorithms that we are using date from the 70's, and the techniques — considering Lachmann — from the 19<sup>th</sup> century. But the more data that we produce, in the form of diplomatic transcriptions of manuscripts and stemmatic studies of text traditions, the more we can start to create models of how texts evolve over time, and the better equipped we will be to devise better algorithms to explore them. In this document, I have mainly described the technical elements of textual reconstruction; I have only touched briefly on the philoligical considerations, and given mere hints of the kinds of research questions that we can address using these techniques.
+            </p>
+        </section>
+        <section>
+            <h2 id="bibliography">Bibliography</h2>
+            <p class="biblio" id="b-baldauf2003">Baldauf, Sandra L. 2003. <q>Phylogeny for the faint of heart: a tutorial</q>. <cite>Trends in Genetics</cite> 19(6): 345-351. <a href="https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial">https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial</a>.</p>
+            <p class="biblio" id="b-chin2003">Chin, Francis Y. L. et al. 2003. <q>Efficient Constrained Multiple Sequence Alignment with Performance Guarantee</q>. In <cite>Computational Systems Bioinformatics, Proceedings of the 2003 IEEE Bioinformatics Conferece</cite>. Stanford, CA: IEEE. <a href="https://ieeexplore.ieee.org/document/1227334">https://ieeexplore.ieee.org/document/1227334</a>.</p>
+            <p class="biblio" id="b-fitch1971">Fitch, Walter M. 1971. <q>Defining the course of Evolution: Minimum change for a specific tree topology</q>. <cite>Systematic Zoology</cite> 20:406–416. <a href="https://www.jstor.org/stable/2412116">https://www.jstor.org/stable/2412116</a>.</p>
+            <p class="biblio" id="b-huson2006">Huson, Daniel H. &amp; Bryant, David. 2006. <q>Application of Phylogenetic Networks in Evolutionary Studies</q>. <cite>Molecular Biology and Evolution</cite> 23(2): 254–267. <a href="https://academic.oup.com/mbe/article/23/2/254/1118872">https://academic.oup.com/mbe/article/23/2/254/1118872</a>.</p>
+            <p class="biblio" id="b-maas1958">Maas, Paul. 1958. <cite>Textual Criticism</cite>. Translated by B. Flower. Oxford: Clarendon Press.</p>
+            <p class="biblio" id="b-trovato2014">Trovato, Paolo. 2014. <cite>Everything You Always Wanted to Know about Lachmann’s Method.</cite> Translated by F. Poole. Padova: liberiauniversitaria.it.</p>
+            <p class="biblio" id="b-li2017">Li, Charles. 2017. <q>Critical diplomatic editing: Applying text-critical principles as algorithms.</q> In <cite>Advances in Digital Scholarly Editing,</cite> edited by P. Boot et al, 305-310. Leiden: Sidestone Press. <a href="https://hcommons.org/deposits/item/hc:18259/">https://hcommons.org/deposits/item/hc:18259/</a>.</p>
+            <p class="biblio" id="b-li2018">Li, Charles. 2018. <q>Limits of the real: A hypertext critical edition and translation of Bhartṛhari’s Dravyasamuddeśa, with the commentary of Helārāja.</q> PhD thesis, University of Cambridge. <a href="https://www.repository.cam.ac.uk/handle/1810/284085">https://www.repository.cam.ac.uk/handle/1810/284085</a>.</p>
+            <p class="biblio" id="b-rodriguez2007">Phillips-Rodriguez, Wendy J. 2007. <q>Electronic Techniques of Textual Analysis and Edition for Ancient Texts: an Exploration of the Phylogeny of the Dyūtaparvan</q>. PhD thesis, University of Cambridge.</p>
+    </article>
+</body>
+</html>
