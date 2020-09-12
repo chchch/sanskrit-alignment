@@ -1437,13 +1437,18 @@ const reconstructLemma = function(paths) {
         
     };
 
-    const menuPopulate = function() {
+    const mssMenuPopulate = function() {
         var msshtml = '';
         const mss = [...find.teis()].map(el => el.getAttribute('n'));
-        for(const ms of mss)
+        for(const ms of mss) {
         //    msshtml += `<li data-name="${ms}">${_texts.get(ms).desc}</li>`;
             msshtml += `<li data-name="${ms}">${ms}</li>`;
+        }
         document.getElementById('menu').querySelector('.ms').innerHTML = msshtml;
+    };
+
+    const menuPopulate = function() {
+        mssMenuPopulate();
         const expbox = new menuBox('Export');
         expbox.populate([
             {text: 'TEI XML', func: exp.xml},
@@ -2484,6 +2489,13 @@ const fullTreeClick = function(e) {
                     tree.draw();
                     const hl = find.highlit();
                     if(hl) multi.repopulateTrees(...find.lowhigh(hl));
+
+                    const mslist = document.getElementById('menu').querySelector('.ms');
+                    const liel = document.createElement('li');
+                    liel.setAttribute('data-name',label);
+                    liel.appendChild(document.createTextNode(label));
+                    mslist.appendChild(liel);
+                    
                     edit.doStack([edit.doDeleteRow,[label]],'do');
 
                 }
@@ -2499,6 +2511,7 @@ const fullTreeClick = function(e) {
             htmlrow.parentNode.removeChild(htmlrow);
             xmlrow.parentNode.removeChild(xmlrow);
             view.updateAllHeaders();
+            mssMenuPopulate();
             drawTrees();
             edit.doStack([edit.doUndeleteRow,[htmlrow,xmlrow,index]],doing);
         },
@@ -2516,6 +2529,7 @@ const fullTreeClick = function(e) {
                 trs[index].parentNode.insertBefore(htmlrow,trs[index]);
             }
             view.updateAllHeaders();
+            mssMenuPopulate();
             drawTrees();
             edit.doStack([edit.doDeleteRow,[label]],doing);
         },
