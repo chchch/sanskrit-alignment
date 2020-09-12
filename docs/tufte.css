@@ -163,6 +163,7 @@ p {
     margin-bottom: 1.4rem;
     padding-right: 0;
     vertical-align: baseline;
+    hyphens: auto;
 }
 
 /* Chapter Epigraphs */
@@ -427,6 +428,10 @@ label.margin-toggle:not(.sidenote-number) {
     left: 0;
     width: 100%;
     height: 100%;
+}
+p.biblio {
+    padding-left: 1em;
+    text-indent: -1em;
 }
 
 @media (max-width: 760px) {
