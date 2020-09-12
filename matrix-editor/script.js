@@ -839,7 +839,7 @@ const reconstructLemma = function(paths) {
  `<div id="matrixmenu" class="menubox">
     <div class="heading">Matrix</div>
       <ul>
-        <li>select XML file(s): <input type="file" id="file" name="file" accept=".xml" multiple/></li>
+        <li>select CSV/XML file(s): <input type="file" id="file" name="file" accept=".xml,.csv" multiple/></li>
       </ul>
 </div>
 <div style="display: none" id="mssmenu" class="menubox">
@@ -1106,6 +1106,13 @@ const reconstructLemma = function(paths) {
         reader.onload = func.bind(null,f,fs);
         reader.readAsText(f);
     };
+    
+    const csvOrXml = function(f,fs,e) {
+        _filename = f.name;
+        const ext = _filename.split('.').pop();
+        if(ext === 'csv') csvLoad(f,fs,e);
+        else matrixLoad(f,fs,e);
+    };
 
     const treeFileLoad = function(f,fs,e) {
         const treestr = e.target.result;
@@ -1158,7 +1165,7 @@ const reconstructLemma = function(paths) {
             if(show) newBox.tree(stemmaid,id);
         }
     };
-
+/*
     const csvLoad = function(f,fs,e) {
         _filename = f.name;
         const ext = _filename.split('.').pop();
@@ -1246,7 +1253,13 @@ const reconstructLemma = function(paths) {
                 func: edit.startRemoveCol.bind(null,false)
             },
             {text: 'Delete empty lemmata',
-                func: edit.startRemoveEmpty
+                func: edit.startRemoveEmptyewBox.matrix);
+        matrixmenu.removeChild(matrixmenu.querySelector('ul'));
+        document.getElementById('mssmenu').style.display = 'block';
+        document.getElementById('treemenu').style.display = 'block';
+
+    };
+*
             },
             {text: 'Merge',
                 greyout: check.manyhighlit,
@@ -1306,9 +1319,42 @@ const reconstructLemma = function(paths) {
         document.getElementById('treemenu').style.display = 'block';
 
     };
+*/
+    const csvLoad = function(f,fs,e) {
+        const csvarr = CSV.parse(e.target.result,{delimiter: ","});
+        _xml = document.implementation.createDocument(_teins,'',null);
+        const teicorpus = _xml.createElementNS(_teins,'teiCorpus');
+        const teiheader = _xml.createElementNS(_teins,'teiHeader');
+        teicorpus.appendChild(teiheader);
+        _xml.appendChild(teicorpus);
+
+        for(const c of csvarr) {
+            const name = c[0];
+            const arr = c.slice(1);
+            const tei = _xml.createElementNS(_teins,'TEI');
+            tei.setAttribute('n',name);
+            const text = _xml.createElementNS(_teins,'text');
+            for(let n=0;n<arr.length;n++) {
+                const word = arr[n];
+                const newEl = _xml.createElementNS(_teins,'w');
+                if(word)
+                    newEl.appendChild(document.createTextNode(word));
+                newEl.setAttribute('n',n);
+                text.appendChild(newEl);
+            }
+            tei.appendChild(text);
+            teicorpus.appendChild(tei);
+        }
+        _xml.normalize();
+
+        _maxlemma = find.maxlemma();
+        
+//        if(fs.length > 0) csvLoadAdditional(fs);
+
+        menuPopulate();
+    }
 
     const matrixLoad = function(f,fs,e) {
-        _filename = f.name;
         const xParser = new DOMParser();
         _xml = xParser.parseFromString(e.target.result,'text/xml');
         
@@ -1824,6 +1870,7 @@ const fullTreeClick = function(e) {
         const targ = e.target.classList.contains('lemma') ? 
             e.target :
             e.target.closest('.lemma');
+
         if(targ) {
             if(!skipRight && e.ctrlKey) {
                 rightClick(e);
@@ -1837,6 +1884,7 @@ const fullTreeClick = function(e) {
             view.xScroll(n,matrixrow);
             if(targ.tagName === 'TD')
                 targ.classList.add('highlitcell');
+
         }
     };
 
@@ -2021,13 +2069,13 @@ const fullTreeClick = function(e) {
                     {text: 'merge lemmata',
                         func: edit.startMerge.bind(null,nums)
                     },
-                    {text: 'delete lemmata',
-                        func: edit.startRemoveCol.bind(null,nums)
-                    },
                     {text: 'ungroup lemmata',
                         alt: 'group lemmata',
                         toggle: check.grouped,
                         func: edit.startGroup.bind(null,false)
+                    },
+                    {text: 'delete lemmata',
+                        func: edit.startRemoveCol.bind(null,nums)
                     },
                     /*                {text: 'insignificant',
                  cond: check.checkbox.bind(null,'insignificant',nums),
@@ -2039,11 +2087,11 @@ const fullTreeClick = function(e) {
                 }, */
                 ] : 
                 [
-                    {text: 'delete lemma',
-                        func: edit.startRemoveCol.bind(null,nums)
-                    },
                     {text: 'edit reading',
                         func: edit.startEditCell.bind(null,td)
+                    },
+                    {text: 'delete lemma',
+                        func: edit.startRemoveCol.bind(null,nums)
                     },
                     /*                {text: 'insignificant',
                  cond: check.checkbox.bind(null,'insignificant',nums),
@@ -2060,7 +2108,7 @@ const fullTreeClick = function(e) {
             contextMenu.show(menu);
         }
     };
-
+    
     const matrixHeaderClick = function(e) {
         if(e.target.tagName !== 'INPUT') return;
         const type = e.target.className;
@@ -2228,6 +2276,11 @@ const fullTreeClick = function(e) {
             cell.contentEditable = 'true';
             cell.focus();
             _editing = true;
+            const range = document.createRange();
+            range.selectNodeContents(cell);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
             cell.addEventListener('blur',edit.finishEditCell);
             cell.addEventListener('keydown',edit.cellKeyDown);
         },
@@ -4874,7 +4927,7 @@ const fullTreeClick = function(e) {
             document.getElementById('comboview').style.display = 'block';
             comboView.init();
             fillSelector();
-            document.getElementById('file').addEventListener('change',fileSelect.bind(null,matrixLoad),false);
+            document.getElementById('file').addEventListener('change',fileSelect.bind(null,csvOrXml),false);
         },
         init: function() {
         /*
