@@ -374,14 +374,7 @@ In order to use our tree in the matrix-editor, we need to export it to <a href="
                 <img src="img/splitstree-6.png">
             </figure>
             <p>
-The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/exported-from-splitstree.xml"><code>example/trees/exported-from-splitstree.xml</code></a>. However, this exported file is lacking in a few respects:
-            </p>
-            <ol>
-                <li>it needs the top-level <code>&lt;nex:nexml&gt;</code> tag, and</li>
-                <li>the nodes for our witnesses need to have their siglum as the <code>@label</code> attribute.</li>
-            </ol>
-            <p>
-Practically, this means that the beginning of the file needs this:
+The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/exported-from-splitstree.xml"><code>example/trees/exported-from-splitstree.xml</code></a>. However, SplitsTree5 seems to export a fragment of a file; it's missing the top-level <code>&lt;nex:nexml&gt;</code> tag. Practically, this means that the beginning of the file needs this:
             </p>
             <blockquote>
                 <code>
