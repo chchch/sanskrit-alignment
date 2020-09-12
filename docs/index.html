@@ -374,7 +374,7 @@ In order to use our tree in the matrix-editor, we need to export it to <a href="
                 <img src="img/splitstree-6.png">
             </figure>
             <p>
-The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/exported-from-splitstree.xml"><code>example/exported-from-splitstree.xml</code></a>. However, this exported file is lacking in a few respects:
+The exported tree from the example data can be found at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/exported-from-splitstree.xml"><code>example/trees/exported-from-splitstree.xml</code></a>. However, this exported file is lacking in a few respects:
             </p>
             <ol>
                 <li>it needs the top-level <code>&lt;nex:nexml&gt;</code> tag, and</li>
@@ -397,7 +397,7 @@ xmlns:xsd="http://www.w3.org/2001/XMLSchema#"&gt;
             <p>
 And the end of the file needs <code>&lt;/nex:nexml&gt;</code>.
             </p>
-            <p>
+            <!--p>
 In addition, for each <code>&lt;node&gt;</code> that is one of our witnesses, change
             </p>
             <blockquote>
@@ -413,8 +413,8 @@ to this:
 &lt;node id="n1" <span style="font-weight:bold">label="GV"</span> otu="GV"/&gt;
                 </code>
             </blockquote>        
-            <p>
-To see the file with all of the requisite changes, look at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/rooted-tree.xml"><code>example/rooted-tree.xml</code></a>.
+            <p-->
+To see the file with all of the requisite changes, look at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/rooted-tree.xml"><code>example/trees/rooted-tree.xml</code></a>.
             </p>
         </section>
         <section>
@@ -436,7 +436,7 @@ As I mentioned previously, I hypothesized there to be two main branches in this 
                 <img src="img/matrix-editor-4.png">
             </figure>
             <p>
-I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</sub> as my outgroup (this file is available at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/alternative-rooted-tree.xml"><code>example/alternative-rooted-tree.xml</code></a>). Now, both readings, <q>kya</q> and <q>dhya</q>, are equally weighted.<label class="margin-toggle sidenote-number" for="n-maas1"></label><input type="checkbox" id="n-maas1" class="margin-toggle" /><span class="sidenote">This is exactly the situation described in <a href="#b-maas1958">Maas 1958, 6</a>: <q>The reconstruction of α is a different matter. If its tradition has two branches only, β and γ, and β and γ agree, we have the text of α. If they do not agree, then either of the two readings may be the text of α; we have here <em>variants</em>, between which it is not possible to decide on the lines of our procedure hitherto.</q></span>
+I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</sub> as my outgroup (this file is available at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/trees/alternative-rooted-tree.xml"><code>example/trees/alternative-rooted-tree.xml</code></a>). Now, both readings, <q>kya</q> and <q>dhya</q>, are equally weighted.<label class="margin-toggle sidenote-number" for="n-maas1"></label><input type="checkbox" id="n-maas1" class="margin-toggle" /><span class="sidenote">This is exactly the situation described in <a href="#b-maas1958">Maas 1958, 6</a>: <q>The reconstruction of α is a different matter. If its tradition has two branches only, β and γ, and β and γ agree, we have the text of α. If they do not agree, then either of the two readings may be the text of α; we have here <em>variants</em>, between which it is not possible to decide on the lines of our procedure hitherto.</q></span>
             </p>
             <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
             <p>
