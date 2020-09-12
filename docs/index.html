@@ -188,7 +188,7 @@ If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, 
                 </ol>
             </p>
             <p>
-You should end up with a zip archive full of <code>.fas</code> files, as in the directory <a href="https://github.com/chchch/sanskrit-alignment/master/tree/example/fasta/"><code>example/fasta/</code></a>. Files starting with <em>c</em> are paragraphs from the commentary, and files starting with <em>v</em> are verses from the <cite>Dravyasamuddeśa</cite>.
+You should end up with a zip archive full of <code>.fas</code> files, as in the directory <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fasta/"><code>example/fasta/</code></a>. Files starting with <em>c</em> are paragraphs from the commentary, and files starting with <em>v</em> are verses from the <cite>Dravyasamuddeśa</cite>.
             </p>
             <h3 id="aligment-prep">Preparing the alignment tool</h3>
             <p>
@@ -208,10 +208,10 @@ Now, we are ready to align our texts.
                 <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
                 The substitution matrix, colour-coded, displayed in LibreOffice Calc.
             </span>
-Helayo can optionally use a <em>substitution matrix</em> in order to improve the alignment. This is highly recommended. The matrix is a spreadsheet that gives different weights to different alignments. I have provided a simple matrix (<a href="https://github.com/chchch/sanskrit-alignment/master/tree/helayo/substitution_matrix.csv"><code>substitution_matrix.csv</code></a>) that tries to align vowels with vowels and consonants with consonants. For example, if the software tries to align <em>t</em> with <em>ā</em>, that alignment will be given the score -3. But if it tries to align <em>t</em> with <em>g</em>, that alignment will be given the score -2. Both are considered as mismatches, but mismatches between consonants and vowels are given a higher penalty.
+Helayo can optionally use a <em>substitution matrix</em> in order to improve the alignment. This is highly recommended. The matrix is a spreadsheet that gives different weights to different alignments. I have provided a simple matrix (<a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/substitution_matrix.csv"><code>substitution_matrix.csv</code></a>) that tries to align vowels with vowels and consonants with consonants. For example, if the software tries to align <em>t</em> with <em>ā</em>, that alignment will be given the score -3. But if it tries to align <em>t</em> with <em>g</em>, that alignment will be given the score -2. Both are considered as mismatches, but mismatches between consonants and vowels are given a higher penalty.
             </p>
             <p>
-You can edit the substition matrix in any spreadsheet software (LibreOffice Calc, Microsoft Excel, etc.) and save it as a <code>csv</code> file. See the <a href="https://github.com/chchch/sanskrit-alignment/master/tree/csv2mafft/README.md"><code>csv2mafft/</code></a> directory for more details.
+You can edit the substition matrix in any spreadsheet software (LibreOffice Calc, Microsoft Excel, etc.) and save it as a <code>csv</code> file. See the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/csv2mafft/README.md"><code>csv2mafft/</code></a> directory for more details.
             </p>
             <h3 id="alignment-using">Using the alignment tool</h3>
             <p>
