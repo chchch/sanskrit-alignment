@@ -19,7 +19,7 @@
     The tutorial assumes some knowledge of both Sanskrit philology and phylogeny. For a short, gentle introduction to phylogeny, see <a href="https://www.researchgate.net/publication/10712132_Phylogeny_for_the_faint_of_heart_A_tutorial">Baldauf 2003, <q>Phylogeny for the faint of heart: a tutorial</q></a>.
                 </p>
                 <p>
-    The <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor">matrix-editor</a> had its beginnings in 2019, as part of the <cite>Vetālapañcaviṃśati</cite> project at the University of British Columbia, led by <a href="https://asia.ubc.ca/profile/adheesh-sathaye/">Adheesh Sathaye</a>. The <a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo">sequence aligner</a> was made possible by the Government of Canada, through the COVID-19 <a href="https://www.canada.ca/en/services/benefits/ei/cerb-application.html">Canada Emergency Response Benefit</a> in 2020.
+    The <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor">matrix-editor</a> had its beginnings in 2019, as part of the project, <q>A Cultural and Textual History of Sanskrit Riddle-Tales: A Digital Humanities Approach</q> at the University of British Columbia, led by <a href="https://asia.ubc.ca/profile/adheesh-sathaye/">Adheesh Sathaye</a>, supported by the Social Sciences and Humanities Research Council. The <a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo">sequence aligner</a> was made possible by the Government of Canada, through the COVID-19 <a href="https://www.canada.ca/en/services/benefits/ei/cerb-application.html">Canada Emergency Response Benefit</a> in 2020.
                 <p>
                 <p>
     <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a> This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. Its change history can be accessed through GitHub as part of the <a href="https://github.com/chchch/sanskrit-alignment">sanskrit-alignment GitHub repository</a>. It is under active revision. If you have any comments, suggestions, corrections, or other changes, don't hesitate to contact me or to create an <a href="https://github.com/chchch/sanskrit-alignment/issues">issue</a> or submit a <a href="https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests">pull request</a>.
@@ -136,7 +136,7 @@ You will need to download the files in the <a href="https://github.com/chchch/sa
         <section>
             <h2 id="transcription">Transcription</h2>
             <p>
-            <label class="margin-toggle" for="n-ms1"></label>
+            <label class="margin-toggle" for="n-ms1">⊕</label>
             <input id="n-ms1" class="margin-toggle" type="checkbox"/>
             <span class="marginnote">
                 <img src="img/rori-ms-4781-small.png" alt="image of a manuscript"/>
@@ -179,7 +179,7 @@ If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, 
                     <li>In the left-hand sidebar, under <q>Other witnesses</q>, select all of the other witnesses that you want in your alignment. You probably want to omit edited texts.</li>
                     <li>Click <q>Generate apparatus</q>.</li>
                     <li>
-                        <label class="margin-toggle" for="n-alignment2"></label><input id="n-alignment2" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/fastt.png" style="border: 1px solid black" alt="the FASTT export dialog box"/><br/>The FASTT export dialog.</span>
+                        <label class="margin-toggle" for="n-alignment2">⊕</label><input id="n-alignment2" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/fastt.png" style="border: 1px solid black" alt="the FASTT export dialog box"/><br/>The FASTT export dialog.</span>
                         In the toolbar on the right-hand side, click <q>Export As...</q> and choose <q>FASTT</q>. This is an ad-hoc acronym for <q>FASTA for Texts</q>.</li>
                     <li>In the options, select the range of the text that you want to align. The start node is the first paragraph/verse included, and the end node ls the last paragraph/verse.</li>
                     <li>If the text is long, you will want to have separate files for each node (as in the tutorial files).</li>
@@ -202,7 +202,7 @@ Now, we are ready to align our texts.
             </p>
             <h3 id="alignment-matrix">The substitution matrix</h3>
             <p>
-            <label class="margin-toggle" for="n-alignment2"></label>
+            <label class="margin-toggle" for="n-alignment2">⊕</label>
             <input id="n-alignment2" class="margin-toggle" type="checkbox"/>
             <span class="marginnote">
                 <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
@@ -306,7 +306,7 @@ There may be some minor mis-alignments; the matrix-editor contains some basic fu
 It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data.
             </p>
             <p>
-<label class="margin-toggle" for="n-alignment3"></label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
+<label class="margin-toggle" for="n-alignment3">⊕</label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
 When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
             </p>
             <p>
@@ -434,7 +434,7 @@ I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</su
             <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
             <p>
 Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalize</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
-                <label class="margin-toggle" for="n-root1"></label>
+                <label class="margin-toggle" for="n-root1">⊕</label>
                 <input id="n-root1" class="margin-toggle" type="checkbox"/>
                 <span class="marginnote">
                     <img src="img/reconstruct-dialog.png" style="border:1px solid black;" alt="image of the reconstruction dialog"/><br />
