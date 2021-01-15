@@ -145,7 +145,7 @@ filters = [
     Filter {
         filterDesc = "kcch/kś",
         filterSearch = "k\\s*(?:S|c?C)",
-        filterReplace = (const "KS")
+        filterReplace = (const "kS")
     },
     Filter {
         filterDesc = "cch/ch/cś/tś",
