@@ -1000,6 +1000,11 @@ const reconstructLemma = function(paths) {
                 }
             });
         },
+        
+        highlightAll: function() {
+            if(check.anyhighlit()) multi.unHighlightAll();
+            else multiHighlight(new Set([0,find.maxlemma()]));
+        },
 
         unHighlightAll: function() {
             multi.forEachWindow(win => {
@@ -1459,6 +1464,11 @@ const reconstructLemma = function(paths) {
         editbox.populate([
             {text: 'Undo', greyout: check.undo, func: edit.undo},
             {text: 'Redo', greyout: check.redo, func: edit.redo},
+            {text: 'Select all',
+                alt: 'Deselect all',
+                toggle: check.anyhighlit,
+                func: multi.highlightAll
+            },
             {text: 'Delete',
                 greyout: check.anyhighlit,
                 func: edit.startRemoveCol.bind(null,false)
@@ -1641,12 +1651,25 @@ END;
                     el.parentNode.removeChild(el);
             }
             if(opts.get('option_binary')) {
+                /*
                 const els = doc.querySelectorAll('w[binary="true"]');
                 const nonempty = [...els].filter(el => el.textContent !== '');
+                if(!nonempty) return;
+                
                 const placeholder = '['+nonempty[0].textContent+']';
                 for(const el of nonempty)
                     el.textContent = placeholder;
-
+                */
+                const firstrow = find.firsttext().querySelectorAll('w[binary="true"]');
+                const nums = [...firstrow].map(el => el.getAttribute('n'));
+                for(const num of nums) {
+                    const els = doc.querySelectorAll(`w[n="${num}"]`);
+                    const nonempty = [...els].filter(el => el.textContent !== '');
+                    if(nonempty.length === 0) continue;
+                    const placeholder = `[${nonempty[0].textContent}]`;
+                    for(const el of nonempty)
+                        el.textContent = placeholder;
+                }
             }
             if(opts.get('option_noempty')) {
                 const els = doc.querySelectorAll('w');
@@ -3089,6 +3112,7 @@ const fullTreeClick = function(e) {
     
         normalizeAll: function() {
             return false;
+            /*
             const htmlrows = [...find.trs()];
             const xmlrows = [...find.texts()];
             for(let n=0;n<xmlrows.length;n++) {
@@ -3109,6 +3133,7 @@ const fullTreeClick = function(e) {
                     word = words[i];
                 }
             }
+            */
             //_normalization = true;
             //const normalized = _matrix.boxdiv.querySelectorAll('td[data-normal]');
             /*        const normalized = find.normal();
