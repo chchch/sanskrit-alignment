@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 4 May 2021.</p>
+        <p>Last updated: 22 May 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -278,10 +278,10 @@ These options can be changed with the <code>-M</code> (match), <code>-m</code> (
             </p>
             <h3 id="alignment-multiple">Working with multiple files</h3>
             <p>
-If you used the <code>Separate files for each node</code> option when exporting from saktumiva.org, then you might have a lot of files. You can run a simple command to align all the <code>.fas</code> files in a directory, and output them into a new directory. For example, to align all of the files in the <code>example/fasta/</code> directory, and output them to the <code>example/xml/</code> directory, run
+If you used the <code>Separate files for each node</code> option when exporting from saktumiva.org, then you might have a lot of files. You can run a simple command to align all the <code>.fas</code> files in a directory, and output them into a new directory. For example, to align all of the files in the <code>example/fasta/</code> directory, using akṣara alignment, and output them to the <code>example/xml/</code> directory, run
             </p>
             <blockquote>
-                <code>for f in ../example/fasta/*.fas; do stack exec helayo-exe -- -x substitution_matrix.csv -f ${f} &gt; ../example/xml/$(basename $f fas)xml; done</code>
+                <code>for f in ../example/fasta/*.fas; do stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f ${f} &gt; ../example/xml/$(basename $f fas)xml; done</code>
             </blockquote>
             <p>
 WARNING: Especially when you have a lot of files, this is very slow. For the purposes of this tutorial, the <code>example/xml/</code> directory has already been pre-filled with files aligned with the <code>-l aksara</code> option.
