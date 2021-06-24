@@ -1,4 +1,6 @@
-<nex:nexml xmlns="http://www.nexml.org/2009" xsi:schemaLocation="http://www.nexml.org/2009 http://www.nexml.org/2009/nexml.xsd" xmlns:nex="http://www.nexml.org/2009" xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+<?xml version="1.0" ?>
+<nex:nexml generator="SplitsTree5" version="0.9" xmlns:nex="http://www.nexml.org/2009" xmlns="http://www.nexml.org/2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sp5="https://github.com/danielhuson/splitstree5">
+
 	<otus id="otus1" label="TaxaBlock">
 		<otu id="otu1" label="GV"/>
 		<otu id="otu2" label="CT"/>
@@ -18,59 +20,59 @@
 	
 	<trees otus="otus1" id="trees1" label="TreesBlock">
 		<tree id="tree1" label="tree1" xsi:type="nex:FloatTree">
-			<node id="n1" label="GV" otu="GV"/>
-			<node id="n2" label="CT" otu="CT"/>
-			<node id="n3" label="T" otu="T"/>
-			<node id="n4" label="H" otu="H"/>
-			<node id="n5" label="P" otu="P"/>
-			<node id="n6" label="M" otu="M"/>
-			<node id="n7" label="G2" otu="G2"/>
-			<node id="n8" label="G1" otu="G1"/>
-			<node id="n9" label="L" otu="L"/>
-			<node id="n10" label="O" otu="O"/>
-			<node id="n11" label="A" otu="A"/>
-			<node id="n12" label="V" otu="V"/>
-			<node id="n13" label="K" otu="K"/>
-			<node id="n14" label="D" otu="D"/>
-			<node id="n15" label="n15"/>
-			<node id="n16" label="n16"/>
-			<node id="n17" label="n17"/>
-			<node id="n18" label="n18"/>
-			<node id="n19" label="n19"/>
-			<node id="n20" label="n20"/>
-			<node id="n21" label="n21"/>
-			<node id="n22" label="n22"/>
-			<node id="n23" label="n23"/>
-			<node id="n24" label="n24"/>
-			<node id="n25" label="n25"/>
-			<node id="n26" label="n26"/>
-			<node id="n27" label="n27" root="true"/>
-			<edge source="n15" target="n7" id="e1" length="0.0"/>
-			<edge source="n15" target="n8" id="e2" length="0.013975512460786182"/>
-			<edge source="n16" target="n1" id="e3" length="0.0"/>
-			<edge source="n16" target="n5" id="e4" length="0.019413412311087633"/>
-			<edge source="n17" target="n16" id="e5" length="0.03337323178598971"/>
-			<edge source="n17" target="n6" id="e6" length="0.014995470844464676"/>
-			<edge source="n18" target="n12" id="e7" length="0.009121352625321287"/>
-			<edge source="n18" target="n13" id="e8" length="0.003353894899431213"/>
-			<edge source="n19" target="n2" id="e9" length="0.027796699034850103"/>
-			<edge source="n19" target="n3" id="e10" length="0.03082399062032229"/>
-			<edge source="n20" target="n19" id="e11" length="0.012640998443867277"/>
-			<edge source="n20" target="n4" id="e12" length="0.03956800257449951"/>
-			<edge source="n21" target="n17" id="e13" length="0.04932337355491396"/>
-			<edge source="n22" target="n15" id="e15" length="0.14924890383861236"/>
-			<edge source="n22" target="n9" id="e16" length="0.02617196717415264"/>
-			<edge source="n23" target="n22" id="e17" length="0.005104515462003224"/>
-			<edge source="n23" target="n10" id="e18" length="0.02468299462237259"/>
-			<edge source="n21" target="n24" id="e19" length="0.015748729937456272"/>
-			<edge source="n24" target="n23" id="e20" length="0.011795431829686277"/>
-			<edge source="n24" target="n25" id="e21" length="0.008073107114443649"/>
-			<edge source="n25" target="n14" id="e22" length="0.006196776757114435"/>
-			<edge source="n25" target="n26" id="e23" length="0.001188972591434058"/>
-			<edge source="n26" target="n18" id="e24" length="0.03773309097693306"/>
-			<edge source="n26" target="n11" id="e25" length="0.029944956460453004"/>
-			<edge source="n27" target="n21" id="e26" length="0.008377313057395148"/>
-			<edge source="n27" target="n20" id="e27" length="0.0022847217429259395"/>
+			<node id="n1" label="GV" otu="otu1"/>
+			<node id="n2" label="CT" otu="otu2"/>
+			<node id="n3" label="T" otu="otu3"/>
+			<node id="n4" label="H" otu="otu4"/>
+			<node id="n5" label="P" otu="otu5"/>
+			<node id="n6" label="M" otu="otu6"/>
+			<node id="n7" label="G2" otu="otu7"/>
+			<node id="n8" label="G1" otu="otu8"/>
+			<node id="n9" label="L" otu="otu9"/>
+			<node id="n10" label="O" otu="otu10"/>
+			<node id="n11" label="A" otu="otu11"/>
+			<node id="n12" label="V" otu="otu12"/>
+			<node id="n13" label="K" otu="otu13"/>
+			<node id="n14" label="D" otu="otu14"/>
+			<node id="n15"/>
+			<node id="n16"/>
+			<node id="n17"/>
+			<node id="n18"/>
+			<node id="n19"/>
+			<node id="n20"/>
+			<node id="n21"/>
+			<node id="n22"/>
+			<node id="n23"/>
+			<node id="n24"/>
+			<node id="n25"/>
+			<node id="n26"/>
+			<node id="n27" root="true"/>
+			<edge source="n15" target="n7" id="e1" length="-0.005418052896857262"/>
+			<edge source="n15" target="n8" id="e2" length="0.013975510373711586"/>
+			<edge source="n16" target="n1" id="e3" length="-0.001854141242802143"/>
+			<edge source="n16" target="n5" id="e4" length="0.019413404166698456"/>
+			<edge source="n17" target="n16" id="e5" length="0.03337322548031807"/>
+			<edge source="n17" target="n6" id="e6" length="0.014995478093624115"/>
+			<edge source="n18" target="n12" id="e7" length="0.009121359325945377"/>
+			<edge source="n18" target="n13" id="e8" length="0.0033538881689310074"/>
+			<edge source="n19" target="n2" id="e9" length="0.027796711772680283"/>
+			<edge source="n19" target="n3" id="e10" length="0.030823979526758194"/>
+			<edge source="n20" target="n19" id="e11" length="0.01264100056141615"/>
+			<edge source="n20" target="n4" id="e12" length="0.03956800326704979"/>
+			<edge source="n21" target="n17" id="e13" length="0.04932337999343872"/>
+			<edge source="n22" target="n15" id="e14" length="0.1492488980293274"/>
+			<edge source="n22" target="n9" id="e15" length="0.026171967387199402"/>
+			<edge source="n23" target="n22" id="e16" length="0.005104511976242065"/>
+			<edge source="n23" target="n10" id="e17" length="0.024682998657226562"/>
+			<edge source="n21" target="n24" id="e18" length="0.015748729929327965"/>
+			<edge source="n24" target="n23" id="e19" length="0.01179543323814869"/>
+			<edge source="n24" target="n25" id="e20" length="0.008073142729699612"/>
+			<edge source="n25" target="n14" id="e21" length="0.006196736358106136"/>
+			<edge source="n25" target="n26" id="e22" length="0.0011890009045600891"/>
+			<edge source="n26" target="n18" id="e23" length="0.037733063101768494"/>
+			<edge source="n26" target="n11" id="e24" length="0.02994496002793312"/>
+			<edge source="n27" target="n21" id="e25" length="0.008377306695495329"/>
+			<edge source="n27" target="n20" id="e26" length="0.0022847200078623675"/>
 		</tree>
 	</trees>
 </nex:nexml>
