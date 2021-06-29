@@ -99,6 +99,10 @@ svg text {
     vertical-align: bottom;
 }
 
+.internal .orphan {
+    color: rgba(0,0,0,0.5);
+}
+
 .internal {
     display: inline-block;
     position: relative;
@@ -484,15 +488,18 @@ td.pending {
 .matrix td.group-start {
     border-right: 0;
     border-left: 4px solid #e5e9f5;
+    padding-right: 0;
 }
 .matrix td.group-internal {
     border-left: 0;
     border-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 .matrix td.group-end {
     border-left: 0;
     border-right: 4px solid #e5e9f5;
-
+    padding-left: 0;
 }
 
 #views.normalized .lemma[data-normal], #views.normalized .tree-lemma[data-normal] {
