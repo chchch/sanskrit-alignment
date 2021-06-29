@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 24 June 2021.</p>
+        <p>Last updated: 29 June 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -59,6 +59,7 @@
                         <ul>
                             <li><a href="#reconstruction-lemma">Reconstructing a single lemma</a></li>
                             <li><a href="#reconstruction-passage">Reconstructing an entire passage</a></li>
+                            <li><a href="#export-apparatus">Exporting a critical apparatus</a></li>
                         </ul>
                     </li>
                     <li><a href="#further">Going further</a></li>
@@ -453,6 +454,23 @@ Where the algorithm is able to come up with a definitive reading, it will be dis
             <figure>
                 <img src="img/matrix-editor-6.png">
             </figure>
+            <h3 id="export-apparatus">Exporting a critical apparatus</h3>
+            <p>
+After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group words</code> command in the <code>Edit</code> menu. This function tries to group words together using the whitespace between lemmata as cues.
+            </p>
+            <figure>
+                <img src="img/matrix-editor-grouped-words.png">
+            </figure>
+            <p>
+The results will differ depending on whether characters or akṣaras are being grouped. In this example, <code>a rtha va stva bhi dhā ya ke na</code> has been grouped together as <q>arthavastvabhidhāyakena</q>. However, if we had done a character-based alignment, <code>a r th a v a s t v a bh i dh ā y a k e n a</code> would have been split into <q>arthavastv</q> and <q>abhidhāyakena</q>.
+            </p>
+            <p>
+<label class="margin-toggle" for="n-export-apparatus">⊕</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
+Once you are satisfied with the groupings, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
+            </p>
+            <p>
+The resulting TEI XML file can then be edited — for example, you may wish to prune the apparatus so that only the most important variants are shown. Since all of the manuscript witnesses have been transcribed already and can be compared using tools like <a href="https://saktumiva.org/">saktumiva.org</a>, this <q>curated</q> apparatus can be a useful way to focus on certain textual issues, while still having a fully positive apparatus available to the reader.
+            </p>
         </section>
         <section>
             <h2 id="further">Going further</h2>
