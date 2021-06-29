@@ -73,6 +73,240 @@ filters = [
     },
     Filter {
         filterDesc = "additional punctuation",
+        filterSearch = "[()\\[\\],;?!|_\\-=+\\d.\"\\\\/]+",
+        filterReplace = (const "")
+    },
+    Filter {
+        filterDesc = "geminated aspirated consonants",
+        filterSearch = "(?:kK|gG|cC|jJ|wW|qQ|tT|dD|pP|bB)",
+        filterReplace = (\mt -> tail . fst $ mt ! 0)
+    },
+    Filter {
+        filterDesc = "geminated m after h",
+        filterSearch = "(?:Mhm|hmm)",
+        filterReplace = (const "hm")
+    },
+    Filter {
+        filterDesc = "geminated t",
+        filterSearch = "(?<=[rfi]|p[aA])tt|tt(?=[rvy]\\S)",
+        filterReplace = (const "t")
+    },
+    Filter { 
+        filterSearch = "([rf]\\s*)([kgcjwqdpbRnmyvl])\\2{1,2}", 
+        filterReplace = (\mt -> (fst $ mt ! 1) ++ (fst $ mt ! 2)),
+        filterDesc = "geminated consonants after r"
+    },
+    Filter {
+        filterDesc = "final nasal variants",
+        filterSearch = "(?:M[lSs]|nn)(?!\\S)",
+        filterReplace = (const "n")
+    },
+    
+    Filter {
+        filterDesc = "internal nasal variants",
+        filterSearch = "[mnNYR](?=[pPbBmdDtTnwWqQcCjJkKgG])",
+        filterReplace = (const "M")
+    },
+    {-
+    Filter {
+        filterDesc = "internal m",
+        filterSearch = "M(?=[pPbBm])",
+        filterReplace = (const "m")
+    },
+    Filter {
+        filterDesc = "internal n",
+        filterSearch = "M(?=[dDtTn])",
+        filterReplace = (const "n")
+    },
+    Filter {
+        filterDesc = "internal ṇ",
+        filterSearch = "M(?=[wWqQR])",
+        filterReplace = (const "R")
+    },
+    Filter {
+        filterDesc = "internal ñ",
+        filterSearch = "M(?=[cCjJ])",
+        filterReplace = (const "Y")
+    },
+    Filter {
+        filterDesc = "internal ṅ",
+        filterSearch = "M(?=[kKgG])",
+        filterReplace = (const "N")
+    },
+    -}
+    Filter {
+        filterDesc = "final anusvāra variants", -- A 8.4.59
+        --filterSearch = "M?[mN](?!\\S)|(?<=k[aiu])n(?=\\s+t)|(?<=[aiu])Y(?=\\s+[jc])",
+        filterSearch = "M?[mN](?!\\S)|n(?=\\s+[tdn])|Y(?=\\s+[jc])",
+        filterReplace = (const "M")
+    }, 
+    Filter {
+        filterDesc = "visarga aḥ before voiced consonants",
+        filterSearch = "(?<!\\sB)(?:a[Hr]|[o])(?=\\s+['gGjJqQdDnbBmrylvh])", -- ignore bho
+        filterReplace = (const "aH")
+    },
+    Filter {
+        filterDesc = "visarga aḥ before vowels",
+        filterSearch = "aH(?=\\s+[AiIeuUof])",
+        filterReplace = (const "a")
+    },
+    Filter {
+        filterDesc = "visarga aḥ before unvoiced consonants",
+        filterSearch = "o\\s+(?=[kKcCwWtTpPszS])",
+        filterReplace = (const "aH a")
+    },
+    Filter {
+        filterDesc = "visarga āḥ variants",
+        filterSearch = "AH(?=\\s+[aAiIeEuUogGjJqQdDbBnmyrlvh])",
+        filterReplace = (const "A")
+    },
+    Filter {
+        filterDesc = "other visarga variants",
+        filterSearch = "H?[rszS](?!\\S)",
+        filterReplace = (const "H")
+    },
+    Filter {
+        filterDesc = "avagrahas",
+        filterSearch = "'",
+        filterReplace = (const "a")
+    },
+    {-
+    Filter {
+        filterDesc = "catch remaining visargas",
+        --filterSearch = "H?[rszS]?(?!\\S)",
+        filterSearch = "H(?!\\S)",
+        filterReplace = (const "s")
+    },
+    -}
+    Filter {
+        filterDesc = "internal visarga variants",
+        --filterSearch = "(?<=u)z|z(?=k)|s(?=s)",
+        filterSearch = "z(?=[kK])|s(?=s)",
+        filterReplace = (const "H")
+    },
+    Filter {
+        filterDesc = "final au/āv",
+        filterSearch = "Av(?!\\S)",
+        filterReplace = (const "O")
+    },
+    Filter {
+        filterDesc = "final su",
+        filterSearch = "(?<=[sz])v(?=\\s+[aAiIuUoOeE])",
+        filterReplace = (const "u")
+    },
+    Filter {
+        filterDesc = "final i",
+        filterSearch = "i(?=\\s+[aAuUoOeE])",
+        filterReplace = (const "y")
+    },
+    Filter {
+        filterDesc = "kcch/kś",
+        filterSearch = "k(\\s*)(?:S|c?C)",
+        filterReplace = (\mt -> 'k':(fst $ mt ! 0) ++ "S")
+        --filterReplace = (const "kS")
+    },
+    {-
+    Filter {
+        filterDesc = "cch/ch/cś/tś",
+        filterSearch = "c\\s*[CS]|t\\s+S",
+        filterReplace = (const "C")
+    },
+    -}
+    {-
+    Filter {
+        filterDesc = "c ch/t ś",
+        filterSearch = "c\\s+C",
+        filterReplace = (const "t ś")
+    },
+
+    Filter {
+        filterDesc = "cś/tś",
+        filterSearch = "c(\\s*)S",
+        filterReplace = (\mt -> 't':(fst $ mt ! 0) ++ "S")
+    },
+    -}
+    Filter {
+        filterDesc = "cś/tś",
+        filterSearch = "[tc](\\s*)S",
+        filterReplace = (\mt -> 'c':(fst $ mt ! 1) ++ "C")
+    },
+    Filter {
+        filterDesc = "cch/ch",
+        filterSearch = "(?<=[aAiIuUeEoO])C",
+        filterReplace = (const "cC")
+    },
+    Filter {
+        filterDesc = "final t + voiced syllable", -- different rule for t + h = ddh
+        filterSearch = "d(?=(?:\\s+[aAiIeuUogGdDbByrv]|\\s*$))",
+        filterReplace = (const "t")
+    },
+    Filter {
+        filterDesc = "final t + n/m",
+        --filterSearch = "t(?=\\s[nm])",
+        filterSearch = "(?<=[ai])n(?=\\s+[nm])",
+        filterReplace = (const "t")
+    },
+    Filter {
+        filterDesc = "final t + c/j",
+        filterSearch = "j(?=\\s+j)|c(?=\\s+c)",
+        filterReplace = (const "t")
+    },
+{-    Filter {    
+        filterDesc = "i/y + vowel",
+        filterSearch = "y(?=\\s+[aAuUeo])",
+        filterReplace = (const "i")
+    },
+-}
+    Filter {
+        filterDesc = "bhd for bdh",
+        filterSearch = "Bd",
+        filterReplace = (const "bD")
+    }
+    ]
+
+filters' = [
+    Filter {
+        filterDesc = "valapalagilaka",
+        filterSearch = "&#7769;",
+        filterReplace = (const "r")
+    },
+    Filter {
+        filterDesc = "pṛṣṭhamātrā e",
+        filterSearch = "&#234;",
+        filterReplace = (const "e")
+    },
+    Filter {
+        filterDesc = "pṛṣṭhamātrā o",
+        filterSearch = "&#244;",
+        filterReplace = (const "o")
+    },
+    Filter {
+        filterDesc = "pṛṣṭhamātrā ai",
+        filterSearch = "a&#238;",
+        filterReplace = (const "E")
+    },
+    Filter {
+        filterDesc = "pṛṣṭhamātrā au",
+        filterSearch = "a&#251;",
+        filterReplace = (const "O")
+    },
+    Filter {
+        filterDesc = "candrabindu",
+        filterSearch = "m&#784;",
+        filterReplace = (const "M")
+    },
+    Filter {
+        filterDesc = "oṃkāras",
+        filterSearch = "o&#774[35];",
+        filterReplace = (const "oM")
+    },
+    Filter {
+        filterDesc = "non-ASCII characters",
+        filterSearch ="&#\\d+;",
+        filterReplace = (const "")
+    },
+    Filter {
+        filterDesc = "additional punctuation",
         filterSearch = "['()\\[\\],;'|_\\-=\\d'.\"\\\\/]+",
         filterReplace = (const "")
     },
@@ -108,12 +342,12 @@ filters = [
     },
     Filter {
         filterDesc = "visarga āḥ variants",
-        filterSearch = "AH(?=\\s[aAiIeEuUogGjJqQdDbBnmyrlvh])",
+        filterSearch = "AH(?=\\s+[aAiIeEuUogGjJqQdDbBnmyrlvh])",
         filterReplace = (const "A")
     },
     Filter {
         filterDesc = "final anusvāra variants", -- A 8.4.59
-        filterSearch = "M?[mN](?!\\S)|(?<=k[ai])n(?=\\st)|Y(?=\\s[jc])",
+        filterSearch = "M?[mN](?!\\S)|(?<=k[ai])n(?=\\s+t)|Y(?=\\s+[jc])",
         filterReplace = (const "M")
     }, 
     Filter {
@@ -139,8 +373,8 @@ filters = [
     },
     Filter {
         filterDesc = "final au/āv",
-        filterSearch = "āv(?!\\S)",
-        filterReplace = (const "au")
+        filterSearch = "Av(?!\\S)",
+        filterReplace = (const "O")
     },
     Filter {
         filterDesc = "kcch/kś",
