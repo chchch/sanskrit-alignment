@@ -1148,12 +1148,14 @@ const reconstructLemma = function(paths) {
         xenoData.appendChild(stemmael);
 
         const otunodes = nexml.querySelectorAll('node[otu]');
+        // labels are correct with new version of SplitsTree5
+        /*
         for(const otunode of otunodes) {
             const label = otunode.getAttribute('label');
             const otu = otunode.getAttribute('otu');
             if(label !== otu) otunode.setAttribute('label',otu);
         }
-
+        */
         treeXMLLoad(nexml,stemmael.id);
     };
 
