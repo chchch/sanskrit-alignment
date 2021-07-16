@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 29 June 2021.</p>
+        <p>Last updated: 16 July 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -193,7 +193,7 @@ You should end up with a zip archive full of <code>.fas</code> files, as in the 
             </p>
             <h3 id="aligment-prep">Preparing the alignment tool</h3>
             <p>
-There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> b In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote"><a href="b-chin2003">Chin et al. 2003</a>. As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package.</span> and is written in Haskell. To build it for your system, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
+There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote"><a href="b-chin2003">Chin et al. 2003</a>. As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package.</span> and is written in Haskell. To build it for your system, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
             </p>
             <pre>
                 <code>stack build</code>
