@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 16 July 2021.</p>
+        <p>Last updated: 22 July 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -77,9 +77,8 @@
                 </li>
                 <li>Alignment
                     <ul>
-                        <li>download the <a href="https://www.haskell.org/platform/">Haskell Platform</a>.</li>
-                        <li>go to the <code>helayo/</code> directory and run <code>stack build</code>.</li>
-                        <li>run <code>stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f [input.fas] &gt; [output.xml]</code> for each <code>.fas</code> file.</li>
+                        <li>download the latest <code>helayo-exe</code> file from the <a href="https://github.com/chchch/sanskrit-alignment/releases">Releases page of the GitHub repository</a>, or build it from source using the <a href="https://www.haskell.org/platform/">Haskell Platform</a>.</li>
+                        <li>run <code>./helayo-exe -x substitution_matrix.csv -l aksara -f [input.fas] &gt; [output.xml]</code> for each <code>.fas</code> file.</li>
                         <li>open your <code>.xml</code> files in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> and fix any big alignment errors. Save each file individually.</li>
                         <li>open all your <code>.xml</code> files in the matrix-editor at once (use Ctrl-Click or Shift-Click to select multiple files). Export to NEXUS.</li>
                     </ul>
@@ -191,9 +190,14 @@ If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, 
             <p>
 You should end up with a zip archive full of <code>.fas</code> files, as in the directory <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fasta/"><code>example/fasta/</code></a>. Files starting with <em>c</em> are paragraphs from the commentary, and files starting with <em>v</em> are verses from the <cite>Dravyasamuddeśa</cite>.
             </p>
-            <h3 id="aligment-prep">Preparing the alignment tool</h3>
+            <h3 id="alignment-prep">Preparing the alignment tool</h3>
             <p>
-There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote"><a href="b-chin2003">Chin et al. 2003</a>. As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package.</span> and is written in Haskell. To build it for your system, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
+There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote"><a href="b-chin2003">Chin et al. 2003</a>. As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package.</span> and is written in Haskell.
+            </p>
+            <p>
+If you are running a 64-bit Linux system, there is a pre-built binary. Download the latest <code>helayo-exe</code> file from the <a href="https://github.com/chchch/sanskrit-alignment/releases">Releases page of the GitHub repository</a>.
+            </p>
+            <p>Otherwise, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
             </p>
             <pre>
                 <code>stack build</code>
@@ -216,16 +220,15 @@ You can edit the substition matrix in any spreadsheet software (LibreOffice Calc
             </p>
             <h3 id="alignment-using">Using the alignment tool</h3>
             <p>
-Helayo takes a FASTA file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:
+Helayo takes a FASTA file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:<label class="margin-toggle sidenote-number" for="n-helayo-exe"></label><input type="checkbox" id="n-helayo-exe" class="margin-toggle" /><span class="sidenote">If you have built helayo from source, replace <code>./helayo-exe</code> with <code>stack exec helayo-exe --</code>.</span>
             </p>
             <blockquote>
-                <code>stack exec helayo-exe -- -x substitution_matrix.csv -f [input file] &gt; [output file]</code>
-            </blockquote>
+                <code>./helayo-exe -x substitution_matrix.csv -f [input file] &gt; [output file]</code>            </blockquote>
             <p>
 For example, to align the first verse of the <cite>Dravyasamuddeśa</cite>, run
             </p>
             <blockquote>
-                <code>stack exec helayo-exe -- -x substitution_matrix.csv -f ../example/fasta/v3.2.1.fas &gt; v3.2.1.xml</code>
+                <code>./helayo-exe -x substitution_matrix.csv -f ../example/fasta/v3.2.1.fas &gt; v3.2.1.xml</code>
             </blockquote>
             <p>
 This will produce a file, called <code>v3.2.1.xml</code>, containing the aligned texts.
@@ -235,7 +238,7 @@ This will produce a file, called <code>v3.2.1.xml</code>, containing the aligned
 Helayo can align texts as characters, akṣaras, or as words, using the <code>-l [character|aksara|word]</code> option. For example, to re-do the alignment of the first verse of the <cite>Dravyasamuddeśa</cite> as akṣaras, run
             </p>
             <blockquote>
-                <code>stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f ../example/fasta/v3.2.1.fas &gt; v3.2.1-aksaras.xml</code>
+                <code>./helayo-exe -x substitution_matrix.csv -l aksara -f ../example/fasta/v3.2.1.fas &gt; v3.2.1-aksaras.xml</code>
             </blockquote>
             <p>
 When experimenting with character, akṣara, or word lemmas, think about how your text might have been transmitted, and the mechanism by which changes occur. For example, if a scribe misinterprets a <em>pṛṣṭhamātrā</em>, then change is occuring on the character level. If a scribe writes <em>rā</em> instead of <em>śa</em>, then change is occuring on the akṣara level. If a scribe substitutes <em>satyam</em> with <em>vidyām</em>, then change is occuring on the word level.
@@ -282,7 +285,7 @@ These options can be changed with the <code>-M</code> (match), <code>-m</code> (
 If you used the <code>Separate files for each node</code> option when exporting from saktumiva.org, then you might have a lot of files. You can run a simple command to align all the <code>.fas</code> files in a directory, and output them into a new directory. For example, to align all of the files in the <code>example/fasta/</code> directory, using akṣara alignment, and output them to the <code>example/xml/</code> directory, run
             </p>
             <blockquote>
-                <code>for f in ../example/fasta/*.fas; do stack exec helayo-exe -- -x substitution_matrix.csv -l aksara -f ${f} &gt; ../example/xml/$(basename $f fas)xml; done</code>
+                <code>for f in ../example/fasta/*.fas; do ./helayo-exe -x substitution_matrix.csv -l aksara -f ${f} &gt; ../example/xml/$(basename $f fas)xml; done</code>
             </blockquote>
             <p>
 WARNING: Especially when you have a lot of files, this is very slow. For the purposes of this tutorial, the <code>example/xml/</code> directory has already been pre-filled with files aligned with the <code>-l aksara</code> option.
