@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 22 July 2021.</p>
+        <p>Last updated: 23 July 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -38,7 +38,7 @@
                     <li><a href="#transcription">Transcription</a></li>
                     <li><a href="#alignment">Alignment</a>
                         <ul>
-                            <li><a href="#alignment-fasta">Getting FASTA files from saktumiva.org</a></li>
+                            <li><a href="#alignment-fasta">Getting FASTT files from saktumiva.org</a></li>
                             <li><a href="#alignment-prep">Preparing the alignment tool</a></li>
                             <li><a href="#alignment-matrix">The substitution matrix</a></li>
                             <li><a href="#alignment-using">Using the alignment tool</a></li>
@@ -124,7 +124,7 @@ You will need to download the files in the <a href="https://github.com/chchch/sa
                 <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/docs/"><code>docs/</code></a> — the location of this tutorial</li>
                 <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/"><code>example/</code></a> — containing the example files used in this tutorial
                     <ul>
-                        <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fasta/"><code>example/fasta/</code></a> — FASTA files exported from saktumiva.org</li>
+                        <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fasta/"><code>example/fasta/</code></a> — FASTT files exported from saktumiva.org</li>
                         <li><a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/xml/"><code>example/xml/</code></a> — those files aligned, which can be opened in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/"><code>matrix-editor</code></a></li>
                     </ul>
                 </li>
@@ -151,7 +151,7 @@ The most arduous task in this process is the collection of witnesses and their t
 Saktumiva.org generates a critical apparatus using a <em>pairwise sequence alignment algorithm</em>. This is quick, and suits its purpose; in a critical apparatus, we are mainly interested in differences between our base text and each of the other witnesses. However, in order to create a phylogenetic tree, we want to align our texts using a <em>multiple sequence alignment algorithm</em>, which is more accurate but much slower.
             </p>
             <p>
-The alignment tool takes, as its input, files in the FASTA format, which is commonly used in bioinformatics. It looks like this:<label class="margin-toggle sidenote-number" for="n-alignment1"></label><input type="checkbox" id="n-alignment1" class="margin-toggle" /><span class="sidenote">This is not quite what FASTA looks like; it has been slightly adapted to representing texts rather than biological sequences.</span> 
+The alignment tool takes, as its input, files in the FASTT format, a slight adaptation of the FASTA format<label class="margin-toggle sidenote-number" for="n-alignment1"></label><input type="checkbox" id="n-alignment1" class="margin-toggle" /><span class="sidenote">The FASTA format is used to represent biological sequences, which consist of a very restricted alphabet and no spaces. In FASTT, we allow spaces to separate words. Software designed for FASTA sequences will generally not tolerate spaces; MAFFT, for example, <a href="https://mafft.cbrc.jp/alignment/software/textcomparison.html">requires you to replace spaces with another character</a> in non-biological sequences.</span> which is commonly used in bioinformatics. It looks like this: 
             </p>
             <pre>
                 <code>&gt;D
@@ -169,7 +169,7 @@ dravyam ity asyāpardyāyās tac ca nityam iti smṛtaṃ </code>
             <p>
 In this example, we have three versions of the same text (the first verse of the <cite>Dravyasamudeśa</cite>). Each text begins with the greater-than sign, followed by a siglum (D, K, or V here), a newline, and then the text. 
             </p>
-            <h3 id="alignment-fasta">Getting FASTA files from saktumiva.org</h3>
+            <h3 id="alignment-fasta">Getting FASTT files from saktumiva.org</h3>
             <p>
 If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, then we can generate this file automatically, following these steps:
             </p>
@@ -220,7 +220,7 @@ You can edit the substition matrix in any spreadsheet software (LibreOffice Calc
             </p>
             <h3 id="alignment-using">Using the alignment tool</h3>
             <p>
-Helayo takes a FASTA file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:<label class="margin-toggle sidenote-number" for="n-helayo-exe"></label><input type="checkbox" id="n-helayo-exe" class="margin-toggle" /><span class="sidenote">If you have built helayo from source, replace <code>./helayo-exe</code> with <code>stack exec helayo-exe --</code>.</span>
+Helayo takes a FASTT file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:<label class="margin-toggle sidenote-number" for="n-helayo-exe"></label><input type="checkbox" id="n-helayo-exe" class="margin-toggle" /><span class="sidenote">If you have built helayo from source, replace <code>./helayo-exe</code> with <code>stack exec helayo-exe --</code>.</span>
             </p>
             <blockquote>
                 <code>./helayo-exe -x substitution_matrix.csv -f [input file] &gt; [output file]</code>            </blockquote>
@@ -487,6 +487,7 @@ Both the software described in this document, as well as this document itself, a
             <p class="biblio" id="b-chin2003">Chin, Francis Y. L. et al. 2003. <q>Efficient Constrained Multiple Sequence Alignment with Performance Guarantee.</q> In <cite>Computational Systems Bioinformatics, Proceedings of the 2003 IEEE Bioinformatics Conferece</cite>. Stanford, CA: IEEE. <a href="https://ieeexplore.ieee.org/document/1227334">https://ieeexplore.ieee.org/document/1227334</a>.</p>
             <p class="biblio" id="b-fitch1971">Fitch, Walter M. 1971. <q>Defining the course of Evolution: Minimum change for a specific tree topology.</q> <cite>Systematic Zoology</cite> 20:406–416. <a href="https://www.jstor.org/stable/2412116">https://www.jstor.org/stable/2412116</a>.</p>
             <p class="biblio" id="b-huson2006">Huson, Daniel H. &amp; Bryant, David. 2006. <q>Application of Phylogenetic Networks in Evolutionary Studies.</q> <cite>Molecular Biology and Evolution</cite> 23(2): 254–267. <a href="https://academic.oup.com/mbe/article/23/2/254/1118872">https://academic.oup.com/mbe/article/23/2/254/1118872</a>.</p>
+            <p class="biblio" id="b-mafft2002">Katoh, Kazutaka, Misawa, Kazuharu, Kuma, Kei-ichi, &amp; Miyata, Takashi. <q>MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform.</q> <cite>Nucleic Acids Research</cite> 30:14. 15 July. 3059–3066. <a href="https://doi.org/10.1093/nar/gkf436">https://doi.org/10.1093/nar/gkf436</a>.</p>
             <p class="biblio" id="b-maas1958">Maas, Paul. 1958. <cite>Textual Criticism</cite>. Translated by B. Flower. Oxford: Clarendon Press.</p>
             <p class="biblio" id="b-trovato2014">Trovato, Paolo. 2014. <cite>Everything You Always Wanted to Know about Lachmann’s Method.</cite> Translated by F. Poole. Padova: liberiauniversitaria.it.</p>
             <p class="biblio" id="b-li2017">Li, Charles. 2017. <q>Critical diplomatic editing: Applying text-critical principles as algorithms.</q> In <cite>Advances in Digital Scholarly Editing,</cite> edited by P. Boot et al, 305-310. Leiden: Sidestone Press. <a href="https://hcommons.org/deposits/item/hc:18259/">https://hcommons.org/deposits/item/hc:18259/</a>.</p>
