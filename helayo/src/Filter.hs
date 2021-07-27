@@ -18,6 +18,7 @@ import Text.Regex.PCRE
 import Data.String.Unicode
 import qualified Data.List.Split as S
 import Data.Fasta.String.Types
+import Control.Parallel.Strategies
 import Transcribe
 
 type ReplaceFn = MatchText String -> String
@@ -35,6 +36,16 @@ filters = [
         filterDesc = "valapalagilaka",
         filterSearch = "&#7769;",
         filterReplace = (const "r")
+    },
+    Filter {
+        filterDesc = "short e",
+        filterSearch = "&#7869;",
+        filterReplace = (const "e")
+    },
+    Filter {
+        filterDesc = "short o",
+        filterSearch = "&#245;",
+        filterReplace = (const "o")
     },
     Filter {
         filterDesc = "pṛṣṭhamātrā e",
@@ -476,7 +487,9 @@ prepSeqs :: [FastaSequence] -> [(String,([String],[String]))]
 prepSeqs ss = zip sigla unfiltered
     where 
     sigla = map fastaHeader ss
+    filtered :: [([Filtered],String)]
     filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    unfiltered :: [([String],[String])]
     unfiltered = map go filtered
         where go (fs,s) = let split = splitGlyphs_ slp1' s in (unfilterAll' fs split,split)
 
@@ -484,7 +497,9 @@ prepWords :: [FastaSequence] -> [(String,([String],[String]))]
 prepWords ss = zip sigla unfiltered
     where 
     sigla = map fastaHeader ss
+    filtered :: [([Filtered],String)]
     filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    unfiltered :: [([String],[String])]
     unfiltered = map go filtered
         where go (fs,s) = let split = S.split (S.condense . S.keepDelimsR $ S.oneOf " ") s in (unfilterAll' fs split,split)
 
@@ -492,7 +507,9 @@ prepAksaras :: [FastaSequence] -> [(String,([String],[String]))]
 prepAksaras ss = zip sigla unfiltered
     where 
     sigla = map fastaHeader ss
+    filtered :: [([Filtered],String)]
     filtered = map (filterAll' (filters ++ [spaceFilter]) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    unfiltered :: [([String],[String])]
     unfiltered = map go filtered
         where go (fs,s) = let split = splitAksaras slp1' s in (unfilterAll' fs split,split)
 

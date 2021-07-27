@@ -9,6 +9,7 @@ import Text.Parsec
 import Control.Monad (void)
 import qualified Data.Map as Map
 import qualified System.IO as IO
+import qualified Data.String.Utils as S
 import Data.Fasta.String.Types
 
 eol :: Parsec String u String
@@ -24,7 +25,7 @@ fasta' = do
     char '>'
     header <- manyTill (satisfy (/= '>')) eol
     fseq <- manyTill anyChar eoe
-    return ( FastaSequence { fastaHeader = header
+    return ( FastaSequence { fastaHeader = S.strip header
                            , fastaSeq    = removeNewline fseq } )
   where
     removeNewline = filter (`notElem` "\n\r")

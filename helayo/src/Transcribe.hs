@@ -33,7 +33,7 @@ slp1 = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","3","e","
                      consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"],
                      marks = ["M","H","~","'","`"]}
 
-slp1' = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","ee","e","E","oo","o","O","ê","ô","aî","aû"],
+slp1' = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","ẽ","e","E","õ","o","O","ê","ô","aî","aû"],
                      consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","LL","ṙ"],
                      marks = ["M","H","m̐","oṁ","oḿ"]}
 

@@ -16,7 +16,8 @@ alignLookup,alignLookup'
 
 import Data.Maybe
 import qualified Data.Vector as V
-import Data.Align
+--import Data.Align
+import Align
 import Data.List
 import Data.List.Split
 import qualified Data.String.Utils as S
@@ -25,6 +26,7 @@ import Data.Fasta.String.Types
 import qualified Data.Matrix as X
 import Transcribe
 import Filter
+import Control.Parallel.Strategies
 
 data Penalties = Penalties {
     pMatch :: Double,
@@ -164,7 +166,7 @@ multiStrAlign :: [MultiStep String] -> String
 multiStrAlign = unlines . map (\y -> foldr (\x acc -> x ++ "," ++ acc) "" (map (fromMaybe "") y)) . transpose . map stepOfAll
 
 alignPrep :: [String] -> [MultiStep String] -> [(String,([String],[String]))] -> [(String,([String],[Maybe String]))]
-alignPrep is ms ss = go (M.fromList (zip is (transpose $ map stepOfAll ms))) ss []
+alignPrep is ms ss = reverse $ go (M.fromList (zip is (transpose $ map stepOfAll ms))) ss []
     where 
     go :: M.Map String [Maybe String] -> [(String,([String],[String]))] -> [(String,([String],[Maybe String]))] -> [(String,([String],[Maybe String]))]
     go m [] acc = acc

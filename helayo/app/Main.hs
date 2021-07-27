@@ -1,16 +1,17 @@
 module Main where
 
 import System.Environment
-import System.IO
+--import System.IO
 import System.Console.GetOpt
-import System.Exit
+--import System.Exit
 import Data.Maybe
-import Data.Align
-import Data.Fasta.String.Parse
-import Data.Fasta.String.Types
-import Criterion.Main
-import qualified Data.Map as M
-import qualified Data.Matrix as X
+--import Data.Align
+import Align
+--import Data.Fasta.String.Parse
+--import Data.Fasta.String.Types
+--import Criterion.Main
+--import qualified Data.Map as M
+--import qualified Data.Matrix as X
 import MyFasta
 import Collate
 import Transcribe
@@ -29,6 +30,7 @@ data Options = Options
     }
     deriving Show
 
+defaultOptions:: Options
 defaultOptions = Options
     {optMatrixFile = Nothing,
      optMatch = 3,
@@ -54,6 +56,7 @@ options =
       Option ['f']  ["file"]       (ReqArg (\f opts -> opts {optFile = Just f}) "FILE") "fasta file"
       ]
 
+parseArgs :: [String] -> IO(Options, [String])
 parseArgs argv = case getOpt Permute options argv of
     (args,strs,[]) -> do
 --        if length strs /= 2
@@ -61,7 +64,8 @@ parseArgs argv = case getOpt Permute options argv of
 --           else return (foldl (flip id) defaultOptions args,strs)
         return (foldl (flip id) defaultOptions args, strs)
     (_,_,errs) -> do
-        exitWith (ExitFailure 1)
+        ioError (userError $ concat errs)
+        --exitWith (ExitFailure 1)
 
 main :: IO ()
 main = do
@@ -94,7 +98,6 @@ main = do
         let unfiltered2 = unfilterAll' (fst $ last unfilters_strs) (last strs)
         if mf /= Nothing then do
             contents <- readFile $ fromJust mf
-            let fl = lines contents
             let mm = makeMatrix' . makeArray $ lines contents
             let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
             let result = tr mm penalties strs
@@ -143,7 +146,6 @@ main = do
         let unfiltered2 = unfilterAll' (fst $ last unfilters_strs) (last strs)
         if mf /= Nothing then do
             contents <- readFile $ fromJust mf
-            let fl = lines contents
             let mm = makeMatrix' . makeArray $ lines contents
             let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
             let result = tr mm penalties strs

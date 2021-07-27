@@ -1,10 +1,10 @@
 name:                helayo
-version:             0.1.0.0
-github:              "githubuser/helayo"
-license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+version:             0.3
+github:              "chchch/sanskrit-alignment"
+license:             GPL-3
+author:              "Charles Li"
+maintainer:          "charles.li@ehess.fr"
+copyright:           "2020 Charles Li"
 
 extra-source-files:
 - README.md
@@ -27,18 +27,21 @@ dependencies:
 - containers
 - align
 - regex-pcre
-- text-icu
 - parsec
 - MissingH
 - fasta
 - hxt-unicode
 - matrix
-- criterion
-- split
+- transformers
+- parallel
+- deepseq
 
 library:
   source-dirs: src
-
+  
+# Static build options
+# see: https://github.com/commercialhaskell/stack/issues/3420
+# and https://github.com/icfpcontest2020/starterkit-haskell/issues/2
 executables:
   helayo-exe:
     main:                Main.hs
@@ -47,6 +50,13 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -O2
+#    - -fPIC
+    - -static
+    - -Wall
+    - -optl-fuse-ld=bfd
+    ld-options: -static -pthread
+    cc-options: -static
     dependencies:
     - helayo
 
