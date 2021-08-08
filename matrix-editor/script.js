@@ -4441,12 +4441,20 @@ const fullTreeClick = function(e) {
                     const target = e.getAttribute('target');
                     const source = e.getAttribute('source');
                     const group = (() => {
-                        if(ids.indexOf(target) !== -1)
+                        /*if(ids.indexOf(target) !== -1)
                             return {ancestor: tree.querySelector(`node[id="${source}"]`),
                                 child: tree.querySelector(`node[id="${target}"]`)};
                         else if(ids.indexOf(source) !== -1)
                             return {ancestor: tree.querySelector(`node[id="${target}"]`),
                                 child: tree.querySelector(`node[id="${source}"]`)};
+                        else
+                            return null;*/
+                        if(ids.indexOf(target) !== -1)
+                            return {ancestor: tree.getElementById(source),
+                                child: tree.getElementById(target)};
+                        else if(ids.indexOf(source) !== -1)
+                            return {ancestor: tree.getElementById(target),
+                                child: tree.getElementById(source)};
                         else
                             return null;
                     })();
@@ -4564,8 +4572,9 @@ const fullTreeClick = function(e) {
         }
     
         removecolors() {
-            const colored = this.nexml.evaluate('//nex:node[@color]',this.nexml,this.nsResolver,XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,null);
+            //const colored = this.nexml.evaluate('//nex:node[@color]',this.nexml,this.nsResolver,XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,null);
 
+            const colored = this.nexml.querySelectorAll('node[color]');
             for(let i=0; i < colored.snapshotLength; i++)
                 colored.snapshotItem(i).removeAttribute('color');
         }
@@ -4597,8 +4606,9 @@ const fullTreeClick = function(e) {
             const maxheight = parseInt(window.getComputedStyle(this.boxdiv,null).height) - 10;
             const height = (function() {
                 if(maxheight < 600) return 600;
-                else if(maxheight < 800) return maxheight;
-                else return 800;
+                //else if(maxheight < 800) return maxheight;
+                //else return 800;
+                else return maxheight;
             })();
             Smits.PhyloCanvas.Render.Style.line.stroke = 'rgb(162,164,170)';
             this.phylocanvas = new Smits.PhyloCanvas(
