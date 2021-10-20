@@ -184,7 +184,7 @@ hr {
     overflow-x: auto;
 }
 
-#views > div.matrix {
+#views > div.matrix, #views > div.tree-box {
     max-width: 100vw;
 /*    max-height: calc(100vh - 180px);
     overflow: scroll;
@@ -272,7 +272,7 @@ hr {
     text-align: left;
     hyphens: auto;
     flex: 1 1 0;
-    max-width: 595px;
+    /*max-width: 595px;*/
     padding-left: 3px;
     background: white;
     border: 1px solid rgb(185,185,182);
@@ -345,6 +345,11 @@ hr {
 
 .lemma:hover > .space {
     background-color: rgb(216,219,63);
+}
+
+span.group {
+    margin-left: 0.2rem;
+    margin-right: 0.2rem;
 }
 
 .space {
@@ -473,6 +478,10 @@ td[data-insignificant='true'] {
     color: grey !important;
 }
 
+td:empty {
+    background-color: rgb(245,245,245);
+}
+
 td[data-binary='true']:empty {
     background-color: rgb(219,219,219);
 }
@@ -506,8 +515,12 @@ td.pending {
     color: rgb(106,87,208);
 }
 
+td.highlit:empty {
+    background-color: rgb(238,238,153);
+}
+
 td.highlit[data-binary='true']:empty {
-    background-color: rgba(228,231,112);
+    background-color: rgb(228,231,112);
 }
 
 .highlit, .highlit > .space {

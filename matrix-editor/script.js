@@ -1,14 +1,18 @@
 const comboView = (function() {
 
     'use strict';
-    /*
+    
     const Sanscript = window.Sanscript;
+    const Smits = window.Smits;
     const FileSaver = window.FileSaver;
     const CSV = window.CSV;
     const lgXSLT = window.lgXSLT;
     const csvXSLT = window.csvXSLT;
     const prettyXSLT = window.prettyXSLT;
-    */
+    const lemmaXSLT = window.lemmaXSLT;
+    const treeXSLT = window.treeXSLT;
+    const matrixXSLT = window.matrixXSLT;
+    
     var _filename;
     var _xml;
     const _teins = 'http://www.tei-c.org/ns/1.0';
@@ -874,10 +878,11 @@ const reconstructLemma = function(paths) {
         //_menus = document.querySelectorAll('.menubox');
         const menu = document.getElementById('menu');
         //for(const menu of _menus) {
-        menu.addEventListener('mouseover', menuMouseover);
-        menu.addEventListener('mouseout', menuMouseout);
-        menu.addEventListener('click',menuClick);
+        menu.addEventListener('mouseover', events.menuMouseover);
+        menu.addEventListener('mouseout', events.menuMouseout);
+        menu.addEventListener('click',events.menuClick);
         // }
+        menu.querySelector('#file').addEventListener('change',fileSelect.bind(null,csvOrXml),false);
         menu.querySelector('#treefile').addEventListener('change',fileSelect.bind(null,treeFileLoad),false);
     };
 
@@ -902,7 +907,7 @@ const reconstructLemma = function(paths) {
             drawTrees();
             multi.rehighlight();
             if(!document.querySelector('.highlit'))
-                textClick({target: newEd.boxdiv.querySelector('.lemma:not(.invisible)')});
+                events.textClick({target: newEd.boxdiv.querySelector('.lemma:not(.invisible)')});
             return newEd;
         },
 
@@ -1147,9 +1152,9 @@ const reconstructLemma = function(paths) {
         stemmael.appendChild(nexml.firstChild.cloneNode(true));
         xenoData.appendChild(stemmael);
 
-        const otunodes = nexml.querySelectorAll('node[otu]');
         // labels are correct with new version of SplitsTree5
         /*
+        const otunodes = nexml.querySelectorAll('node[otu]');
         for(const otunode of otunodes) {
             const label = otunode.getAttribute('label');
             const otu = otunode.getAttribute('otu');
@@ -1425,15 +1430,25 @@ const reconstructLemma = function(paths) {
             const addlemma = [...newxml.querySelector('text').querySelectorAll('w[n]')].length;
             const lastlemma = _maxlemma + addlemma;
             for(const [key,val] of newteis) {
-                const oldtext = oldteis.get(key).querySelector('text');
-                const newtext = val.querySelector('text');
-                const newwords = newtext.querySelectorAll('w[n]');
-                
-                var cur_n = _maxlemma + 1;
-                for(const word of newwords) {
-                    word.setAttribute('n',cur_n);
-                    oldtext.appendChild(word);
-                    cur_n = cur_n + 1;
+                if(!oldteis.has(key)) {
+                    const newtei = _xml.createElementNS(_teins,'TEI');
+                    newtei.setAttribute('n',key);
+                    const newtext = _xml.createElementNS(_teins,'text');
+                    make.emptywords(newtext,lastlemma,0);
+                    newtei.appendChild(newtext);
+                    _xml.documentElement.appendChild(newtei);
+                }
+                else {
+                    const oldtext = oldteis.get(key).querySelector('text');
+                    const newtext = val.querySelector('text');
+                    const newwords = newtext.querySelectorAll('w[n]');
+                    //TODO: get groups also 
+                    var cur_n = _maxlemma + 1;
+                    for(const word of newwords) {
+                        word.setAttribute('n',cur_n);
+                        oldtext.appendChild(word);
+                        cur_n = cur_n + 1;
+                    }
                 }
             }
 
@@ -1940,17 +1955,209 @@ const fullTreeClick = function(e) {
     }
 }
 */
-    const treeMouseover = function(e) {
-        const targ = e.target.classList.contains('tree-lemma') ?
-            e.target :
-            e.target.closest('.tree-lemma');
+    const events = {
+        deselect() {
+            const sel = window.getSelection();
+            if(sel.removeAllRanges) sel.removeAllRanges();
+            else if(sel.empty) sel.empty();
+        },
 
-        if(targ) {
-            multi.highlightTreeLemma(targ.dataset.id);
-            targ.addEventListener('mouseout',multi.unhighlightTrees);
-        }
-    
-        const title = e.target.dataset.reconstructed;
+        treeMouseover(e) {
+            const targ = e.target.classList.contains('tree-lemma') ?
+                e.target :
+                e.target.closest('.tree-lemma');
+
+            if(targ) {
+                multi.highlightTreeLemma(targ.dataset.id);
+                targ.addEventListener('mouseout',multi.unhighlightTrees);
+            }
+        
+            const title = e.target.dataset.reconstructed;
+            if(!title) return;
+
+            const box = document.createElement('div');
+            box.id = 'tooltip';
+            box.style.top = e.pageY + 'px';//(e.clientY + 10) + 'px';
+            box.style.left = e.pageX + 'px';//e.clientX + 'px';
+            box.style.opacity = 0;
+            box.style.transition = 'opacity 0.2s ease-in';
+            _viewdiv.parentElement.appendChild(box);
+
+            const textbox = document.createElement('div');
+            textbox.appendChild(document.createTextNode(title));
+            this.script !== 0 ? // this is bound to the TreeBox 
+                box.appendChild(changeScript(textbox,_scripts[this.script])) :
+                box.appendChild(textbox);
+
+            if(e.target.classList.contains('reconstructed')) {
+                const treelemma = e.target.parentNode.querySelector('span.tree-lemma');
+                if(treelemma && treelemma.dataset.hasOwnProperty('emended')) {
+                    const emendbox = document.createElement('div');
+                    emendbox.classList.add('emphasis');
+                    emendbox.appendChild(document.createTextNode(treelemma.textContent));
+                    this.script !== 0 ?
+                        box.prepend(changeScript(emendbox,_scripts[this.script])) :
+                        box.prepend(emendbox);
+                }
+            }
+
+            window.getComputedStyle(box).opacity;
+            box.style.opacity = 1;
+        
+            e.target.addEventListener('mouseout', removeBox);
+        },
+
+        treeClick(e) {
+            if(e.target.classList.contains('witness'))
+                newBox.text(e.target.dataset.key);
+            //newBox.text(e.target.dataset.key,_texts);
+            else if(e.target.classList.contains('reconstructed'))
+                newBox.text(e.target.dataset.label);
+            //newBox.text(e.target.dataset.label,_texts);
+            else if(e.target.classList.contains('internal'))
+                edit.startReconstruction(e);
+        
+            removeBox();
+        },
+
+        keyDown(e) {
+            if(!_editing && e.key.substring(0,5) === 'Arrow') events.cycleVariant(e);
+            else if(e.ctrlKey || e.metaKey) {
+                if(e.key === 'Z')
+                    edit.redo();
+                else if(e.key === 'z')
+                    edit.undo();
+            }
+            else if(!_editing && 
+                    !_matrix.closed &&
+                    e.key === 'Enter') {
+                const td = find.highlitcell();
+                if(td) {
+                    e.preventDefault();
+                    edit.startEditCell(td);
+                }
+            }
+        },
+
+        cycleVariant(e) {
+            const highlitcell = find.highlitcell() || 
+                _viewdiv.querySelector('td.highlit') ||
+                _viewdiv.querySelector('td[data-n="0"]');
+
+            switch (e.key) {
+
+            case 'ArrowRight': {
+                if(!_matrix.closed && highlitcell) {
+                    const next = highlitcell.nextElementSibling;
+                    if(next) events.textClick({target: next});
+                } 
+                else {
+                    const highlit = _viewdiv.querySelector('.highlit');
+                    const cur = highlit ? highlit.dataset.n : 0;
+                    let next = parseInt(cur)+1;
+                    while(next <= _maxlemma) {
+                        const nextlemmata = _viewdiv.querySelectorAll('[data-n="'+next+'"]');
+                        for(const nextlemma of nextlemmata) {
+                            if(nextlemma && !nextlemma.classList.contains('invisible')) {
+                                events.textClick({target: nextlemma});
+                                return;
+                            }
+                        }
+                        next++;
+                    }
+                }
+                break;
+            }
+            case 'ArrowLeft': {
+                if(!_matrix.closed && highlitcell) {
+                    const prev = highlitcell.previousElementSibling;
+                    if(prev) events.textClick({target: prev});
+                }
+                else {
+                    const highlit = _viewdiv.querySelector('.highlit');
+                    const cur = highlit ? highlit.dataset.n : 0;
+                    let prev = parseInt(cur) -1;
+                    while(prev >= 0) {
+                        const prevlemmata = _viewdiv.querySelectorAll('[data-n="'+prev+'"]');
+                        for(const prevlemma of prevlemmata) {
+                            if(prevlemma && !prevlemma.classList.contains('invisible')) {
+                                events.textClick({target: prevlemma});
+                                return;
+                            }
+                        }
+                        prev--;                        if(highlitcell) {
+                            events.textClick({target: highlitcell.previousElementSibling});
+                            return;
+                        }
+                    }
+                }
+                break;
+            }
+            case 'ArrowUp': {
+                if(_matrix.closed || !highlitcell) return;
+
+                const tr = highlitcell.closest('tr'); 
+                const prevtr = tr.previousElementSibling;
+                if(!prevtr) return;
+                const newtd = prevtr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
+                events.textClick({target: newtd});
+                
+                break;
+            }
+            case 'ArrowDown': {
+                if(_matrix.closed || !highlitcell) return;
+                const tr = highlitcell.closest('tr'); 
+                const nexttr = tr.nextElementSibling;
+                if(!nexttr) return;
+                const newtd = nexttr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
+                events.textClick({target: newtd});
+            }
+            } // end switch
+        },
+
+        textClick(e,skipRight = false) {
+            if(e.target.closest('tr.header')) {
+                events.matrixHeaderClick(e);
+                return;
+            }
+            const targ = e.target.classList.contains('lemma') ? 
+                e.target :
+                e.target.closest('.lemma');
+
+            if(targ) {
+                if(!skipRight && e.ctrlKey) {
+                    events.rightClick(e);
+                    return;
+                }
+                const n = targ.dataset.n;
+                const matrixrow = find.highlitrow();
+                multi.unHighlightAll();
+                multi.highlightLemma(n);
+                multi.repopulateTrees(n);
+                view.xScroll(n,matrixrow);
+                if(targ.tagName === 'TD')
+                    targ.classList.add('highlitcell');
+                else {
+                    const textbox = targ.closest('.text-box');
+                    if(textbox) {
+                        const textid = textbox.dataset.id;
+                        const td = find.tr(textid).querySelector(`td[data-n="${n}"]`);
+                        td.classList.add('highlitcell');
+                    }
+                }
+
+            }
+        },
+
+        textMouseup() {
+            const nums = findSelection();
+            multiHighlight(nums);
+            clearSelection();
+        },
+
+        /*const lemmaMouseover = function(e) {
+        
+        const title = e.target.dataset.title;
         if(!title) return;
 
         const box = document.createElement('div');
@@ -1963,353 +2170,216 @@ const fullTreeClick = function(e) {
 
         const textbox = document.createElement('div');
         textbox.appendChild(document.createTextNode(title));
-        this.script !== 0 ? // this is bound to the TreeBox 
-            box.appendChild(changeScript(textbox,_scripts[this.script])) :
-            box.appendChild(textbox);
-
-        if(e.target.classList.contains('reconstructed')) {
-            const treelemma = e.target.parentNode.querySelector('span.tree-lemma');
-            if(treelemma && treelemma.dataset.hasOwnProperty('emended')) {
-                const emendbox = document.createElement('div');
-                emendbox.classList.add('emphasis');
-                emendbox.appendChild(document.createTextNode(treelemma.textContent));
-                this.script !== 0 ?
-                    box.prepend(changeScript(emendbox,_scripts[this.script])) :
-                    box.prepend(emendbox);
-            }
-        }
-
+        box.appendChild(textbox);
         window.getComputedStyle(box).opacity;
         box.style.opacity = 1;
-    
+        
         e.target.addEventListener('mouseout', removeBox);
     };
+    */
 
-    const treeClick = function(e) {
-        if(e.target.classList.contains('witness'))
-            newBox.text(e.target.dataset.key);
-        //newBox.text(e.target.dataset.key,_texts);
-        else if(e.target.classList.contains('reconstructed'))
-            newBox.text(e.target.dataset.label);
-        //newBox.text(e.target.dataset.label,_texts);
-        else if(e.target.classList.contains('internal'))
-            edit.startReconstruction(e);
-    
-        removeBox();
-    };
-
-    const keyDown = function(e) {
-        if(!_editing && e.key.substring(0,5) === 'Arrow') cycleVariant(e);
-        else if(e.ctrlKey || e.metaKey)
-            if(e.key === 'Z')
-                edit.redo();
-            else if(e.key === 'z')
-                edit.undo();
-    };
-
-    const cycleVariant = function(e) {
-        if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            const cur = _viewdiv.querySelector('.highlit').dataset.n;
-            if(e.key === 'ArrowRight') {
-                let next = parseInt(cur)+1;
-                while(next <= _maxlemma) {
-                    const highlitcell = find.highlitcell();
-                    if(highlitcell) {
-                        textClick({target: highlitcell.nextElementSibling});
-                        return;
-                    }
-                
-                    const nextlemmata = _viewdiv.querySelectorAll('[data-n="'+next+'"]');
-                    for(const nextlemma of nextlemmata) {
-                        if(nextlemma && !nextlemma.classList.contains('invisible')) {
-                            textClick({target: nextlemma});
-                            return;
-                        }
-                    }
-                    next++;
-                }
+        menuMouseover(e) {
+            const targ = e.target.classList.contains('menubox') ?
+                e.target :
+                e.target.closest('.menubox');
+            if(targ) {
+                const ul = targ.querySelector('ul');
+                if(ul) ul.style.display = 'block';
+                targ.classList.add('open');
             }
+        },
+        menuMouseout(e) {
+            const targ = e.target.classList.contains('menubox') ?
+                e.target :
+                e.target.closest('.menubox');
+            if(targ) {
+                const ul = targ.querySelector('ul');
+                if(ul) ul.style.display = 'none';
+                targ.classList.remove('open');
+            }
+        },
+        menuClick(e) {
+            if(!e.target.parentElement) return;
+            /*
+        if(e.target.parentElement.className === 'ed') {
+            events.menuMouseout(e);
+            newBox.text(e.target.dataset.name,_editions);
+        }
+    */
+            if(e.target.parentElement.className === 'ms') {
+                events.menuMouseout(e);
+                newBox.text(e.target.dataset.name);
+            //newBox.text(e.target.dataset.name,_texts);
+            }
+            if(e.target.parentElement.className === 'tree') {
+                events.menuMouseout(e);
+                if(e.target.closest('li[data-name]'))
+                    newBox.tree(e.target.dataset.stemmaid,e.target.dataset.treeid);
+            }
+        },
+
+        thDragStart(e) {
+            e.dataTransfer.setData('text/plain',e.target.textContent);
+            //    _dragged.parentNode.classList.add('dragging');
+            edit.startMoveRow(e.target.parentNode,e);
+        },
+        trDragEnter(e) {
+            const tr = e.target.nodeType === 1 ? 
+                e.target.closest('tr') :
+                e.target.parentElement.closest('tr');
+            if(tr)
+                tr.classList.add('dragenter');
+        },
+        trDragLeave(e) {
+            const tr = e.target.nodeType === 1 ?
+                e.target.closest('tr') :
+                e.target.parentElement.closest('tr'); 
+            if(tr)
+                tr.classList.remove('dragenter');
+        },
+
+        trDragDrop(e) {
+            e.preventDefault();
+            /*    _dragged.parentNode.classList.remove('dragging');
+        const tr = e.target.nodeType === 1 ?
+                e.target.closest('tr') :
+                e.target.parentElement.closest('tr');
+        if(tr) {
+            tr.classList.remove('dragenter');
+            edit.doMoveRow(_dragged.parentNode,tr);
+            _dragged = null;
+        }
+        */
+            edit.finishMoveRow(e);
+        },
+
+        matrixMousedown(e) {
+            if(e.button !== 0) return;
+            if(e.ctrlKey) {events.rightClick(e); return;}
+            const lemma = e.target.nodeType === 1 ?
+                e.target.closest('.lemma') :
+                e.target.parentElement.closest('.lemma');
+            if(lemma) {
             
-            if(e.key === 'ArrowLeft') {
-                let prev = parseInt(cur) -1;
-                while(prev >= 0) {
-                    const highlitcell = find.highlitcell();
-                    if(highlitcell) {
-                        textClick({target: highlitcell.previousElementSibling});
-                        return;
-                    }
+                if(lemma.isContentEditable) return;
 
-                    const prevlemmata = _viewdiv.querySelectorAll('[data-n="'+prev+'"]');
-                    for(const prevlemma of prevlemmata) {
-                        if(prevlemma && !prevlemma.classList.contains('invisible')) {
-                            textClick({target: prevlemma});
-                            return;
-                        }
-                    }
-                    prev--;
-                }
+                multi.unHighlightAll();
+                multi.highlightLemma(lemma.dataset.n);
+                const tabl = _matrix.boxdiv.querySelector('table');
+                tabl.addEventListener('mouseover',events.matrixMouseover);
+                tabl.addEventListener('mouseup',events.matrixMouseup);
             }
-        }
-    };
+        },
+        matrixMouseup(/*e*/) {
+            const nums = find.highlit();
+            multiHighlight(nums);
+            const tabl = _matrix.boxdiv.querySelector('table');
+            tabl.removeEventListener('mouseover',events.matrixMouseover);
+            tabl.removeEventListener('mouseup',events.matrixMouseup);
+        },
+        matrixMouseover(e) {
+            const lemma = e.target.nodeType === 1 ?
+                e.target.closest('.lemma') :
+                e.target.parentElement.closest('.lemma');
+            if(lemma)
+                multi.highlightLemma(lemma.dataset.n);
+        },
+        matrixHeaderClick(e) {
+            if(e.target.tagName !== 'INPUT') return;
+            const type = e.target.className;
+            if(type !== 'insignificant' && type !== 'binary') return;
+            const num = e.target.closest('th').dataset.ref;
+            const state = find.firsttd(num).dataset[type] === 'true' ? false : true;
+            const states = new Map([[num,state]]);
+            //if(find.firsttd(num).dataset[type] === 'true') e.target.checked = true;
+            //else e.target.checked = false;
+            //edit.startMarkAs(e.target.className,nums,e);
+            edit.doMarkAs(type,states);
+        },
 
-    const textClick = function(e,skipRight = false) {
-        if(e.target.closest('tr.header')) {
-            matrixHeaderClick(e);
-            return;
-        }
-        const targ = e.target.classList.contains('lemma') ? 
-            e.target :
-            e.target.closest('.lemma');
-
-        if(targ) {
-            if(!skipRight && e.ctrlKey) {
-                rightClick(e);
+        rightClick(e) {
+            const th = e.target.nodeType === 1 ?
+                e.target.closest('tr[data-n] th') :
+                e.target.parentElement.closest('tr[data-n] th');
+            if(th) {
+                e.preventDefault();
+                contextMenu.remove();
+                const menu = contextMenu.create(e);
+                const items = [
+                    {text: 'move',
+                        func: edit.startMoveRow.bind(null,th.parentNode),
+                    },
+                    {
+                        text: 'delete',
+                        func: edit.doDeleteRow.bind(null,th.parentNode.dataset.n),
+                    }
+                ];
+                contextMenu.populate(menu,items);
+                contextMenu.show(menu);
                 return;
             }
-            const n = targ.dataset.n;
-            const matrixrow = find.highlitrow();
-            multi.unHighlightAll();
-            multi.highlightLemma(n);
-            multi.repopulateTrees(n);
-            view.xScroll(n,matrixrow);
-            if(targ.tagName === 'TD')
-                targ.classList.add('highlitcell');
 
-        }
-    };
-
-    const textMouseup = function() {
-        const nums = findSelection();
-        multiHighlight(nums);
-        clearSelection();
-    };
-
-    /*const lemmaMouseover = function(e) {
-    
-    const title = e.target.dataset.title;
-    if(!title) return;
-
-    const box = document.createElement('div');
-    box.id = 'tooltip';
-    box.style.top = e.pageY + 'px';//(e.clientY + 10) + 'px';
-    box.style.left = e.pageX + 'px';//e.clientX + 'px';
-    box.style.opacity = 0;
-    box.style.transition = 'opacity 0.2s ease-in';
-    _viewdiv.parentElement.appendChild(box);
-
-    const textbox = document.createElement('div');
-    textbox.appendChild(document.createTextNode(title));
-    box.appendChild(textbox);
-    window.getComputedStyle(box).opacity;
-    box.style.opacity = 1;
-    
-    e.target.addEventListener('mouseout', removeBox);
-};
-*/
-
-    const menuMouseover = function(e) {
-        const targ = e.target.classList.contains('menubox') ?
-            e.target :
-            e.target.closest('.menubox');
-        if(targ) {
-            const ul = targ.querySelector('ul');
-            if(ul) ul.style.display = 'block';
-            targ.classList.add('open');
-        }
-    };
-    const menuMouseout = function(e) {
-        const targ = e.target.classList.contains('menubox') ?
-            e.target :
-            e.target.closest('.menubox');
-        if(targ) {
-            const ul = targ.querySelector('ul');
-            if(ul) ul.style.display = 'none';
-            targ.classList.remove('open');
-        }
-    };
-    const menuClick = function(e) {
-        if(!e.target.parentElement) return;
-        /*
-    if(e.target.parentElement.className === 'ed') {
-        menuMouseout(e);
-        newBox.text(e.target.dataset.name,_editions);
-    }
-*/
-        if(e.target.parentElement.className === 'ms') {
-            menuMouseout(e);
-            newBox.text(e.target.dataset.name);
-        //newBox.text(e.target.dataset.name,_texts);
-        }
-        if(e.target.parentElement.className === 'tree') {
-            menuMouseout(e);
-            if(e.target.closest('li[data-name]'))
-                newBox.tree(e.target.dataset.stemmaid,e.target.dataset.treeid);
-        }
-    };
-
-    const thDragStart = function(e) {
-        e.dataTransfer.setData('text/plain',e.target.textContent);
-        //    _dragged.parentNode.classList.add('dragging');
-        edit.startMoveRow(e.target.parentNode,e);
-    };
-    const trDragEnter = function(e) {
-        const tr = e.target.nodeType === 1 ? 
-            e.target.closest('tr') :
-            e.target.parentElement.closest('tr');
-        if(tr)
-            tr.classList.add('dragenter');
-    };
-    const trDragLeave = function(e) {
-        const tr = e.target.nodeType === 1 ?
-            e.target.closest('tr') :
-            e.target.parentElement.closest('tr'); 
-        if(tr)
-            tr.classList.remove('dragenter');
-    };
-
-    const trDragDrop = function(e) {
-        e.preventDefault();
-        /*    _dragged.parentNode.classList.remove('dragging');
-    const tr = e.target.nodeType === 1 ?
-            e.target.closest('tr') :
-            e.target.parentElement.closest('tr');
-    if(tr) {
-        tr.classList.remove('dragenter');
-        edit.doMoveRow(_dragged.parentNode,tr);
-        _dragged = null;
-    }
-    */
-        edit.finishMoveRow(e);
-    };
-
-    const matrixMousedown = function(e) {
-        if(e.button !== 0) return;
-        if(e.ctrlKey) {rightClick(e); return;}
-        const lemma = e.target.nodeType === 1 ?
-            e.target.closest('.lemma') :
-            e.target.parentElement.closest('.lemma');
-        if(lemma) {
+            const td = e.target.nodeType === 1 ?
+                e.target.closest('td.lemma') :
+                e.target.parentElement.closest('td.lemma');
+            if(td) {
+                e.preventDefault();
+                const nums = !td.classList.contains('highlit') ?
+                    (events.textClick(e,true), new Set([td.dataset.n])) :
+                    (function() {
+                        const ret = find.highlit();
+                        if(ret.size === 1 && 
+                       !td.classList.contains('highlitcell')) {
+                            multi.unCelllightAll(); 
+                            td.classList.add('highlitcell');
+                        }
+                        return ret;
+                    })();
+                const items = nums.size > 1 ? 
+                    [
+                        {text: 'merge lemmata',
+                            func: edit.startMerge.bind(null,nums)
+                        },
+                        {text: 'ungroup lemmata',
+                            alt: 'group lemmata',
+                            toggle: check.grouped,
+                            func: edit.startGroup.bind(null,false)
+                        },
+                        {text: 'delete lemmata',
+                            func: edit.startRemoveCol.bind(null,nums)
+                        },
+                        /*                {text: 'insignificant',
+                     cond: check.checkbox.bind(null,'insignificant',nums),
+                     func: edit.startMarkAs.bind(null,'insignificant',nums),
+                    },
+                    {text: 'binary',
+                     cond: check.checkbox.bind(null,'binary',nums),
+                     func: edit.startMarkAs.bind(null,'binary',nums),
+                    }, */
+                    ] : 
+                    [
+                        {text: 'edit reading',
+                            func: edit.startEditCell.bind(null,td)
+                        },
+                        {text: 'delete lemma',
+                            func: edit.startRemoveCol.bind(null,nums)
+                        },
+                        /*                {text: 'insignificant',
+                     cond: check.checkbox.bind(null,'insignificant',nums),
+                     func: edit.startMarkAs.bind(null,'insignificant',nums),
+                    },
+                    {text: 'binary',
+                     cond: check.checkbox.bind(null,'binary',nums),
+                     func: edit.startMarkAs.bind(null,'binary',nums),
+                    }, */
+                    ];
+                contextMenu.remove();
+                const menu = contextMenu.create(e);
+                contextMenu.populate(menu,items);
+                contextMenu.show(menu);
+            }
+        },
         
-            if(lemma.isContentEditable) return;
-
-            multi.unHighlightAll();
-            multi.highlightLemma(lemma.dataset.n);
-            const tabl = _matrix.boxdiv.querySelector('table');
-            tabl.addEventListener('mouseover',matrixMouseover);
-            tabl.addEventListener('mouseup',matrixMouseup);
-        }
-    };
-
-    const matrixMouseup = function(/*e*/) {
-        const nums = find.highlit();
-        multiHighlight(nums);
-        const tabl = _matrix.boxdiv.querySelector('table');
-        tabl.removeEventListener('mouseover',matrixMouseover);
-        tabl.removeEventListener('mouseup',matrixMouseup);
-    };
-
-    const matrixMouseover = function(e) {
-        const lemma = e.target.nodeType === 1 ?
-            e.target.closest('.lemma') :
-            e.target.parentElement.closest('.lemma');
-        if(lemma)
-            multi.highlightLemma(lemma.dataset.n);
-    };
-
-    const rightClick = function(e) {
-        const th = e.target.nodeType === 1 ?
-            e.target.closest('tr[data-n] th') :
-            e.target.parentElement.closest('tr[data-n] th');
-        if(th) {
-            e.preventDefault();
-            contextMenu.remove();
-            const menu = contextMenu.create(e);
-            const items = [
-                {text: 'move',
-                    func: edit.startMoveRow.bind(null,th.parentNode),
-                },
-                {
-                    text: 'delete',
-                    func: edit.doDeleteRow.bind(null,th.parentNode.dataset.n),
-                }
-            ];
-            contextMenu.populate(menu,items);
-            contextMenu.show(menu);
-            return;
-        }
-
-        const td = e.target.nodeType === 1 ?
-            e.target.closest('td.lemma') :
-            e.target.parentElement.closest('td.lemma');
-        if(td) {
-            e.preventDefault();
-            const nums = !td.classList.contains('highlit') ?
-                (textClick(e,true), new Set([td.dataset.n])) :
-                (function() {
-                    const ret = find.highlit();
-                    if(ret.size === 1 && 
-                   !td.classList.contains('highlitcell')) {
-                        multi.unCelllightAll(); 
-                        td.classList.add('highlitcell');
-                    }
-                    return ret;
-                })();
-            const items = nums.size > 1 ? 
-                [
-                    {text: 'merge lemmata',
-                        func: edit.startMerge.bind(null,nums)
-                    },
-                    {text: 'ungroup lemmata',
-                        alt: 'group lemmata',
-                        toggle: check.grouped,
-                        func: edit.startGroup.bind(null,false)
-                    },
-                    {text: 'delete lemmata',
-                        func: edit.startRemoveCol.bind(null,nums)
-                    },
-                    /*                {text: 'insignificant',
-                 cond: check.checkbox.bind(null,'insignificant',nums),
-                 func: edit.startMarkAs.bind(null,'insignificant',nums),
-                },
-                {text: 'binary',
-                 cond: check.checkbox.bind(null,'binary',nums),
-                 func: edit.startMarkAs.bind(null,'binary',nums),
-                }, */
-                ] : 
-                [
-                    {text: 'edit reading',
-                        func: edit.startEditCell.bind(null,td)
-                    },
-                    {text: 'delete lemma',
-                        func: edit.startRemoveCol.bind(null,nums)
-                    },
-                    /*                {text: 'insignificant',
-                 cond: check.checkbox.bind(null,'insignificant',nums),
-                 func: edit.startMarkAs.bind(null,'insignificant',nums),
-                },
-                {text: 'binary',
-                 cond: check.checkbox.bind(null,'binary',nums),
-                 func: edit.startMarkAs.bind(null,'binary',nums),
-                }, */
-                ];
-            contextMenu.remove();
-            const menu = contextMenu.create(e);
-            contextMenu.populate(menu,items);
-            contextMenu.show(menu);
-        }
-    };
-    
-    const matrixHeaderClick = function(e) {
-        if(e.target.tagName !== 'INPUT') return;
-        const type = e.target.className;
-        if(type !== 'insignificant' && type !== 'binary') return;
-        const num = e.target.closest('th').dataset.ref;
-        const state = find.firsttd(num).dataset[type] === 'true' ? false : true;
-        const states = new Map([[num,state]]);
-        //if(find.firsttd(num).dataset[type] === 'true') e.target.checked = true;
-        //else e.target.checked = false;
-        //edit.startMarkAs(e.target.className,nums,e);
-        edit.doMarkAs(type,states);
     };
 
     const edit = {
@@ -2458,7 +2528,8 @@ const fullTreeClick = function(e) {
 
         startEditCell: function(el) {
         //const cell = el || document.querySelector('.matrix td.highlitcell');
-            const cell = el || _matrix.boxdiv.querySelector('td.highlitcell');
+            const cell = el || find.highlitcell();
+            if(!cell) return;
             //cell.classList.add('highlitcell');
             view.unnormalize(cell);
             cell.dataset.oldContent = cell.textContent;
@@ -2476,8 +2547,35 @@ const fullTreeClick = function(e) {
         },
 
         cellKeyDown: function(e) {
-            if(e.key === 'Enter')
+            switch(e.key) {
+            case 'Enter':
                 edit.finishEditCell(e);
+                break;
+            case 'Escape':
+                edit.finishEditCell(e,true);
+                break;
+            case 'ArrowRight': {
+                const pos = find.cursorPos(e.target);
+                if(pos[0] === pos[1]) {
+                    e.preventDefault();
+                    edit.finishEditCell(e);
+                    events.cycleVariant({key: 'ArrowRight'});
+                    edit.startEditCell(find.highlitcell()); 
+                }
+                break;
+            }
+            case 'ArrowLeft': {
+                const pos = find.cursorPos(e.target);
+                if(pos[0] === 0) {
+                    e.preventDefault();
+                    edit.finishEditCell(e);
+                    events.cycleVariant({key: 'ArrowLeft'});
+                    edit.startEditCell(find.highlitcell()); 
+                }
+                break;
+            }
+            
+            }
         },
      
         startMarkAs: function(type,nums,e) {
@@ -2573,28 +2671,40 @@ const fullTreeClick = function(e) {
             edit.doStack([edit.doDeleteRow,[label]],'do');
         },
 
-        finishEditCell: function(e) {
+        finishEditCell: function(e,cancel = false) {
             const cell = e.target;
-            cell.classList.remove('highlitcell');
+            //cell.classList.remove('highlitcell');
             _editing = false;
             cell.contentEditable = 'false';
             cell.removeEventListener('blur',edit.finishEditCell);
             cell.removeEventListener('keydown',edit.cellKeyDown);
+            cell.blur();
+            events.deselect();
             const content = cell.textContent;
+            
+            if(content === '') {
+                const br = cell.querySelector('br');
+                if(br) br.remove();
+            }
 
-            if(content === cell.dataset.oldContent) return;
+            if(cancel || content === cell.dataset.oldContent) return;
         
+            if(!cell.hasOwnProperty('IAST'))
+                cell.IAST = cell.cloneNode(true);
+            cell.IAST.textContent = content;
+
             const cellnum = parseInt(cell.dataset.n);
+            const tr = cell.closest('tr');
+            const rownum = tr.dataset.n;
+            edit.xmlChangeCell(cellnum,rownum,content);
+
+            /*
             const row = cell.closest('tr');
             //const table = row.parentNode;
             const trs = [...find.trs()];
             const rownum = trs.indexOf(row);
-            if(!cell.hasOwnProperty('IAST'))
-                cell.IAST = cell.cloneNode(true);
-            cell.IAST.textContent = content;
             edit.xmlChangeCell(cellnum,rownum,content);
-
-            const tr = cell.closest('tr');
+            */
             if(tr.dataset.hasOwnProperty('treename') && !cell.dataset.hasOwnProperty('emended')) {
                 const emendaction = edit.doEmend(cellnum,rownum,'multido');
                 const dolist = [];
@@ -2610,6 +2720,7 @@ const fullTreeClick = function(e) {
             edit.refresh();
             //view.updateHeaders([cellnum]);
             view.updateAllHeaders(true);
+            cell.classList.add('highlitcell');
         },
 
         finishMoveRow: function(e) {
@@ -3088,7 +3199,8 @@ const fullTreeClick = function(e) {
             const td = find.firsttd(cellnum,tr);
             td.dataset.emended = true;
 
-            const text = [...find.texts()][rownum];
+            const text = find.tei(rownum).querySelector('text');
+            //const text = [...find.texts()][rownum];
             const word = find.firstword(cellnum,text);
             word.setAttribute('emended','true');
             if(doing === 'multido')
@@ -3103,7 +3215,8 @@ const fullTreeClick = function(e) {
             const td = find.firsttd(cellnum,tr);
             delete td.dataset.emended;
 
-            const text = [...find.texts()][rownum];
+            const text = find.tei(rownum).querySelector('text');
+            //const text = [...find.texts()][rownum];
             const word = find.firstword(cellnum,text);
             word.removeAttribute('emended');
             if(doing === 'multido')
@@ -3114,10 +3227,11 @@ const fullTreeClick = function(e) {
 
         doChangeCell: function(cellnum,rownum,content,doing = 'do') {
             const oldcontent = edit.xmlChangeCell(cellnum,rownum,content);
-            edit.htmlChangeCell(cellnum,rownum,content);
+            const cell = edit.htmlChangeCell(cellnum,rownum,content);
             view.renormalize(cellnum-1,cellnum+1,rownum);    
             edit.refresh();
             view.updateAllHeaders(true);
+            events.textClick({target: cell});
 
             if(doing === 'multido')
                 return [edit.doChangeCell,[cellnum,rownum,oldcontent]];
@@ -3125,21 +3239,22 @@ const fullTreeClick = function(e) {
                 edit.doStack([edit.doChangeCell,[cellnum,rownum,oldcontent]],doing);
         },
 
-        htmlChangeCell: function(cellnum,rownum,content) {
-            const row = [...find.trs()][rownum];
+        htmlChangeCell: function(cellnum,rownum,content) { // returns cell
+            const row = find.tr(rownum);
+            //const row = [...find.trs()][rownum];
             const cell = find.firsttd(cellnum,row);
             //const row = document.querySelector('.matrix table')
             //                    .querySelectorAll('tr')[rownum];
             //const cell = row.querySelector('td[data-n="'+cellnum+'"]');
             view.unnormalize(cell);
-            const oldcontent = cell.textContent;
             cell.textContent = content;
             if(cell.IAST) cell.IAST = cell.cloneNode(true);
-            return oldcontent;
+            return cell;
         },
     
-        xmlChangeCell: function(cellnum,rownum,content) {
-            const row = [...find.texts()][rownum];
+        xmlChangeCell: function(cellnum,rownum,content) { // returns oldcontent
+            const row = find.tei(rownum).querySelector('text');
+            //const row = [...find.texts()][rownum];
             const cell = find.firstword(cellnum,row);
             //const row = _xml.querySelectorAll('text')[rownum];
             //const cell = row.querySelector('w[n="'+cellnum+'"]');
@@ -3373,8 +3488,10 @@ const fullTreeClick = function(e) {
         */
         },
     
-        renormalize: function(startnum, endnum, rownum=false) {
+        renormalize: function(/*startnum, endnum, rownum=false*/) {
+            // TODO: fix this
             return false;
+            /*
             if(!check.anyNormalized()) return false;
 
             const normalized = check.normalizedView();
@@ -3427,55 +3544,7 @@ const fullTreeClick = function(e) {
                 const lastword = lastindex ? words[lastindex] : false;
                 if(lastword && lastword.getAttribute('prenormal'))
                     lastword.removeAttribute('prenormal');
-                //num = nexttd ? nexttd.dataset.n : num + 1;
-                /*            do {
-                //const td = find.firsttd(num,htmlrow);
-                //const word = find.firstword(num,xmlrow);
-                const td = tds[num];
-                const datasetn = td.dataset.n;
-                const word = find.firstword(datasetn,xmlrow);
-                if(td.dataset.hasOwnProperty('normal'))
-                    delete td.dataset.normal;
-                if(word.hasAttribute('lemma'))
-                    word.removeAttribute('lemma');
-
-                //const nexttd = view.normalize(num,row);
-                num = view.normalize(num,tds);
-                nextdatasetn = num ? tds[num].dataset.n : false;
-
-                if(td.dataset.hasOwnProperty('normal')) {
-                    word.setAttribute('lemma',td.dataset.normal);
-                    if(normalized)
-                        td.textContent = td.dataset.normal;
-                }
-                else
-                    td.textContent = td.IAST.textContent;
-                //num = nexttd ? nexttd.dataset.n : num + 1;
-                
-            } while(nextdatasetn && nextdatasetn <= endnum);
-            
-            const lasttd = nextdatasetn ? tds[num] : false;
-            if(nextdatasetn > endnum) {
-                if(lasttd.dataset.hasOwnProperty('normal'))
-                    delete lasttd.dataset.normal;
-                const postlastn = view.normalize(num,tds);
-                const postlasttd = postlastn ? tds[postlastn] : false;
-                if(lasttd.dataset.hasOwnProperty('normal')) {
-                    if(normalized)
-                        lasttd.textContent = lasttd.dataset.normal;
-                    const lastword = find.firstword(nextdatasetn,xmlrow);
-                    lastword.setAttribute('lemma',lasttd.dataset.normal);
-
-                }
-                else lasttd.textContent = lasttd.IAST.textContent;
-                if(postlasttd && postlasttd.dataset.hasOwnProperty('prenormal'))
-                    delete postlasttd.dataset.prenormal;
-            }
-            else {
-                if(lasttd && lasttd.dataset.hasOwnProperty('prenormal'))
-                    delete lasttd.dataset.normal;
-            } */
-            }
+            }*/
         },
 
         normalize: function(index,words) {
@@ -3665,6 +3734,10 @@ const fullTreeClick = function(e) {
         firsttr: function(element) {
             const el = element ? element : _matrix.boxdiv;
             return el.querySelector('tr[data-n]');
+        },
+        lasttr: function(element) {
+            const el = element ? element : _matrix.boxdiv;
+            return el.querySelector('tr[data-n]:last-of-type');
         },
     
         trWalker: function(tr) {
@@ -3949,7 +4022,15 @@ const fullTreeClick = function(e) {
                 },[])
             );
         },
-
+        cursorPos(el) {
+            const range = window.getSelection().getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(el);
+            const fullLength = preCaretRange.toString().length;
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            const caretOffset = preCaretRange.toString().length;
+            return [caretOffset,fullLength];
+        },
     };
 
     const check = {
@@ -4064,7 +4145,7 @@ const fullTreeClick = function(e) {
             th.scope = 'row';
             th.draggable = true;
             th.appendChild(document.createTextNode(label));
-            th.addEventListener('dragstart',thDragStart);
+            th.addEventListener('dragstart',events.thDragStart);
             tr.dataset.n = label;
             tr.appendChild(th);
             const firstrow = find.firsttr();
@@ -4233,7 +4314,7 @@ const fullTreeClick = function(e) {
             if(check.normalizedView())
                 view.showNormalized(this.boxdiv);
             _viewdiv.appendChild(this.boxdiv);
-        //this.closed = false;
+            this.closed = false;
         }
 
         clear() {
@@ -4255,7 +4336,7 @@ const fullTreeClick = function(e) {
             const textindex = _textboxes.indexOf(this);
             if(textindex > -1)
                 _textboxes.splice(textindex,1);
-            //this.closed = true;
+            this.closed = true;
             //underlineVariants();
             if(this.name === 'Matrix')
                 document.getElementById('matrixmenu').style.display = 'block';
@@ -4370,8 +4451,8 @@ const fullTreeClick = function(e) {
             } while(document.getElementById(divid));
             treediv.id = divid;
             this.boxdiv = treediv;
-            this.boxdiv.addEventListener('mouseover',treeMouseover.bind(this));
-            this.boxdiv.addEventListener('click',treeClick);
+            this.boxdiv.addEventListener('mouseover',events.treeMouseover.bind(this));
+            this.boxdiv.addEventListener('click',events.treeClick);
             this.svgcontainer = document.createElement('div');
             this.svgcontainer.id = this.boxdiv.id + 'container';
             this.boxdiv.appendChild(this.svgcontainer);
@@ -4526,7 +4607,7 @@ const fullTreeClick = function(e) {
             const taxa = [...this.nexml.querySelectorAll('node[otu]')];
             const secondpass = new Map();
 
-            for(const [node,children] of this.levels[this.levels.length-1]) {
+            for(const [node] of this.levels[this.levels.length-1]) {
                 secondpass.set(node,firstpass.get(node));
             }
 
@@ -4893,7 +4974,8 @@ const fullTreeClick = function(e) {
                         for(let j=i+1;j<lemmata[lemma].length;j++) {
                             const path = this.getPath(lemmata[lemma][i],lemmata[lemma][j]);
                             if(!path.hasOwnProperty('path'))
-                                console.log(path);
+                                //console.log(path);
+                                alert(path);
                             if(path.path.length === longest.length) {
                                 const branch_length = this.calcBranchLength(path.path);
                                 if(branch_length === longest.branch_length)
@@ -4975,7 +5057,8 @@ const fullTreeClick = function(e) {
         init() {
             this.makeTextBox();
             this.makeDescBox();
-            this.boxdiv.addEventListener('mouseup',textMouseup);
+            this.descbox.style.maxWidth = '595px';
+            this.boxdiv.addEventListener('mouseup',events.textMouseup);
         }
     
         refresh() {
@@ -5045,13 +5128,13 @@ const fullTreeClick = function(e) {
             scroller.append(xslt_proc.transformToFragment(_xml,document));
             //scroller.append(XSLTransformElement(_xml.documentElement,xslt_proc));
             for(const th of scroller.getElementsByTagName('th'))
-                th.addEventListener('dragstart',thDragStart);
+                th.addEventListener('dragstart',events.thDragStart);
 
-            scroller.addEventListener('dragenter',trDragEnter);
-            scroller.addEventListener('dragleave',trDragLeave);
+            scroller.addEventListener('dragenter',events.trDragEnter);
+            scroller.addEventListener('dragleave',events.trDragLeave);
             scroller.addEventListener('dragover',e => e.preventDefault());
-            scroller.addEventListener('drop',trDragDrop);
-            scroller.addEventListener('mousedown',matrixMousedown);
+            scroller.addEventListener('drop',events.trDragDrop);
+            scroller.addEventListener('mousedown',events.matrixMousedown);
             //this.boxdiv.append(header);
         
             const head = document.createElement('tr');
@@ -5094,7 +5177,7 @@ const fullTreeClick = function(e) {
 
             const tbody = scroller.querySelector('tbody');
             tbody.insertBefore(head,tbody.firstChild);
-            //head.addEventListener('click',matrixHeaderClick);
+            //head.addEventListener('click',events.matrixHeaderClick);
             this.boxdiv.append(scroller);
         }
     }
@@ -5221,17 +5304,16 @@ const fullTreeClick = function(e) {
         slaveinit: function() {
             comboView.init();
             if(window.startbox !== undefined) {
-                if(startbox.tree)
-                    newBox.tree(startbox.tree.stemmaid,startbox.tree.id);
-                else if(startbox.text)
-                    newBox.text(startbox.text.name,startbox.text.map);
+                if(window.startbox.tree)
+                    newBox.tree(window.startbox.tree.stemmaid,window.startbox.tree.id);
+                else if(window.startbox.text)
+                    newBox.text(window.startbox.text.name,window.startbox.text.map);
             }
         },
         maininit: function() {
             document.getElementById('comboview').style.display = 'block';
             comboView.init();
             fillSelector();
-            document.getElementById('file').addEventListener('change',fileSelect.bind(null,csvOrXml),false);
         },
         init: function() {
         /*
@@ -5243,10 +5325,10 @@ const fullTreeClick = function(e) {
         );*/
             _viewdiv = document.getElementById('views');
             _descs = document.getElementById('descs');
-            _viewdiv.addEventListener('click',textClick);
+            _viewdiv.addEventListener('click',events.textClick);
             //        _viewdiv.addEventListener('mouseover',lemmaMouseover);
-            document.addEventListener('keydown',keyDown);
-            document.addEventListener('contextmenu',rightClick);
+            document.addEventListener('keydown',events.keyDown,{capture: true});
+            document.addEventListener('contextmenu',events.rightClick);
             document.addEventListener('mouseup',contextMenu.remove);
         },
         getWindows: function() {

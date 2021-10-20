@@ -1,4 +1,4 @@
-const lemmaXSLT = 
+window.lemmaXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
@@ -25,7 +25,12 @@ const lemmaXSLT =
     </xsl:element>
     <xsl:text>&#173;</xsl:text>
 </xsl:template>
-
+<xsl:template match="x:cl">
+    <xsl:element name="span">
+        <xsl:attribute name="class">group</xsl:attribute>
+        <xsl:apply-templates/>
+    </xsl:element>
+</xsl:template>
 <xsl:template match="x:pb">
     <xsl:element name="hr">
         <xsl:attribute name="data-n"><xsl:value-of select="@n"/></xsl:attribute>
@@ -117,7 +122,7 @@ const lemmaXSLT =
   </xsl:element>
 </xsl:template>
 </xsl:stylesheet>`;
-const oldmatrixXSLT = 
+window.oldmatrixXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
@@ -127,7 +132,7 @@ const oldmatrixXSLT =
 </xsl:template>
 </xsl:stylesheet>
 `;
-const oldXSLT = 
+window.oldXSLT = 
 `<xsl:template match="x:teiCorpus">
     <xsl:element name="table">
         <xsl:apply-templates/>
@@ -188,7 +193,7 @@ const oldXSLT =
 
 </xsl:stylesheet>`;
 
-const prettyXSLT =
+window.prettyXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
         xmlns:x="http://www.tei-c.org/ns/1.0"
         exclude-result-prefixes="x">
@@ -230,7 +235,7 @@ const prettyXSLT =
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>`;
-const csvXSLT =
+window.csvXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
         xmlns:x="http://www.tei-c.org/ns/1.0"
         exclude-result-prefixes="x">
@@ -265,7 +270,7 @@ const csvXSLT =
         </xsl:copy>
     </xsl:template-->
 </xsl:stylesheet>`;
-const matrixXSLT = 
+window.matrixXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
