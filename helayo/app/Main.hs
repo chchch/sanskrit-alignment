@@ -33,10 +33,10 @@ data Options = Options
 defaultOptions:: Options
 defaultOptions = Options
     {optMatrixFile = Nothing,
-     optMatch = 3,
-     optMismatch = -3,
-     optInitialGap = -3,
-     optGap = -2,
+     optMatch = 0,
+     optMismatch = -1,
+     optInitialGap = -0.25,
+     optGap = -0.25,
      optScript = "iast",
      optLemma = "character",
      optTest = False,

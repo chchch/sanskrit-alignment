@@ -9,7 +9,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 23 July 2021.</p>
+        <p>Last updated: 21 October 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -272,13 +272,13 @@ vastu svalakṣamānam       arthakriyākāri      dravyaṃ<br/>
 By default, the alignment is scored like this:
             </p>
             <ul>
-                <li>Match: 3</li>
-                <li>Mismatch: -3</li>
-                <li>Gap opening: -3</li>
-                <li>Gap extension: -2</li>
+                <li>Match: 0</li>
+                <li>Mismatch: -1</li>
+                <li>Initial gap: -0.25</li>
+                <li>Gap: -0.25</li>
             </ul>
             <p>
-These options can be changed with the <code>-M</code> (match), <code>-m</code> (mismatch), <code>-i</code> (gap opening), and <code>-g</code> (gap extension) options. In addition, when using the substitution matrix, vowel/vowel and consonant/consonant mismatches are scored -2. 
+These options can be changed with the <code>-M</code> (match), <code>-m</code> (mismatch), <code>-i</code> (initial gap penalty), and <code>-g</code> (gap penalty) options. In addition, when using the substitution matrix, vowel/vowel and consonant/consonant mismatches are scored -0.25. 
             </p>
             <h3 id="alignment-multiple">Working with multiple files</h3>
             <p>
