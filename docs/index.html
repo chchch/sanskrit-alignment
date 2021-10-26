@@ -4,6 +4,14 @@
     <meta charset="utf-8">
     <title>Reconstructing a Sanskrit text using computers</title>
     <link rel="stylesheet" href="tufte.css">
+    <style>
+        table {font-size: 1.4rem;}
+        th {
+            white-space: nowrap;
+            font-weight: normal;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
     <article>
@@ -40,10 +48,10 @@
                         <ul>
                             <li><a href="#alignment-fastt">Getting FASTT files from saktumiva.org</a></li>
                             <li><a href="#alignment-prep">Preparing the alignment tool</a></li>
-                            <li><a href="#alignment-matrix">The substitution matrix</a></li>
                             <li><a href="#alignment-using">Using the alignment tool</a></li>
-                            <li><a href="#alignment-options1">Alignment options: -l (lemma size)</a></li>
-                            <li><a href="#alignment-options2">Alignment options: -M, -m, -i, -g</a></li>
+                            <li><a href="#alignment-options1">Alignment options: lemma size</a></li>
+                            <li><a href="#alignment-options2">Alignment options: match, mismatch, and gap scoring</a></li>
+                            <li><a href="#alignment-matrix">The substitution matrix</a></li>
                             <li><a href="#alignment-multiple">Working with multiple files</a></li>
                             <li><a href="#alignment-editor">Using the matrix-editor</a></li>
                         </ul>
@@ -205,22 +213,9 @@ If you are running a 64-bit Linux system, there is a pre-built binary. Download 
             <p>
 Now, we are ready to align our texts.
             </p>
-            <h3 id="alignment-matrix">The substitution matrix</h3>
-            <p>
-            <label class="margin-toggle" for="n-alignment2">⊕</label>
-            <input id="n-alignment2" class="margin-toggle" type="checkbox"/>
-            <span class="marginnote">
-                <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
-                The substitution matrix, colour-coded, displayed in LibreOffice Calc.
-            </span>
-Helayo can optionally use a <em>substitution matrix</em> in order to improve the alignment. This is highly recommended. The matrix is a spreadsheet that gives different weights to different alignments. I have provided a simple matrix (<a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/substitution_matrix.csv"><code>substitution_matrix.csv</code></a>) that tries to align vowels with vowels and consonants with consonants. For example, if the software tries to align <em>t</em> with <em>ā</em>, that alignment will be given the score -3. But if it tries to align <em>t</em> with <em>g</em>, that alignment will be given the score -2. Both are considered as mismatches, but mismatches between consonants and vowels are given a higher penalty.
-            </p>
-            <p>
-You can edit the substition matrix in any spreadsheet software (LibreOffice Calc, Microsoft Excel, etc.) and save it as a <code>csv</code> file. See the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/csv2mafft"><code>csv2mafft/</code></a> directory for more details.
-            </p>
             <h3 id="alignment-using">Using the alignment tool</h3>
             <p>
-Helayo takes a FASTT file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix, is:<label class="margin-toggle sidenote-number" for="n-helayo-exe"></label><input type="checkbox" id="n-helayo-exe" class="margin-toggle" /><span class="sidenote">If you have built helayo from source, replace <code>./helayo-exe</code> with <code>stack exec helayo-exe --</code>.</span>
+Helayo takes a FASTT file, removes spaces, punctuation, and sandhi, and aligns the texts in it. It produces a TEI XML file. In your terminal, navigate to the <code>helayo/</code> directory. The basic syntax, using the substitution matrix (see below), is:<label class="margin-toggle sidenote-number" for="n-helayo-exe"></label><input type="checkbox" id="n-helayo-exe" class="margin-toggle" /><span class="sidenote">If you have built helayo from source, replace <code>./helayo-exe</code> with <code>stack exec helayo-exe --</code>.</span>
             </p>
             <blockquote>
                 <code>./helayo-exe -x substitution_matrix.csv -f [input file] &gt; [output file]</code>            </blockquote>
@@ -233,9 +228,9 @@ For example, to align the first verse of the <cite>Dravyasamuddeśa</cite>, run
             <p>
 This will produce a file, called <code>v3.2.1.xml</code>, containing the aligned texts.
             </p>
-            <h3 id="alignment-options1">Alignment options: -l (lemma size)</h3>
+            <h3 id="alignment-options1">Alignment options: lemma size</h3>
             <p>
-Helayo can align texts as characters, akṣaras, or as words, using the <code>-l [character|aksara|word]</code> option. For example, to re-do the alignment of the first verse of the <cite>Dravyasamuddeśa</cite> as akṣaras, run
+Helayo can align texts as characters, akṣaras, or as words, using the <code>-l character|aksara|word</code> option. For example, to re-do the alignment of the first verse of the <cite>Dravyasamuddeśa</cite> as akṣaras, run
             </p>
             <blockquote>
                 <code>./helayo-exe -x substitution_matrix.csv -l aksara -f ../example/fastt/v3.2.1.fas &gt; v3.2.1-aksaras.xml</code>
@@ -267,19 +262,34 @@ vasta svalakṣanakriyākāri -                   dravyaṃ<br/>
 vastu svalakṣamānam       arthakriyākāri      dravyaṃ<br/>
                 </pre>
             </blockquote>
-            <h3 id="alignment-options2">Alignment options: -M, -m, -i, -g</h3>
+            <h3 id="alignment-options2">Alignment options: match, mismatch, and gap scoring</h3>
             <p>
-By default, the alignment is scored like this:
+By default, the alignment is scored like this:<label class="margin-toggle" for="n-gap-penalties">⊕</label><input id="n-gap-penalties" class="margin-toggle" type="checkbox"/><span class="marginnote">The gap and gap opening penalties are derived from <a href="#b-cartwright2006">Cartwright 2006</a>, which gives an affine gap penalty function of G<sub>A</sub>(k) = 4 + k/4.</span>
             </p>
-            <ul>
-                <li>Match: 0</li>
-                <li>Mismatch: -1</li>
-                <li>Initial gap: -0.25</li>
-                <li>Gap: -0.25</li>
-                <li>Gap opening: -4<label class="margin-toggle" for="n-gap-penalties">⊕</label><input id="n-gap-penalties" class="margin-toggle" type="checkbox"/><span class="marginnote">The gap and gap opening penalties are derived from <a href="#b-cartwright2006">Cartwright 2006</a>, which gives an affine gap penalty function of G<sub>A</sub>(k) = 4 + k/4.</span></li>
-            </ul>
+            <table style="font-size: 1.4rem">
+                <tbody>
+                <tr><th>Match (<code>-m</code>)</th><td>0</td></tr>
+                <tr><th>Mismatch (<code>-M</code>)</th><td>-1</td></tr>
+                <tr><th>Initial gap (<code>-i</code>)</th><td>-0.25</td></tr>
+                <tr><th>Gap (<code>-g</code>)</th><td>-0.25</td></tr>
+                <tr><th>Gap opening (<code>-o</code>)</th><td>-4</td></tr>
+                </tbody>
+            </table>
             <p>
-These options can be changed with the <code>-M</code> (match), <code>-m</code> (mismatch), <code>-i</code> (initial gap penalty), <code>-g</code> (gap penalty), and <code>-o</code> (gap opening penalty) options. In addition, when using the substitution matrix, vowel/consonant mismatches are scored -1.25. 
+These options can be changed with the corresponding command-line option. For example, <code>helayo -m 1 -M -2</code> would set the match score to 1 and the mismatch score to -2.
+            </p>
+            <h3 id="alignment-matrix">The substitution matrix</h3>
+            <p>
+            <label class="margin-toggle" for="n-alignment2">⊕</label>
+            <input id="n-alignment2" class="margin-toggle" type="checkbox"/>
+            <span class="marginnote">
+                <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
+                The substitution matrix, colour-coded, displayed in LibreOffice Calc.
+            </span>
+Helayo can optionally use a <em>substitution matrix</em> in order to improve the alignment. This is highly recommended. The matrix is a spreadsheet that gives different weights to different alignments. I have provided a simple matrix (<a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/substitution_matrix.csv"><code>substitution_matrix.csv</code></a>) that tries to align vowels with vowels and consonants with consonants. For example, if the software tries to align <em>t</em> with <em>g</em>, that alignment will be scored as a mismatch, and given the penalty -1. But if it tries to align <em>t</em> with <em>ā</em>, that alignment will be scored even lower, at -1.25. Both are considered as mismatches, but mismatches between consonants and vowels are given a greater penalty.
+            </p>
+            <p>
+You can edit the substition matrix in any spreadsheet software (LibreOffice Calc, Microsoft Excel, etc.) and save it as a <code>csv</code> file. See the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/csv2mafft"><code>csv2mafft/</code></a> directory for more details.
             </p>
             <h3 id="alignment-multiple">Working with multiple files</h3>
             <p>
