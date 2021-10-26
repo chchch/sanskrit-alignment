@@ -32,10 +32,11 @@ data Penalties = Penalties {
     pMatch :: Double,
     pMismatch :: Double,
     pInitialGap :: Double,
-    pGap :: Double
+    pGap :: Double,
+    pGapOpen :: Double
 } deriving (Show)
 
-makePenalties m mm ig g = Penalties {pMatch = m, pMismatch = mm, pInitialGap = ig, pGap = g}
+makePenalties m mm ig g go = Penalties {pMatch = m, pMismatch = mm, pInitialGap = ig, pGap = g, pGapOpen = go}
 
 alignLookup:: SubMatrix -> Penalties -> String -> String -> Double
 alignLookup m o a b
@@ -51,7 +52,7 @@ recursiveLookup m o a b
     | a == b                        = pMatch o
     | otherwise                     = (traceScore t) / fromIntegral (length $ trace t)
     where
-        t = align (alignConfig (alignLookup m o) (pInitialGap o) (pGap o)) 
+        t = affineAlign (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o)) 
                       (V.fromList a') (V.fromList b')
         a' = splitGlyphs slp1' a
         b' = splitGlyphs slp1' b
@@ -67,30 +68,30 @@ alignLookup' m o a b
 
 simpleConfig o a b = if a == b then pMatch o else pMismatch o
 
-tr m o ss = align
-       (alignConfig (alignLookup m o) (pInitialGap o) (pGap o))
+tr m o ss = affineAlign
+       (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
        (V.fromList $ head ss)
        (V.fromList $ last ss)
 
-tr' o ss = align
-       (alignConfig (simpleConfig o) (pInitialGap o) (pGap o))
+tr' o ss = affineAlign
+       (alignConfig' (simpleConfig o) (pInitialGap o) (pGap o) (pGapOpen o))
        (V.fromList $ head ss)
        (V.fromList $ last ss)
 
 mtr o seqs = centerStar
-    (alignConfig (simpleConfig o) (pInitialGap o) (pGap o))
+    (alignConfig' (simpleConfig o) (pInitialGap o) (pGap o) (pGapOpen o))
     vecs
     where
     vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
 
 mtr' m o seqs = centerStar
-    (alignConfig (alignLookup m o) (pInitialGap o) (pGap o))
+    (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
     vecs
     where
     vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
 
 mtrWords' m o seqs = centerStar
-    (alignConfig (recursiveLookup m o) (pInitialGap o) (pGap o))
+    (alignConfig' (recursiveLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
     vecs
     where
     vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs

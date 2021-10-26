@@ -23,6 +23,7 @@ data Options = Options
      optMismatch :: Double,
      optInitialGap :: Double,
      optGap :: Double,
+     optGapOpen :: Double,
      optScript :: String,
      optLemma :: String,
      optTest   :: Bool,
@@ -37,6 +38,7 @@ defaultOptions = Options
      optMismatch = -1,
      optInitialGap = -0.25,
      optGap = -0.25,
+     optGapOpen = -4,
      optScript = "iast",
      optLemma = "character",
      optTest = False,
@@ -50,6 +52,7 @@ options =
       Option ['m']  ["mismatch"]   (ReqArg (\o opts -> opts {optMismatch = read o::Double}) "MISMATCHSCORE") "mismatch score",
       Option ['i']  ["initial-gap"] (ReqArg (\o opts -> opts {optInitialGap = read o::Double}) "INITIALGAPSCORE") "initial gap score",
       Option ['g']  ["gap"]        (ReqArg (\o opts -> opts {optGap = read o::Double}) "GAPSCORE") "gap score",
+      Option ['o']  ["gap-open"]        (ReqArg (\o opts -> opts {optGapOpen = read o::Double}) "GAPOPENSCORE") "gap opening score",
       Option ['s']  ["script"]     (ReqArg (\s opts -> opts {optScript = s}) "SCRIPT") "script (iast or slp1)",
       Option ['l']  ["lemma"]      (ReqArg (\s opts -> opts {optLemma = s}) "LEMMA") "lemma size (character, aksara, word)",
       Option ['t']  ["test"]       (NoArg (\opts -> opts {optTest = True})) "test mode",
@@ -99,7 +102,7 @@ main = do
         if mf /= Nothing then do
             contents <- readFile $ fromJust mf
             let mm = makeMatrix' . makeArray $ lines contents
-            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
+            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as) (optGapOpen as)
             let result = tr mm penalties strs
             putStrLn $ "Strings: " ++ show fs
             print $ show result            
@@ -108,7 +111,7 @@ main = do
     --    contents <- readFile fn
     --    let fl = lines contents
             putStrLn $ "Strings: " ++ show fs
-            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
+            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as) (optGapOpen as)
             let result = tr' penalties strs
             print $ traceScore result
             putStrLn $ foldl (++) "" unfiltered1
@@ -121,7 +124,7 @@ main = do
                 | optLemma as == "word"   = prepWords seqs
                 | optLemma as == "aksara" = prepAksaras seqs
                 | otherwise               = prepSeqs seqs
-        let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
+        let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as) (optGapOpen as)
         let m = optMatrixFile as
         if m /= Nothing then do
             contents <- readFile $ fromJust m
@@ -147,7 +150,7 @@ main = do
         if mf /= Nothing then do
             contents <- readFile $ fromJust mf
             let mm = makeMatrix' . makeArray $ lines contents
-            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
+            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as) (optGapOpen as)
             let result = tr mm penalties strs
             putStrLn $ "Strings: " ++ show fs
             print $ traceScore result            
@@ -156,7 +159,7 @@ main = do
     --    contents <- readFile fn
     --    let fl = lines contents
             putStrLn $ "Strings: " ++ show fs
-            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as)
+            let penalties = makePenalties (optMatch as) (optMismatch as) (optInitialGap as) (optGap as) (optGapOpen as)
             let result = tr' penalties strs
             print $ traceScore result
             putStrLn $ foldl (++) "" unfiltered1

@@ -162,8 +162,8 @@ filters = [
         filterReplace = (const "a")
     },
     Filter {
-        filterDesc = "visarga aḥ before unvoiced consonants",
-        filterSearch = "o\\s+(?=[kKcCwWtTpPszS])",
+        filterDesc = "visarga aḥ before unvoiced consonants and space + anusvāra",
+        filterSearch = "o\\s+(?=[kKcCwWtTpPszSM])",
         filterReplace = (const "aH a")
     },
     Filter {
@@ -245,6 +245,11 @@ filters = [
         filterDesc = "cch/ch",
         filterSearch = "(?<=[aAiIuUeEoO])C",
         filterReplace = (const "cC")
+    },
+    Filter {
+        filterDesc = "final t + hi", -- just catch most common case here
+        filterSearch = "d(\\s+)D(?=[iy](?:\\s|$))",
+        filterReplace = (\mt -> 't':(fst $ mt ! 1) ++ "h")
     },
     Filter {
         filterDesc = "final t + voiced syllable", -- different rule for t + h = ddh
@@ -358,7 +363,7 @@ filters' = [
     },
     Filter {
         filterDesc = "final anusvāra variants", -- A 8.4.59
-        filterSearch = "M?[mN](?!\\S)|(?<=k[ai])n(?=\\s+t)|Y(?=\\s+[jc])",
+        filterSearch = "M?[mN](?!\\S)|(?<=k[aiu])n(?=\\s+t)|Y(?=\\s+[jc])",
         filterReplace = (const "M")
     }, 
     Filter {
@@ -379,13 +384,23 @@ filters' = [
     Filter {
         filterDesc = "internal visarga variants",
         --filterSearch = "(?<=u)z|z(?=k)|s(?=s)",
-        filterSearch = "z(?=k)|s(?=s)",
+        filterSearch = "z(?=[kK])|s(?=s)",
         filterReplace = (const "H")
     },
     Filter {
         filterDesc = "final au/āv",
         filterSearch = "Av(?!\\S)",
         filterReplace = (const "O")
+    },
+    Filter {
+        filterDesc = "final su",
+        filterSearch = "(?<=[sz])v(?=\\s[aAiIuUoOeE])",
+        filterReplace = (const "u")
+    },
+    Filter {
+        filterDesc = "final i",
+        filterSearch = "y(?=\\s[aAuUoOeE])",
+        filterReplace = (const "i")
     },
     Filter {
         filterDesc = "kcch/kś",
@@ -404,8 +419,9 @@ filters' = [
     },
     Filter {
         filterDesc = "final t + n/m",
-        filterSearch = "t(?=\\s[nm])",
-        filterReplace = (const "n")
+        --filterSearch = "t(?=\\s[nm])",
+        filterSearch = "(?<=[ai])n(?=\\s[nm])",
+        filterReplace = (const "t")
     },
     Filter {
         filterDesc = "final t + c/j",
@@ -488,10 +504,12 @@ prepSeqs ss = zip sigla unfiltered
     where 
     sigla = map fastaHeader ss
     filtered :: [([Filtered],String)]
-    filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    filtered = map (filterAll' (filters ++ [spaceFilter]) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    --filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
     unfiltered :: [([String],[String])]
     unfiltered = map go filtered
-        where go (fs,s) = let split = splitGlyphs_ slp1' s in (unfilterAll' fs split,split)
+        where go (fs,s) = let split = splitGlyphs slp1' s in (unfilterAll' fs split,split)
+        --where go (fs,s) = let split = splitGlyphs_ slp1' s in (unfilterAll' fs split,split)
 
 prepWords :: [FastaSequence] -> [(String,([String],[String]))]
 prepWords ss = zip sigla unfiltered

@@ -4,8 +4,11 @@ module Align
   (
   -- * Global and local alignment
     align
+  , affineAlign
   , AlignConfig
+  , AlignConfig'
   , alignConfig
+  , alignConfig'
   , Step
   , Trace, traceScore, trace
   -- * Align streams using sliding windows
@@ -147,6 +150,73 @@ align AlignConfig{..} as bs =
         tr = reverse [stepFun (xs G.! xi) | xi <- [0..idx]]
     in Trace score tr
 
+Trace a b `tappend'` Trace  y (z:_) = Trace (a+y) (z:b)
+
+data AlignConfig' a s = AlignConfig'
+  { ac'PairScore :: a -> a -> s
+  , ac'_initial_gap_penalty :: s
+  , ac'_gap_penalty :: s
+  , ac'_gap_opening_penalty :: s
+  }
+
+alignConfig' :: (a -> a -> s)  -- ^ Scoring function.
+            -> s               -- ^ Initial gap score.
+            -> s               -- ^ Gap score.
+            -> s               -- ^ Gap opening score.
+            -> AlignConfig' a s
+alignConfig' = AlignConfig'
+
+affineAlign :: (G.Vector v a, Num s, Ord s)
+  => AlignConfig' a s
+  -> v a  -- ^ Left sequence.
+  -> v a  -- ^ Right sequence.
+  -> Trace a s
+affineAlign AlignConfig'{..} as bs =
+  let p = (lastIndex as, lastIndex bs)
+  in revTrace . fst $ evalState (go p) M.empty
+  where
+  revTrace (Trace s t) = Trace s (reverse t)
+  lastIndex v = G.length v - 1
+  --
+  go p = do
+    res <- gets $ M.lookup p
+    case res of
+        Just r -> return r
+        Nothing -> do
+            newRes <- pgo p
+            modify (M.insert p newRes)
+            return newRes
+  --
+  pgo (i,j)
+    | i == (-1) || j == (-1) = return $
+      if i == j then (Trace 0 [],(Trace 0 [],Trace 0 []))
+      else if i == (-1)
+           then skipInit j stepRight bs
+           else skipInit i stepLeft as
+    | otherwise = do
+      let a = as G.! i
+          b = bs G.! j
+      diag  <- go (i-1,j-1)
+      let diag_max = (fst diag) `tappend'` Trace (ac'PairScore a b) [stepBoth a b]
+      
+      a_gaps <- go (i-1,  j)
+      let a_gap1 = (fst a_gaps) `tappend'` Trace (ac'_gap_opening_penalty + ac'_gap_penalty) [stepLeft a]
+      let a_gap2 = (fst . snd) a_gaps `tappend'` Trace ac'_gap_penalty [stepLeft a]
+      let a_gap_max = L.maximumBy (comparing traceScore) [a_gap1, a_gap2]
+      
+      b_gaps <- go (  i,j-1)
+      let b_gap1 = (fst b_gaps) `tappend'` Trace (ac'_gap_opening_penalty + ac'_gap_penalty) [stepRight b]
+      let b_gap2 = (snd . snd) b_gaps `tappend'` Trace ac'_gap_penalty [stepRight b]
+      let b_gap_max = L.maximumBy (comparing traceScore) [b_gap1, b_gap2]
+      
+      let max = L.maximumBy (comparing traceScore) [diag_max, a_gap_max, b_gap_max]
+      return (max,(a_gap_max,b_gap_max))
+  --
+  skipInit idx stepFun xs =
+    let score = ac'_gap_opening_penalty + ac'_initial_gap_penalty * fromIntegral (idx+1)
+        tr = reverse [stepFun (xs G.! xi) | xi <- [0..idx]]
+    in (Trace score tr,(Trace score tr,Trace score tr))
+
 -- | Aligns long streams by performing alignment on windowed sections.
 windowedAlign :: (Num s, Eq s, Ord s)
   => AlignConfig a s
@@ -216,7 +286,7 @@ debugMultiAlign =
 -- <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.7448&rep=rep1&type=pdf>. 
 -- Assumes the list of sequences to have length > 1, and the indices to be unique.
 centerStar :: (G.Vector v a, Num s, Ord s, Ord i)
-  => AlignConfig a s
+  => AlignConfig' a s
   -> [(i, v a)]  -- TODO use internal indices rather to make uniqueness sure
   -> MultiTrace i a s
 centerStar conf vs =
@@ -275,7 +345,7 @@ centerStar conf vs =
     pairAligns = do
       ((i,v):rest) <- L.tails vs
       (j,w) <- rest
-      let tr = align conf v w
+      let tr = affineAlign conf v w
       [((i,j), tr), ((j,i), flipLR tr)]
       where
         flipLR tr = tr { trace = map go . trace $ tr }
