@@ -17,7 +17,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 26 October 2021.</p>
+        <p>Last updated: 30 October 2021.</p>
         <section>
             <blockquote>
                 <p>
@@ -268,8 +268,8 @@ By default, the alignment is scored like this:<label class="margin-toggle" for="
             </p>
             <table>
                 <tbody>
-                <tr><th>match (<code>-m</code>)</th><td>0</td></tr>
-                <tr><th>mismatch (<code>-M</code>)</th><td>-1</td></tr>
+                <tr><th>match (<code>-M</code>)</th><td>0</td></tr>
+                <tr><th>mismatch (<code>-m</code>)</th><td>-1</td></tr>
                 <tr><th>initial gap (<code>-i</code>)</th><td>-0.25</td></tr>
                 <tr><th>gap (<code>-g</code>)</th><td>-0.25</td></tr>
                 <tr><th>gap opening (<code>-o</code>)</th><td>-4</td></tr>
@@ -279,7 +279,7 @@ By default, the alignment is scored like this:<label class="margin-toggle" for="
 That is, a match between two readings, such as <i>k</i> and <i>k</i> (on a character level) or <i>ka</i> and <i>ka</i> (on an akṣara level) are given the score 0. A mismatch, such as <i>k</i> and <i>p</i>, is given the score -1. When working in <code>aksara</code> or <code>word</code> mode, mismatched readings have their total score divided by the length of the alignment; for example, <i>ka</i> and <i>pa</i> would be scored -1/2, but <i>ka</i> and <i>pi</i> would be scored -2/2.
             </p>
             <p>
-These options can be changed with the corresponding command-line option. For example, <code>helayo -m 1 -M -2</code> would set the match score to 1 and the mismatch score to -2.  
+These options can be changed with the corresponding command-line option. For example, <code>helayo -M 1 -m -2</code> would set the match score to 1 and the mismatch score to -2.  
             </p>
             <h3 id="alignment-matrix">The substitution matrix</h3>
             <p>
