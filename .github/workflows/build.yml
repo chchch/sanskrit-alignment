@@ -1,4 +1,4 @@
-name: helayo-build
+name: helayo build & test
 
 on:
   push:
