@@ -20,6 +20,7 @@ jobs:
       name: Setup Haskell Stack
       with:
         ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
         stack-version: ${{ matrix.stack }}
 
     - uses: actions/cache@v2.1.3
