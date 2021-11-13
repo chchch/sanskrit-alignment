@@ -1,5 +1,7 @@
 # Tools for aligning Sanskrit texts
 
+![helayo build & test](https://github.com/chchch/sanskrit-alignment/actions/workflows/build.yml/badge.svg)
+
 This repository contains some work-in-progress centered on aligning Sanskrit texts (for doing collation, reconstruction, etc.)
 
 See the docs at https://chchch.github.io/sanskrit-alignment/docs/index.html for more information.
