@@ -41,7 +41,7 @@ packages:
 #
 # extra-deps: []
 extra-deps:
-- align-0.1.1.2@sha256:7ab01a174748a4523a544560b59a3020abfa31db56e280a3172dd7abfabf70c3,813
+#- align-0.1.1.2@sha256:7ab01a174748a4523a544560b59a3020abfa31db56e280a3172dd7abfabf70c3,813
 - fasta-0.10.4.2
 #- pipes-4.3.14
 #- pipes-text-0.0.2.5
