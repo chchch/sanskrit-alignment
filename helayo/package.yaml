@@ -36,6 +36,13 @@ dependencies:
 - parallel
 - deepseq
 
+# test suite
+- random
+- tasty
+- tasty-hunit
+- pcre-utils
+- utf8-string
+
 library:
   source-dirs: src
   
