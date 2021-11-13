@@ -50,7 +50,7 @@ jobs:
       matrix:
         os: [windows-latest]
         cabal: [latest]
-        ghc: [latest]
+        ghc: [8.10.1]
 
     steps:
     - uses: actions/checkout@v2
