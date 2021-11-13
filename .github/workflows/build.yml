@@ -1,6 +1,9 @@
 name: helayo-build
 
-on: [push]
+on:
+  push:
+    paths:
+    - 'helayo/**'
 
 jobs:
 
