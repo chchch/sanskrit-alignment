@@ -1,6 +1,7 @@
 module Filter (
 Filter,Filtered,
 filters,
+spaceFilter,
 replaceAll,replaceAll',
 unreplaceAll,
 filterAll,filterAll',filterAll'',
@@ -213,7 +214,7 @@ filters = [
     Filter {
         filterDesc = "kcch/kś",
         filterSearch = "k(\\s*)(?:S|c?C)",
-        filterReplace = (\mt -> 'k':(fst $ mt ! 0) ++ "S")
+        filterReplace = (\mt -> 'k':(fst $ mt ! 1) ++ "S")
         --filterReplace = (const "kS")
     },
     {-
@@ -233,7 +234,7 @@ filters = [
     Filter {
         filterDesc = "cś/tś",
         filterSearch = "c(\\s*)S",
-        filterReplace = (\mt -> 't':(fst $ mt ! 0) ++ "S")
+        filterReplace = (\mt -> 't':(fst $ mt ! 1) ++ "S")
     },
     -}
     Filter {
@@ -253,7 +254,7 @@ filters = [
     },
     Filter {
         filterDesc = "final t + voiced syllable", -- different rule for t + h = ddh
-        filterSearch = "d(?=(?:\\s+[aAiIeuUogGdDbByrv]|\\s*$))",
+        filterSearch = "d(?=(?:\\s+[aAiIeEuUoOgGdDbByrv]|\\s*$))",
         filterReplace = (const "t")
     },
     Filter {
@@ -267,12 +268,11 @@ filters = [
         filterSearch = "j(?=\\s+j)|c(?=\\s+c)",
         filterReplace = (const "t")
     },
-{-    Filter {    
+    Filter {    
         filterDesc = "i/y + vowel",
         filterSearch = "y(?=\\s+[aAuUeo])",
         filterReplace = (const "i")
     },
--}
     Filter {
         filterDesc = "bhd for bdh",
         filterSearch = "Bd",
@@ -414,7 +414,7 @@ filters' = [
     },
     Filter {
         filterDesc = "final t + voiced syllable", -- different rule for t + h = ddh
-        filterSearch = "d(?=(?:\\s[aAiIeuUogGdDbByrv]|\\s*$))",
+        filterSearch = "d(?=(?:\\s+[aAiIeEuUoOgGdDbByrv]|\\s*$))",
         filterReplace = (const "t")
     },
     Filter {
@@ -428,12 +428,11 @@ filters' = [
         filterSearch = "j(?=\\sj)|c(?=\\sc)",
         filterReplace = (const "t")
     },
-{-    Filter {    
+    Filter {    
         filterDesc = "i/y + vowel",
         filterSearch = "y(?=\\s[aAuUeo])",
         filterReplace = (const "i")
     },
--}
     Filter {
         filterDesc = "bhd for bdh",
         filterSearch = "Bd",
