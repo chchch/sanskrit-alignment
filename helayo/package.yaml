@@ -54,7 +54,7 @@ executables:
 #    - -fPIC
     - -static
     - -Wall
-    - -optl-fuse-ld=bfd
+#    - -optl-fuse-ld=bfd
     ld-options: -static -pthread
     cc-options: -static
     dependencies:
