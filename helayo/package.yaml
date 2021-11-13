@@ -52,11 +52,11 @@ executables:
     - -with-rtsopts=-N
     - -O2
 #    - -fPIC
-    - -static
+#    - -static
     - -Wall
 #    - -optl-fuse-ld=bfd
-    ld-options: -static -pthread
-    cc-options: -static
+#    ld-options: -static -pthread
+#    cc-options: -static
     dependencies:
     - helayo
 
