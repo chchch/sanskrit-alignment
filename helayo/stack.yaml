@@ -43,21 +43,22 @@ packages:
 # extra-deps: []
 extra-deps:
 #- align-0.1.1.2@sha256:7ab01a174748a4523a544560b59a3020abfa31db56e280a3172dd7abfabf70c3,813
-- fasta-0.10.4.2
 #- pipes-4.3.14
 #- pipes-text-0.0.2.5
 #- pipes-safe-2.3.2
-- pipes-4.3.16
+
+- fasta-0.10.4.2
+#- pipes-4.3.16
 - pipes-text-1.0.0
-- pipes-safe-2.3.3
+#- pipes-safe-2.3.3
 
 - MissingH-1.4.3.0
-- Cabal-3.6.2.0
-- directory-1.3.7.0
-- process-1.6.13.2
-- time-1.9.3
+#- Cabal-3.6.2.0
+#- directory-1.3.7.0
+#- process-1.6.13.2
+#- time-1.9.3
 
-- Win32-2.13.1.0
+#- Win32-2.13.1.0
 
 allow-newer: true
 
