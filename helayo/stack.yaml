@@ -51,6 +51,7 @@ extra-deps:
 - pipes-text-1.0.0
 - pipes-safe-2.3.3
 - MissingH-1.4.3.0
+- Win32-2.13.1.0
 
 allow-newer: true
 
