@@ -50,7 +50,13 @@ extra-deps:
 - pipes-4.3.16
 - pipes-text-1.0.0
 - pipes-safe-2.3.3
+
 - MissingH-1.4.3.0
+- Cabal-3.6.2.0
+- directory-1.3.7.0
+- process-1.6.13.2
+- time-1.9.3
+
 - Win32-2.13.1.0
 
 allow-newer: true
