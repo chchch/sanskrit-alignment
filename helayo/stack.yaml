@@ -17,7 +17,8 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-16.31
+#resolver: lts-16.31
+resolver: lts-18.17
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -49,6 +50,7 @@ extra-deps:
 - pipes-4.3.16
 - pipes-text-1.0.0
 - pipes-safe-2.3.3
+- MissingH-1.4.3.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

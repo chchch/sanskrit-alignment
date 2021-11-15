@@ -12,9 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         stack: [latest]
-        ghc: ["8.8.4"]
+        ghc: ["8.10.7"]
 
     steps:
     - uses: actions/checkout@v2
