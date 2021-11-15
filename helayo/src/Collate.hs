@@ -1,17 +1,16 @@
 module Collate (
-tr,tr',
-mtr,mtr',mtrWords',
+tr,mtr,
 makeArray,
-SubMatrix,SubMatrix',
-mSM,mSM',
-makeMatrix,makeMatrix',
+SubMatrix,--SubMatrix',
+--mSM,mSM',
+makeMatrix,--makeMatrix',
 Penalties,
 makePenalties,
-aksaraAlign,aksaraAlign',
-multiStrAlign,multiStrAlign',
+--aksaraAlign,aksaraAlign',
+--multiStrAlign,multiStrAlign',
 multiXMLAlign,
 alignPrep,
-alignLookup,alignLookup'
+alignLookup,recursiveLookup,simpleLookup
 ) where
 
 import Data.Maybe
@@ -52,11 +51,11 @@ recursiveLookup m o a b
     | a == b                        = pMatch o
     | otherwise                     = (traceScore t) / fromIntegral (length $ trace t)
     where
-        t = affineAlign (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o)) 
+        t = affineAlign (alignConfig (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o)) 
                       (V.fromList a') (V.fromList b')
         a' = splitGlyphs slp1' a
         b' = splitGlyphs slp1' b
-
+{-
 alignLookup' :: SubMatrix' -> Penalties -> String -> String -> Double
 alignLookup' m o a b
     | a == b                        = pMatch o
@@ -65,37 +64,20 @@ alignLookup' m o a b
         where
         xindex = a `elemIndex` rows' m
         yindex = b `elemIndex` columns' m
+-}
 
-simpleConfig o a b = if a == b then pMatch o else pMismatch o
+simpleLookup o a b = if a == b then pMatch o else pMismatch o
 
-tr m o ss = affineAlign
-       (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
+tr m conf o ss = affineAlign
+       (alignConfig (conf o) (pInitialGap o) (pGap o) (pGapOpen o))
        (V.fromList $ head ss)
        (V.fromList $ last ss)
 
-tr' o ss = affineAlign
-       (alignConfig' (simpleConfig o) (pInitialGap o) (pGap o) (pGapOpen o))
-       (V.fromList $ head ss)
-       (V.fromList $ last ss)
-
-mtr o seqs = centerStar
-    (alignConfig' (simpleConfig o) (pInitialGap o) (pGap o) (pGapOpen o))
+mtr conf o seqs = centerStar
+    (alignConfig (conf o) (pInitialGap o) (pGap o) (pGapOpen o))
     vecs
     where
     vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
-
-mtr' m o seqs = centerStar
-    (alignConfig' (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
-    vecs
-    where
-    vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
-
-mtrWords' m o seqs = centerStar
-    (alignConfig' (recursiveLookup m o) (pInitialGap o) (pGap o) (pGapOpen o))
-    vecs
-    where
-    vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
-
 
 makeArray :: [String] -> [[String]]
 makeArray = map (wordsBy (== ';'))
@@ -104,7 +86,7 @@ makeArray = map (wordsBy (== ';'))
 data SubMatrix = SubMatrix {columns :: M.Map String Int,
                       rows :: M.Map String Int,
                       matrix :: X.Matrix Double} deriving (Show)
-
+{-
 data SubMatrix' = SubMatrix' {columns' :: [String],
                       rows' :: [String],
                       matrix' :: [[Double]]} deriving (Show)
@@ -116,23 +98,25 @@ mSM :: M.Map String Int -> M.Map String Int -> X.Matrix Double -> SubMatrix
 mSM c r m = SubMatrix {columns = c, rows = r, matrix = m}
 
 
-makeMatrix :: [[String]] -> SubMatrix
-makeMatrix (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
+makeMatrix' :: [[String]] -> SubMatrix
+makeMatrix' (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
-    xaxis = M.fromList $ zip ss [1..] -- Matrix is 1-indexed
+    xaxis = M.fromList $ zip ss [1..]
     yaxis = M.fromList $ zip (map head sss) [1..]
     size = length xaxis * length yaxis - 1
     scores = X.fromLists $ map (map (\s -> read s::Double)) $ map (drop 1) sss
+-}
 
-makeMatrix' :: [[String]] -> SubMatrix
-makeMatrix' (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
+-- Matrix is 1-indexed
+makeMatrix :: [[String]] -> SubMatrix
+makeMatrix (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
     xaxis = M.fromList $ zip (map (transliterateString iast slp1') ss) [1..]
     yaxis = M.fromList $ zip (map (transliterateString iast slp1' . head) sss) [1..]
     size = length xaxis * length yaxis - 1
     scores = X.fromLists $ map (map (\s -> read s::Double)) $ map (drop 1) sss
 
-        
+{-        
 aksaraAlign :: [Step String] -> String
 aksaraAlign = go id id
     where
@@ -144,9 +128,6 @@ aksaraAlign = go id id
             where
             fill1 = take (length d - length c) (repeat '*')
             fill2 = take (length c - length d) (repeat '*')
-        --Left (Left c)   -> go (as . (reverse c ++)) (bs . (take (length c) (repeat '-') ++)) ts
-        --Left (Right c)  -> go (as . (take (length c) (repeat '-') ++)) (bs . (reverse c ++)) ts
-        --Right (c,d)     -> go (as . (reverse c ++)) (bs . (reverse d ++)) ts
 
 aksaraAlign' :: [Step String] -> [String] -> [String] -> String
 aksaraAlign' ss a b = go id id ss a b
@@ -165,6 +146,7 @@ aksaraAlign' ss a b = go id id ss a b
 
 multiStrAlign :: [MultiStep String] -> String
 multiStrAlign = unlines . map (\y -> foldr (\x acc -> x ++ "," ++ acc) "" (map (fromMaybe "") y)) . transpose . map stepOfAll
+-}
 
 alignPrep :: [String] -> [MultiStep String] -> [(String,([String],[String]))] -> [(String,([String],[Maybe String]))]
 alignPrep is ms ss = reverse $ go (M.fromList (zip is (transpose $ map stepOfAll ms))) ss []
@@ -173,9 +155,9 @@ alignPrep is ms ss = reverse $ go (M.fromList (zip is (transpose $ map stepOfAll
     go m [] acc = acc
     go m ((i,(unfiltered,_)):rem) acc = go m rem ((i,(unfiltered,target)):acc)
         where target = fromMaybe [] (M.lookup i m)
-    
-alignZip :: [String] -> [Maybe String] -> [String]
-alignZip a b = go a b id
+{-    
+alignZip' :: [String] -> [Maybe String] -> [String]
+alignZip' a b = go a b id
     where
     go :: [String] -> [Maybe String] -> ([String] -> [String]) -> [String]
     go _ [] acc = acc []
@@ -183,9 +165,9 @@ alignZip a b = go a b id
     go ss@(s:srem) (m:mrem) acc
         | m == Nothing  = go ss mrem (acc . ([""]++))
         | otherwise     = go srem mrem (acc . ([s]++))
-
-alignZip' :: [String] -> [Maybe String] -> [(String,String)]
-alignZip' a b = go a b []
+-}
+alignZip :: [String] -> [Maybe String] -> [(String,String)]
+alignZip a b = go a b []
     where
     go :: [String] -> [Maybe String] -> [(String,String)] -> [(String,String)]
     go _ [] acc = reverse acc
@@ -198,7 +180,7 @@ alignZip' a b = go a b []
                 | s == fromJust m    = ""
                 | otherwise = fromJust m
 
-
+{-
 multiStrAlign' :: [(String,([String],[Maybe String]))] -> String
 multiStrAlign' as = foldl' (\x acc -> x ++ "\n" ++ acc) "" (map go as)
     where
@@ -206,6 +188,7 @@ multiStrAlign' as = foldl' (\x acc -> x ++ "\n" ++ acc) "" (map go as)
     go (i,(s,m)) = i ++ "," ++ result
         where 
         result = foldr (\x acc -> (transliterateString slp1' iast x) ++ "," ++ acc) "" $ alignZip s m
+-}
 
 multiXMLAlign :: [(String,([String],[Maybe String]))] -> String
 multiXMLAlign as = 
@@ -216,7 +199,7 @@ multiXMLAlign as =
     formatTEIText :: (String,([String],[Maybe String])) -> String
     formatTEIText (i,(s,m)) = "<TEI n=\"" ++ i ++ "\">\n<text>\n" ++ snd result ++ "\n</text></TEI>"
         where 
-        result = foldr go (length m,"") $ alignZip' s m
+        result = foldr go (length m,"") $ alignZip s m
             where 
             go :: (String,String) -> (Int,String) -> (Int,String)
             go x acc =

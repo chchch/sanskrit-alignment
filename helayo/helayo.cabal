@@ -1,20 +1,18 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: cc9461049af30d1bd31568e4e234006100d0e5eba63bd98016ee0b3013ca633e
 
 name:           helayo
-version:        0.1.0.0
+version:        0.5
 description:    Please see the README on GitHub at <https://github.com/githubuser/helayo#readme>
-homepage:       https://github.com/githubuser/helayo#readme
-bug-reports:    https://github.com/githubuser/helayo/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
-license:        BSD3
+homepage:       https://github.com/chchch/sanskrit-alignment#readme
+bug-reports:    https://github.com/chchch/sanskrit-alignment/issues
+author:         Charles Li
+maintainer:     charles.li@ehess.fr
+copyright:      2020 Charles Li
+license:        GPL-3
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -23,13 +21,13 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/helayo
+  location: https://github.com/chchch/sanskrit-alignment
 
 library
   exposed-modules:
+      Align
       Collate
       Filter
-      Lib
       MyFasta
       Transcribe
   other-modules:
@@ -38,18 +36,21 @@ library
       src
   build-depends:
       MissingH
-    , align
     , array
     , base >=4.7 && <5
     , containers
-    , criterion
+    , deepseq
     , fasta
     , hxt-unicode
     , matrix
+    , parallel
     , parsec
+    , random
     , regex-pcre
     , split
-    , text-icu
+    , tasty
+    , tasty-hunit
+    , transformers
     , vector
   default-language: Haskell2010
 
@@ -59,22 +60,25 @@ executable helayo-exe
       Paths_helayo
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -Wall
   build-depends:
       MissingH
-    , align
     , array
     , base >=4.7 && <5
     , containers
-    , criterion
+    , deepseq
     , fasta
     , helayo
     , hxt-unicode
     , matrix
+    , parallel
     , parsec
+    , random
     , regex-pcre
     , split
-    , text-icu
+    , tasty
+    , tasty-hunit
+    , transformers
     , vector
   default-language: Haskell2010
 
@@ -88,18 +92,21 @@ test-suite helayo-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       MissingH
-    , align
     , array
     , base >=4.7 && <5
     , containers
-    , criterion
+    , deepseq
     , fasta
     , helayo
     , hxt-unicode
     , matrix
+    , parallel
     , parsec
+    , random
     , regex-pcre
     , split
-    , text-icu
+    , tasty
+    , tasty-hunit
+    , transformers
     , vector
   default-language: Haskell2010

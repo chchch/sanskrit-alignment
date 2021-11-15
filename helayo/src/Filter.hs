@@ -3,9 +3,9 @@ Filter,Filtered,
 filters,
 spaceFilter,
 replaceAll,replaceAll',
-filterAll,filterAll',filterAll'',
+filterAll,filterAll',
 unfilterAll,unfilterAll',
-prepSeqs, prepWords, prepAksaras,
+prepSeqs,prepWords,prepAksaras,
 filterSearch,
 filterReplace
 )
@@ -582,6 +582,7 @@ unreplaceAll' (f,ms) ss = start end
                 in  (start ++ replacewith):(replaceAt' (0,new_m) leftover xs)
             where leftoverlen = (length x) - n
 
+{-
 -- old ugly version
 filterAll'' :: [Filter] -> String -> ([Filtered],String)
 filterAll'' fs s = let (a,b) = go fs [] s in (reverse a,b) 
@@ -592,6 +593,7 @@ filterAll'' fs s = let (a,b) = go fs [] s in (reverse a,b)
             where 
             (r1,r2) = go xs us result
             (u,result) = replaceAll' (filterSearch x) (filterReplace x) s
+-}
 
 filterAll' :: [Filter] -> String -> ([Filtered],String)
 filterAll' fs s = go fs [] s 

@@ -1,3 +1,7 @@
 # Changelog for helayo
 
-## Unreleased changes
+## v0.5
+- new syntax: helayo [input file]
+    - old syntax: helayo -f [input file]
+- normalization improvements
+- code cleanup
