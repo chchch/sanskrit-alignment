@@ -11,8 +11,6 @@ jobs:
   stack:
     name: stack / windows-latest
     runs-on: windows-latest
-    stack: latest
-    ghc: "8.8.4"
 
     steps:
     - uses: actions/checkout@v2
