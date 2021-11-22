@@ -198,7 +198,6 @@ window.prettyXSLT =
         xmlns:x="http://www.tei-c.org/ns/1.0"
         exclude-result-prefixes="x">
     <xsl:output indent="yes"/>
-    <xsl:strip-space elements="*"/>
     <xsl:template match="x:span">
         <xsl:apply-templates/>
     </xsl:template>
