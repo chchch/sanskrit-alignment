@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'helayo/**'
+  workflow_dispatch
 
 jobs:
 
@@ -12,9 +13,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         stack: [latest]
-        ghc: ["8.10.7"]
+        ghc: ["8.10.3"]
 
     steps:
     - uses: actions/checkout@v2
@@ -35,14 +36,14 @@ jobs:
     - name: Install dependencies
       run: |
         cd helayo
-        stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
+        stack --resolver lts-17.2 build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: Build
       run: |
         cd helayo
-        stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+        stack --resolver lts-17.2 build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
 
     - name: Test
       run: |
         cd helayo
-        stack test --system-ghc
+        stack --resolver lts-17.2 test --system-ghc
