@@ -48,7 +48,7 @@ library:
 # see: https://github.com/commercialhaskell/stack/issues/3420
 # and https://github.com/icfpcontest2020/starterkit-haskell/issues/2
 executables:
-  helayo-exe:
+  helayo:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
