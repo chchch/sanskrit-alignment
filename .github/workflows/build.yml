@@ -47,3 +47,15 @@ jobs:
       run: |
         cd helayo
         stack --resolver lts-17.2 test --system-ghc
+    
+    - name: Install
+      run: |
+        cd helayo
+        stack install --local-bin-path ./dist/${{ matrix.os }}
+
+    - name: Commit
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: build ${{ matrix.os }} binary
+        file_pattern: helayo/dist/${{ matrix.os }}
+        commit_user_name: Helayo Bot
