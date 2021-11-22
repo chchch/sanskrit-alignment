@@ -1128,6 +1128,7 @@ const reconstructLemma = function(paths) {
     
     const csvOrXml = function(f,fs,e) {
         _filename = f.name;
+        document.title = document.title + `: ${_filename}`;
         const ext = _filename.split('.').pop();
         if(ext === 'csv') csvLoad(f,fs,e);
         else matrixLoad(f,fs,e);
@@ -1442,7 +1443,6 @@ const reconstructLemma = function(paths) {
                     const oldtext = oldteis.get(key).querySelector('text');
                     const newtext = val.querySelector('text');
                     const newwords = newtext.querySelectorAll('w[n]');
-                    //TODO: get groups also 
                     var cur_n = _maxlemma + 1;
                     for(const word of newwords) {
                         word.setAttribute('n',cur_n);
@@ -1497,19 +1497,19 @@ const reconstructLemma = function(paths) {
                 toggle: check.anyhighlit,
                 func: multi.highlightAll
             },
-            {text: 'Delete',
+            {text: 'Delete column',
                 greyout: check.anyhighlit,
                 func: edit.startRemoveCol.bind(null,false)
             },
-            {text: 'Delete empty lemmata',
+            {text: 'Delete empty columns',
                 func: edit.startRemoveEmpty
             },
-            {text: 'Merge',
+            {text: 'Merge columns',
                 greyout: check.manyhighlit,
                 func: edit.startMerge.bind(null,false)
             },
-            {text: 'Group',
-                alt: 'Ungroup',
+            {text: 'Group columns',
+                alt: 'Ungroup columns',
                 greyout: check.oneGrouped,
                 toggle: check.grouped,
                 func: edit.startGroup.bind(null,false),
@@ -1517,19 +1517,23 @@ const reconstructLemma = function(paths) {
             {text: 'Group words',
                 func: edit.doGroupWords
             },
-            {text: 'Edit reading',
+            {text: 'Edit cell',
                 greyout: check.highlitcell,
                 func: edit.startEditCell.bind(null,false),
             },
             {text: 'Insert row',
                 func: edit.startNewRow,
             },
-            {text: 'Insignificant',
+            {text: 'Insert column',
+                greyout: check.anyhighlit,
+                func: edit.startInsertCol
+            },
+            {text: 'Mark insignificant',
                 checkbox: check.checkbox.bind(null,'insignificant',false),
                 greyout: check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'insignificant',false)
             },
-            {text: 'Binary',
+            {text: 'Mark binary',
                 checkbox: check.checkbox.bind(null,'binary',false),
                 greyout: check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'binary',false)
@@ -1592,8 +1596,8 @@ const reconstructLemma = function(paths) {
         nexus: function(doc) {
             const texts = [...find.texts(doc)];
             const ntax = texts.length;
-            const symbols = '1 2 3 4 5 6 7 8 9 0 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
-            const symbolarr = symbols.split(' ');
+            const symbols = '0 1 2 3 4 5 6 7 8 9 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
+            const [siggap,...symbolarr] = symbols.split(' ');
             const gap = '-';
             const taxlabels = texts.map(el => '\''+el.parentElement.getAttribute('n')+'\'');
             const textWalkers = texts.map(el => find.textWalker(el));
@@ -1609,17 +1613,31 @@ const reconstructLemma = function(paths) {
                     const reading = Sanscript.t(node.textContent.trim().toLowerCase(),'iast','hk')
                         .replace(/'/g,'()');
                     readings.push(reading);
-                    if(reading !== '')
+                    if(reading !== '' && reading !== '[]')
                         statelabels.add(reading);
                 }
-                charstatelabels.push(statelabels);
+                charstatelabels.push(['[]',...statelabels]);
                 const statesymbols = new Map([...statelabels].map((x,i) => [x,symbolarr[i]]));
                 for(let p=0;p<readings.length;p++) {
-                    const r = readings[p] === '' ? gap : statesymbols.get(readings[p]);
+                    const r = ((p) => {
+                        switch (readings[p]) {
+                        case '':
+                            return gap;
+                        case '[]':
+                            return siggap;
+                        default:
+                            return statesymbols.get(readings[p]);
+                        }
+                    })(p);
+
                     matrix[p].push(r);
                 }
             }
             const charstatestr = charstatelabels.map((x,i) => (i+1) +' / '+ [...x].map(s => `'${s}'`).join(' ')).join(',\n');
+            const flatmatrix = matrix.map(arr => arr.join(''))
+                // ignore long gaps, even if "gaps are significant" is selected
+                .map(str => str.replace(/0{8,}/g, match => match.replace(/0/g,'-')))
+                .reduce((acc,cur) => acc + '\n'+cur);
             const str =
 `#NEXUS
 
@@ -1641,7 +1659,7 @@ BEGIN CHARACTERS;
 ${charstatestr}
 ;
 MATRIX
-${matrix.map(arr => arr.join('')).reduce((acc,cur) => acc + '\n'+cur)}
+${flatmatrix}
 ;
 END;
 `;
@@ -1790,7 +1808,7 @@ END;
                     app.setAttribute('n',dataN);
                     const lem = newdoc.createElementNS(_teins,'lem');
                     const poswits = posapp.map(s => `#${s}`).join(' ');
-                    lem.setAttribute('wit',poswits);
+                    if(poswits !== '') lem.setAttribute('wit',poswits);
                     while(word.firstChild)
                         lem.appendChild(word.firstChild);
                     app.appendChild(lem);
@@ -1802,10 +1820,16 @@ END;
                         app.appendChild(rdg);
                     }
                     word.parentElement.insertBefore(app,word);
+                    if(lem.textContent.match(/\s$/)) {
+                        word.parentElement.insertBefore(
+                        newdoc.createTextNode(' '),
+                        word);
+                    }
                 }
 
                 word.remove();
             }
+            console.log(newdoc.innerHTML);
             return newdoc;
         },
 
@@ -1956,6 +1980,14 @@ const fullTreeClick = function(e) {
 }
 */
     const events = {
+        selectAll(el) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        },
+
         deselect() {
             const sel = window.getSelection();
             if(sel.removeAllRanges) sel.removeAllRanges();
@@ -2098,7 +2130,7 @@ const fullTreeClick = function(e) {
 
                 const tr = highlitcell.closest('tr'); 
                 const prevtr = tr.previousElementSibling;
-                if(!prevtr) return;
+                if(!prevtr || !prevtr.dataset.n) return;
                 const newtd = prevtr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
                 events.textClick({target: newtd});
                 
@@ -2108,7 +2140,7 @@ const fullTreeClick = function(e) {
                 if(_matrix.closed || !highlitcell) return;
                 const tr = highlitcell.closest('tr'); 
                 const nexttr = tr.nextElementSibling;
-                if(!nexttr) return;
+                if(!nexttr || nexttr.tagName !== 'TR') return;
                 const newtd = nexttr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
                 events.textClick({target: newtd});
             }
@@ -2306,11 +2338,11 @@ const fullTreeClick = function(e) {
                 contextMenu.remove();
                 const menu = contextMenu.create(e);
                 const items = [
-                    {text: 'move',
+                    {text: 'move row',
                         func: edit.startMoveRow.bind(null,th.parentNode),
                     },
                     {
-                        text: 'delete',
+                        text: 'delete row',
                         func: edit.doDeleteRow.bind(null,th.parentNode.dataset.n),
                     }
                 ];
@@ -2337,15 +2369,15 @@ const fullTreeClick = function(e) {
                     })();
                 const items = nums.size > 1 ? 
                     [
-                        {text: 'merge lemmata',
+                        {text: 'merge columns',
                             func: edit.startMerge.bind(null,nums)
                         },
-                        {text: 'ungroup lemmata',
-                            alt: 'group lemmata',
+                        {text: 'ungroup columns',
+                            alt: 'group columns',
                             toggle: check.grouped,
                             func: edit.startGroup.bind(null,false)
                         },
-                        {text: 'delete lemmata',
+                        {text: 'delete columns',
                             func: edit.startRemoveCol.bind(null,nums)
                         },
                         /*                {text: 'insignificant',
@@ -2358,11 +2390,14 @@ const fullTreeClick = function(e) {
                     }, */
                     ] : 
                     [
-                        {text: 'edit reading',
+                        {text: 'edit cell',
                             func: edit.startEditCell.bind(null,td)
                         },
-                        {text: 'delete lemma',
+                        {text: 'delete column',
                             func: edit.startRemoveCol.bind(null,nums)
+                        },
+                        {text: 'insert column',
+                            func: edit.startInsertCol
                         },
                         /*                {text: 'insignificant',
                      cond: check.checkbox.bind(null,'insignificant',nums),
@@ -2486,6 +2521,11 @@ const fullTreeClick = function(e) {
             const args = [...clgroups].map(s => [edit.doUngroup,[s]]);
             edit.doMulti(args,'do');
         },
+        
+        startInsertCol: function() {
+            const insertafter = Math.max([...find.highlit()]) || _maxlemma;
+            edit.doInsertCol(insertafter);
+        },
 
         startRemoveCol: function(nums,/*e*/) {
             const numss = nums === false ?
@@ -2537,11 +2577,7 @@ const fullTreeClick = function(e) {
             cell.contentEditable = 'true';
             cell.focus();
             _editing = true;
-            const range = document.createRange();
-            range.selectNodeContents(cell);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+            events.selectAll(cell);
             cell.addEventListener('blur',edit.finishEditCell);
             cell.addEventListener('keydown',edit.cellKeyDown);
         },
@@ -2784,7 +2820,7 @@ const fullTreeClick = function(e) {
                     view.updateAllHeaders();
                     tree.draw();
                     const hl = find.highlit();
-                    if(hl) multi.repopulateTrees(...find.lowhigh(hl));
+                    if(hl.size > 0) multi.repopulateTrees(...find.lowhigh(hl));
 
                     const mslist = document.getElementById('menu').querySelector('.ms');
                     const liel = document.createElement('li');
@@ -3192,6 +3228,30 @@ const fullTreeClick = function(e) {
                 return [edit.doRemoveCol,[nums]];
             else
                 edit.doStack([edit.doRemoveCol,[nums]],doing);
+        },
+
+        doInsertCol: function(aftern,doing = 'do') {
+            const insert = function(rowfunc,cellfunc,newfunc,aftern) {
+                const rows = rowfunc();
+                for(const row of rows) {
+                    const cell = cellfunc(aftern,row);
+                    const newcell = newfunc(aftern + 1);
+                    cell.insertAdjacentElement('afterend',newcell);
+                }
+            };
+            insert(find.trs,find.firsttd,make.emptycell,aftern);
+            insert(find.texts,find.firstword,make.emptyword,aftern);
+            edit.renumber(aftern);
+            view.renormalize(aftern,aftern+2);
+            edit.refresh();
+            edit.restyleGroups([aftern,aftern+1],true);
+            view.updateAllHeaders();
+            
+            const arg = [aftern+1];
+            if(doing === 'multido')
+                return [edit.doRemoveCol,[arg]];
+            else
+                edit.doStack([edit.doRemoveCol,[arg]],doing);
         },
 
         doEmend: function(cellnum,rownum,doing = 'do') {
@@ -3632,9 +3692,9 @@ const fullTreeClick = function(e) {
                 const th = document.createElement('th');
                 const span = document.createElement('span');
                 span.classList.add('readings');
+                th.appendChild(span);
                 const form = document.createElement('form');
                 form.innerHTML = '<div><input class="insignificant" type="checkbox">Insignificant</div><div><input class="binary" type="checkbox">Binary</div>';
-                th.appendChild(span);
                 th.appendChild(form);
                 head.appendChild(th);
                 return th;
@@ -3670,7 +3730,7 @@ const fullTreeClick = function(e) {
         },
         xScrollToHighlit: function() {
             const hl = find.highlit();
-            if(hl) view.xScroll([...hl][0]);
+            if(hl.size > 0) view.xScroll([...hl][0]);
         },    
         xScroll: function(num,row) {
             if(!num) return;
@@ -3857,7 +3917,7 @@ const fullTreeClick = function(e) {
         highlit: function() {
             const firstrow = find.firsttr();
             const lemmata = firstrow.querySelectorAll('.highlit');
-            if(lemmata.length === 0) return false;
+            //if(lemmata.length === 0) return false;
             const nums = new Set();
             for(const lemma of lemmata) {
                 nums.add(lemma.dataset.n);
@@ -4128,12 +4188,25 @@ const fullTreeClick = function(e) {
             }
             return tei;
         },
+        
+        emptycell: function(n) {
+            const td = document.createElement('td');
+            td.className = 'lemma';
+            td.dataset.n = n;
+            return td;
+        },
+
+        emptyword: function(n,doc = _xml) {
+            const w = doc.createElementNS(_teins,'w');
+            w.setAttribute('n',n);
+            return w;
+        },
+
         emptywords: function(text,max,start) {
             const m = max || _maxlemma;
             const n_start = start || 0;
             for(let n = n_start; n <= m; n++) {
-                const word = _xml.createElementNS(_teins,'w');
-                word.setAttribute('n',n);
+                const word = make.emptyword(n);
                 text.appendChild(word);
             }
             
@@ -5058,6 +5131,7 @@ const fullTreeClick = function(e) {
             this.makeTextBox();
             this.makeDescBox();
             this.descbox.style.maxWidth = '595px';
+            this.descbox.style.paddingLeft = '5px';
             this.boxdiv.addEventListener('mouseup',events.textMouseup);
         }
     
@@ -5100,6 +5174,7 @@ const fullTreeClick = function(e) {
             this.makeDescBox();
             this.makeViewBox();
             this.descbox.style.maxWidth = '100vw';
+            this.descbox.style.paddingLeft = '5px';
         }
         init() {
             this.makeTable();

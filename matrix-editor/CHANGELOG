@@ -1,3 +1,11 @@
+0.7 (2021-11-22)
+
+* simplified header
+* filename in page title
+* styling updates
+* better TEI apparatus export
+* bugfixes
+
 0.3 (2019-08-09)
 
 * new menu item: Edit -> Insert row
