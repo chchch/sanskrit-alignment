@@ -51,7 +51,7 @@ jobs:
     - name: Install
       run: |
         cd helayo
-        stack install --local-bin-path ./dist/${{ matrix.os }}
+        stack --resolver lts-17.2 install --local-bin-path ./dist/${{ matrix.os }}
 
     - name: Commit
       uses: stefanzweifel/git-auto-commit-action@v4
