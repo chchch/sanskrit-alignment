@@ -1,9 +1,10 @@
 name: helayo build & test (Windows)
 
 on:
-  push:
-    paths:
-    - 'helayo/**'
+  workflow_dispatch
+#  push:
+#    paths:
+#    - 'helayo/**'
 
 jobs:
 
