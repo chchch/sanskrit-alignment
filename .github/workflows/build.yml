@@ -51,6 +51,7 @@ jobs:
     - name: Install
       run: |
         cd helayo
+        git pull
         stack --resolver lts-17.2 install --local-bin-path ./dist/${{ matrix.os }}
 
     - name: Commit
