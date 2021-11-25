@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
--- | Collection of functions for global, local and multi-sequence alignment.
+-- | Pairwise alignment with affine gap penalty and multi-sequence alignment. Forked from Data.Align.
 module Align
   (
   -- * Global and local alignment
@@ -61,10 +61,10 @@ data AffineTrace a s = AffineTrace {
   }
 
 data AlignConfig a s = AlignConfig
-  { ac'PairScore :: a -> a -> s
-  , ac'_initial_gap_penalty :: s
-  , ac'_gap_penalty :: s
-  , ac'_gap_opening_penalty :: s
+  { acPairScore :: a -> a -> s
+  , ac_initial_gap_penalty :: s
+  , ac_gap_penalty :: s
+  , ac_gap_opening_penalty :: s
   }
 
 alignConfig :: (a -> a -> s)  -- ^ Scoring function.
@@ -121,23 +121,23 @@ affineAlign AlignConfig{..} as bs =
       let a = as G.! i
           b = bs G.! j
       diag  <- go (i-1,j-1)
-      let diag_max = (at_max diag) `tappend` (ac'PairScore a b, stepBoth a b)
+      let diag_max = (at_max diag) `tappend` (acPairScore a b, stepBoth a b)
       
       a_gaps <- go (i-1,  j)
-      let a_gap1 = (at_max a_gaps) `tappend` (ac'_gap_opening_penalty + ac'_gap_penalty, stepLeft a)
-      let a_gap2 = (at_left_gap) a_gaps `tappend` (ac'_gap_penalty, stepLeft a)
+      let a_gap1 = (at_max a_gaps) `tappend` (ac_gap_opening_penalty + ac_gap_penalty, stepLeft a)
+      let a_gap2 = (at_left_gap) a_gaps `tappend` (ac_gap_penalty, stepLeft a)
       let a_gap_max = L.maximumBy (comparing traceScore) [a_gap1, a_gap2]
       
       b_gaps <- go (  i,j-1)
-      let b_gap1 = (at_max b_gaps) `tappend` (ac'_gap_opening_penalty + ac'_gap_penalty, stepRight b)
-      let b_gap2 = (at_right_gap b_gaps) `tappend` (ac'_gap_penalty, stepRight b)
+      let b_gap1 = (at_max b_gaps) `tappend` (ac_gap_opening_penalty + ac_gap_penalty, stepRight b)
+      let b_gap2 = (at_right_gap b_gaps) `tappend` (ac_gap_penalty, stepRight b)
       let b_gap_max = L.maximumBy (comparing traceScore) [b_gap1, b_gap2]
       
       let max = L.maximumBy (comparing traceScore) [diag_max, a_gap_max, b_gap_max]
       return $ AffineTrace max a_gap_max b_gap_max
   --
   skipInit idx stepFun xs =
-    let score = ac'_gap_opening_penalty + ac'_initial_gap_penalty * fromIntegral (idx+1)
+    let score = ac_gap_opening_penalty + ac_initial_gap_penalty * fromIntegral (idx+1)
         tr = reverse [stepFun (xs G.! xi) | xi <- [0..idx]]
     in AffineTrace (Trace score tr) (Trace score tr) (Trace score tr)
 
@@ -223,6 +223,7 @@ centerStar conf vs =
     . L.sortBy (comparing fst)
     $ pairAligns
     where
+
     pairAligns = do
       ((i,v):rest) <- L.tails vs
       (j,w) <- rest
@@ -236,7 +237,7 @@ centerStar conf vs =
             go (Right (c,d)) = Right (d,c)    
 {-
     pairAligns:: (G.Vector v a, Num s, Ord s, Ord i)
-                => AlignConfig' a s
+                => AlignConfig a s
                 -> [(i, v a)]
                 -> [((i,i),Trace a s)]
     pairAligns conf vs = concat (map gotr xys `using` parListChunk il rseq)
