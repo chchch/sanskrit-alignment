@@ -1,7 +1,7 @@
 module Collate (
 tr,mtr,
 makeArray,
-SubMatrix,--SubMatrix',
+SubstMatrix,--SubstMatrix',
 --mSM,mSM',
 makeMatrix,--makeMatrix',
 Penalties,
@@ -13,31 +13,30 @@ alignPrep,
 alignLookup,recursiveLookup,simpleLookup
 ) where
 
-import Data.Maybe
-import qualified Data.Vector as V
---import Data.Align
-import Align
-import Data.List
-import Data.List.Split
-import qualified Data.String.Utils as S
-import qualified Data.Map as M
-import Data.Fasta.String.Types
-import qualified Data.Matrix as X
-import Transcribe
-import Filter
-import Control.Parallel.Strategies
+import Data.Maybe (fromJust, fromMaybe)
+import qualified Data.Vector as V (fromList)
+import Affine (alignConfig, align, stepOfAll, trace, traceScore, centerStar, MultiStep)
+import Data.List (transpose, foldl')
+import Data.List.Split (wordsBy)
+import qualified Data.Map as M (lookup, fromList, Map)
+import qualified Data.Matrix as X (Matrix, fromLists, (!))
+import Transcribe (splitGlyphs, slp1', iast, transliterateString)
 
 data Penalties = Penalties {
     pMatch :: Double,
     pMismatch :: Double,
-    pInitialGap :: Double,
-    pGap :: Double,
-    pGapOpen :: Double
+    pGapOpen :: Double,
+    pGap :: Double
 } deriving (Show)
 
-makePenalties m mm ig g go = Penalties {pMatch = m, pMismatch = mm, pInitialGap = ig, pGap = g, pGapOpen = go}
+makePenalties:: Double -- match score
+             -> Double -- mismatch score
+             -> Double -- gap opening score
+             -> Double -- gap extension score
+             -> Penalties
+makePenalties = Penalties
 
-alignLookup:: SubMatrix -> Penalties -> String -> String -> Double
+alignLookup:: SubstMatrix -> Penalties -> String -> String -> Double
 alignLookup m o a b
     | a == b                        = pMatch o
     | (xindex >> yindex) == Nothing = pMismatch o
@@ -46,17 +45,17 @@ alignLookup m o a b
         xindex = a `M.lookup` rows m
         yindex = b `M.lookup` columns m
 
-recursiveLookup :: SubMatrix -> Penalties -> String -> String -> Double
+recursiveLookup :: SubstMatrix -> Penalties -> String -> String -> Double
 recursiveLookup m o a b
     | a == b                        = pMatch o
     | otherwise                     = (traceScore t) / fromIntegral (length $ trace t)
     where
-        t = affineAlign (alignConfig (alignLookup m o) (pInitialGap o) (pGap o) (pGapOpen o)) 
+        t = align (alignConfig (alignLookup m o) (pGapOpen o) (pGap o)) 
                       (V.fromList a') (V.fromList b')
         a' = splitGlyphs slp1' a
         b' = splitGlyphs slp1' b
 {-
-alignLookup' :: SubMatrix' -> Penalties -> String -> String -> Double
+alignLookup' :: SubstMatrix' -> Penalties -> String -> String -> Double
 alignLookup' m o a b
     | a == b                        = pMatch o
     | (xindex >> yindex) == Nothing = pMismatch o
@@ -68,13 +67,13 @@ alignLookup' m o a b
 
 simpleLookup o a b = if a == b then pMatch o else pMismatch o
 
-tr m conf o ss = affineAlign
-       (alignConfig (conf o) (pInitialGap o) (pGap o) (pGapOpen o))
+tr m conf o ss = align
+       (alignConfig (conf o) (pGapOpen o) (pGap o))
        (V.fromList $ head ss)
        (V.fromList $ last ss)
 
 mtr conf o seqs = centerStar
-    (alignConfig (conf o) (pInitialGap o) (pGap o) (pGapOpen o))
+    (alignConfig (conf o) (pGapOpen o) (pGap o))
     vecs
     where
     vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
@@ -83,23 +82,23 @@ makeArray :: [String] -> [[String]]
 makeArray = map (wordsBy (== ';'))
 
 
-data SubMatrix = SubMatrix {columns :: M.Map String Int,
+data SubstMatrix = SubstMatrix {columns :: M.Map String Int,
                       rows :: M.Map String Int,
                       matrix :: X.Matrix Double} deriving (Show)
 {-
-data SubMatrix' = SubMatrix' {columns' :: [String],
+data SubstMatrix' = SubstMatrix' {columns' :: [String],
                       rows' :: [String],
                       matrix' :: [[Double]]} deriving (Show)
 
-mSM' :: [String] -> [String] -> [[Double]] -> SubMatrix'
-mSM' c r m = SubMatrix' {columns' = c, rows' = r, matrix' = m}
+mSM' :: [String] -> [String] -> [[Double]] -> SubstMatrix'
+mSM' c r m = SubstMatrix' {columns' = c, rows' = r, matrix' = m}
 
-mSM :: M.Map String Int -> M.Map String Int -> X.Matrix Double -> SubMatrix
-mSM c r m = SubMatrix {columns = c, rows = r, matrix = m}
+mSM :: M.Map String Int -> M.Map String Int -> X.Matrix Double -> SubstMatrix
+mSM c r m = SubstMatrix {columns = c, rows = r, matrix = m}
 
 
-makeMatrix' :: [[String]] -> SubMatrix
-makeMatrix' (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
+makeMatrix' :: [[String]] -> SubstMatrix
+makeMatrix' (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
     xaxis = M.fromList $ zip ss [1..]
     yaxis = M.fromList $ zip (map head sss) [1..]
@@ -108,8 +107,8 @@ makeMatrix' (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores
 -}
 
 -- Matrix is 1-indexed
-makeMatrix :: [[String]] -> SubMatrix
-makeMatrix (ss:sss) = SubMatrix {columns = xaxis, rows = yaxis, matrix = scores}
+makeMatrix :: [[String]] -> SubstMatrix
+makeMatrix (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
     xaxis = M.fromList $ zip (map (transliterateString iast slp1') ss) [1..]
     yaxis = M.fromList $ zip (map (transliterateString iast slp1' . head) sss) [1..]

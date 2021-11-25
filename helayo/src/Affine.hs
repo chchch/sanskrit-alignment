@@ -1,47 +1,43 @@
 {-# LANGUAGE RecordWildCards #-}
--- | Pairwise alignment with affine gap penalty and multi-sequence alignment. Forked from Data.Align.
-module Align
+-- | Pairwise alignment with affine gap penalties and multi-sequence alignment. Forked from Data.Align.
+module Affine
   (
   -- * Global and local alignment
-  affineAlign
+  align
   , AlignConfig
   , alignConfig
   , Step
   , Trace, traceScore, trace
+  , debugAlign, debugStrAlign
   -- * Multi-sequence alignment
   , centerStar
   , MultiStep, center, others, stepOfAll
   , MultiTrace, centerIndex, otherIndices, allIndices, multiTrace
+  , debugMultiAlign
   ) where
 
-import Control.Monad.Trans.State.Strict
-import Data.Function (fix, on)
+import Control.Monad.Trans.State.Strict (evalState, gets, modify)
+import Data.Function (on)
+import Data.Maybe (fromMaybe)
 import qualified Data.List as L
 import qualified Data.Map.Strict as M
-import Data.Maybe (fromMaybe)
-import Data.Ord
+import Data.Ord (comparing)
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
+import Control.DeepSeq
 import Control.Parallel.Strategies
 
 -- | Either an unmatched item or a match.
 type Step a = Either (Either a a) (a, a)
 
+stepLeft :: a -> Either (Either a b1) b2
 stepLeft = Left . Left
+
+stepRight :: b1 -> Either (Either a b1) b2
 stepRight = Left . Right
+
+stepBoth :: a1 -> b -> Either a2 (a1, b)
 stepBoth a b = Right (a,b)
-
-isMatch :: Step a -> Bool
-isMatch (Right _) = True
-isMatch _ = False
-
-isLeft :: Step a -> Bool
-isLeft (Left (Left _)) = True
-isLeft _ = False
-
-isRight :: Step a -> Bool
-isRight (Left (Right _)) = True
-isRight _ = False
 
 -- | The result of the alignment.
 data Trace a s = Trace
@@ -52,6 +48,7 @@ data Trace a s = Trace
 instance (Show a, Show s) => Show (Trace a s) where
   show (Trace s t) = "Trace(score = " ++ show s ++ ", steps = " ++ show t ++ ")"
 
+tappend :: Num s => Trace a s -> (s, Step a) -> Trace a s
 Trace a b `tappend` (y,z) = Trace (a+y) (z:b)
 
 data AffineTrace a s = AffineTrace {
@@ -62,40 +59,53 @@ data AffineTrace a s = AffineTrace {
 
 data AlignConfig a s = AlignConfig
   { acPairScore :: a -> a -> s
-  , ac_initial_gap_penalty :: s
   , ac_gap_penalty :: s
   , ac_gap_opening_penalty :: s
   }
 
-alignConfig :: (a -> a -> s)  -- ^ Scoring function.
-            -> s               -- ^ Initial gap score.
-            -> s               -- ^ Gap score.
+alignConfig :: (a -> a -> s)   -- ^ Scoring function.
+            -> s               -- ^ Gap extension score.
             -> s               -- ^ Gap opening score.
             -> AlignConfig a s
 alignConfig = AlignConfig
 
 -- | Aligns two sequences.
---
+-- 
+-- Char-based alignment
 -- >>> :{
--- let tr = align
---            (alignConfig (\a b -> if a == b then 1 else (-0.25 :: Double)) 
---                         (-0.5) (-1))
---            (Data.Vector.fromList "dopple")
---            (Data.Vector.fromList "applied")
+-- let tr = align (alignConfig (\a b -> if a == b then 1 else (-1)) 
+--                             (-1) (-0.25)) 
+--                (Data.Vector.fromList "circumambulate") 
+--                (Data.Vector.fromList "perambulatory")
 -- in do
 --    print $ traceScore tr
 --    putStrLn . debugAlign . trace $ tr
 -- :}
--- 1.25
--- doppl-e-
--- -applied
-
-affineAlign :: (G.Vector v a, Num s, Ord s)
+--
+-- -0.5
+-- circumambulate--
+-- per---ambulatory
+--
+-- String-based alignment
+-- >>> :{
+-- let tr = align (alignConfig (\a b -> if a == b then 1 else (-1)) 
+--                             (-1) (-0.25)) 
+--                (Data.Vector.fromList ["kra","ya","ṇā","ddha","ra","ṇā","tyā","cñā","yāḥ"]) 
+--                (Data.Vector.fromList ["bha","ra","ṇā","da","pa","ha","ra","ṇā","tyā","cña","yā"])
+-- in do
+--    print $ traceScore tr
+--    putStrLn . debugStrAlign . trace $ tr
+-- :}
+--
+-- -3.25
+-- |kra|ya|ṇā|ddha|--|--|ra|ṇā|tyā|cñā|yāḥ|
+-- |bha|ra|ṇā|da  |pa|ha|ra|ṇā|tyā|cñā|yā |
+align :: (G.Vector v a, Num s, Ord s)
   => AlignConfig a s
   -> v a  -- ^ Left sequence.
   -> v a  -- ^ Right sequence.
   -> Trace a s
-affineAlign AlignConfig{..} as bs =
+align AlignConfig{..} as bs =
   let p = (lastIndex as, lastIndex bs)
   in revTrace . at_max $ evalState (go p) M.empty
   where
@@ -133,13 +143,40 @@ affineAlign AlignConfig{..} as bs =
       let b_gap2 = (at_right_gap b_gaps) `tappend` (ac_gap_penalty, stepRight b)
       let b_gap_max = L.maximumBy (comparing traceScore) [b_gap1, b_gap2]
       
-      let max = L.maximumBy (comparing traceScore) [diag_max, a_gap_max, b_gap_max]
-      return $ AffineTrace max a_gap_max b_gap_max
+      let maxi = L.maximumBy (comparing traceScore) [diag_max, a_gap_max, b_gap_max]
+      return $ AffineTrace maxi a_gap_max b_gap_max
   --
   skipInit idx stepFun xs =
-    let score = ac_gap_opening_penalty + ac_initial_gap_penalty * fromIntegral (idx+1)
+    let score = ac_gap_opening_penalty + ac_gap_penalty * fromIntegral (idx+1)
         tr = reverse [stepFun (xs G.! xi) | xi <- [0..idx]]
     in AffineTrace (Trace score tr) (Trace score tr) (Trace score tr)
+
+-- | Utility for displaying a Char-based alignment.
+debugAlign :: [Step Char] -> String
+debugAlign = go [] []
+  where
+  go as bs [] = reverse as ++ "\n" ++ reverse bs
+  go as bs (t:ts) = case t of
+    Left (Left c)  -> go (c:as) ('-':bs) ts
+    Left (Right c) -> go ('-':as) (c:bs) ts
+    Right (c, d)   -> go (c:as) (d:bs) ts
+
+-- | Utility for displaying a String-based alignment.
+debugStrAlign :: [Step String] -> String
+debugStrAlign = go id id
+    where
+    go as bs [] = as "|\n" ++ bs "|"
+    go as bs (t:ts) = case t of
+        Left (Left c)   -> go (as . ("|"++) . (c ++)) 
+                              (bs . ("|"++) . (take (length c) (repeat '-') ++)) ts
+        Left (Right c)  -> go (as . ("|"++) . (take (length c) (repeat '-') ++)) 
+                              (bs . ("|"++) . (c ++)) ts
+        Right (c,d)     -> go (as . ("|"++) . (c ++) . (filldc ++)) 
+                              (bs . ("|"++) . (d ++) . (fillcd ++)) ts
+            where
+            fill n = take n $ repeat ' '
+            filldc = fill (length d - length c)
+            fillcd = fill (length c - length d)
 
 -- | A step in a multi-sequence alignment.
 data MultiStep a = MultiStep
@@ -162,9 +199,8 @@ stepOfAll MultiStep{..} = center:others
 allIndices :: MultiTrace i a s -> [i]
 allIndices MultiTrace{..} = centerIndex:otherIndices
 
--- | Align multiple sequences using the Center Star heuristic method by
--- Chin, Ho, Lam, Wong and Chan (2003).
--- <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.90.7448&rep=rep1&type=pdf>. 
+-- | Align multiple sequences using the Center Star method. See, for example, section 14.6.2, "A bounded-error approximation method for SP alignment" in Gusfield 1997: <https://doi.org/10.1017/CBO9780511574931>.
+-- This algorithm uses an affine gap penalty model. See section 12.6 "Convex gap weights" in Gusfield 1997.
 -- Assumes the list of sequences to have length > 1, and the indices to be unique.
 centerStar :: (G.Vector v a, Num s, Ord s, Ord i)
   => AlignConfig a s
@@ -195,9 +231,9 @@ centerStar conf vs =
     , multiTrace = mergeSteps multiTrace (trace tr)
     }
     where
-    mergeSteps mss = go [] mss
+    mergeSteps mss' = go [] mss'
       where
-      noOthers = map (const Nothing) . others . head $ mss
+      noOthers = map (const Nothing) . others . head $ mss'
       --
       go acc [] [] = reverse acc
       go acc (MultiStep{..}:mss) [] =
@@ -218,16 +254,15 @@ centerStar conf vs =
   centerPairs
     = snd  -- drop cache
     . L.maximumBy (comparing fst)
-    . map (\g -> (starSum g, g))  -- cache scores
+    . map (\g -> (starSum g, g)) -- cache scores
     . L.groupBy ((==) `on` (fst . fst))
     . L.sortBy (comparing fst)
     $ pairAligns
     where
-
     pairAligns = do
       ((i,v):rest) <- L.tails vs
       (j,w) <- rest
-      let tr = affineAlign conf v w
+      let tr = align conf v w
       [((i,j), tr), ((j,i), flipLR tr)]
       where
         flipLR tr = tr { trace = map go . trace $ tr }
@@ -236,6 +271,7 @@ centerStar conf vs =
             go (Left (Right a)) = Left (Left a)
             go (Right (c,d)) = Right (d,c)    
 {-
+
     pairAligns:: (G.Vector v a, Num s, Ord s, Ord i)
                 => AlignConfig a s
                 -> [(i, v a)]
@@ -251,15 +287,15 @@ centerStar conf vs =
             k = is V.! y
             jj = fst j
             kk = fst k
-            tr = affineAlign conf (snd j) (snd k)
+            tr = align conf (snd j) (snd k)
             flipLR tr = tr { trace = map go . trace $ tr }
                 where
                 go (Left (Left a)) = Left (Right a)
                 go (Left (Right a)) = Left (Left a)
                 go (Right (c,d)) = Right (d,c)
--}
-{-
-    pairAligns conf vs = concat $ map concat (parMap rseq go ts)
+
+
+    pairAligns conf vs = (concat . concat) (map go ts `using` parList rseq)
         where
         ts = L.tails vs
         go [] = []
@@ -273,7 +309,13 @@ centerStar conf vs =
                     where
                     go3 (Left (Left a)) = Left (Right a)
                     go3 (Left (Right a)) = Left (Left a)
-                    go3 (Right (c,d)) = Right (d,c)
--}  
-    --
+                    go3 (Right (c,d)) = Right (d,c)  
+-}
     starSum = sum . map (traceScore . snd)
+
+-- | Renders a char-based multi-alignment result to a string.
+debugMultiAlign :: [MultiStep Char] -> String
+debugMultiAlign =
+  unlines . map (map charOrDash) . L.transpose . map stepOfAll
+  where
+  charOrDash = fromMaybe '-'
