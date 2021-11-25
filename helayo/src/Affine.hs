@@ -22,10 +22,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.List as L
 import qualified Data.Map.Strict as M
 import Data.Ord (comparing)
-import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
-import Control.DeepSeq
-import Control.Parallel.Strategies
 
 -- | Either an unmatched item or a match.
 type Step a = Either (Either a a) (a, a)
@@ -59,13 +56,13 @@ data AffineTrace a s = AffineTrace {
 
 data AlignConfig a s = AlignConfig
   { acPairScore :: a -> a -> s
-  , ac_gap_penalty :: s
-  , ac_gap_opening_penalty :: s
+  , acGapOpen :: s
+  , acGapExtension :: s
   }
 
 alignConfig :: (a -> a -> s)   -- ^ Scoring function.
-            -> s               -- ^ Gap extension score.
             -> s               -- ^ Gap opening score.
+            -> s               -- ^ Gap extension score.
             -> AlignConfig a s
 alignConfig = AlignConfig
 
@@ -134,20 +131,20 @@ align AlignConfig{..} as bs =
       let diag_max = (at_max diag) `tappend` (acPairScore a b, stepBoth a b)
       
       a_gaps <- go (i-1,  j)
-      let a_gap1 = (at_max a_gaps) `tappend` (ac_gap_opening_penalty + ac_gap_penalty, stepLeft a)
-      let a_gap2 = (at_left_gap) a_gaps `tappend` (ac_gap_penalty, stepLeft a)
+      let a_gap1 = (at_max a_gaps) `tappend` (acGapOpen + acGapExtension, stepLeft a)
+      let a_gap2 = (at_left_gap) a_gaps `tappend` (acGapExtension, stepLeft a)
       let a_gap_max = L.maximumBy (comparing traceScore) [a_gap1, a_gap2]
       
       b_gaps <- go (  i,j-1)
-      let b_gap1 = (at_max b_gaps) `tappend` (ac_gap_opening_penalty + ac_gap_penalty, stepRight b)
-      let b_gap2 = (at_right_gap b_gaps) `tappend` (ac_gap_penalty, stepRight b)
+      let b_gap1 = (at_max b_gaps) `tappend` (acGapOpen + acGapExtension, stepRight b)
+      let b_gap2 = (at_right_gap b_gaps) `tappend` (acGapExtension, stepRight b)
       let b_gap_max = L.maximumBy (comparing traceScore) [b_gap1, b_gap2]
       
       let maxi = L.maximumBy (comparing traceScore) [diag_max, a_gap_max, b_gap_max]
       return $ AffineTrace maxi a_gap_max b_gap_max
   --
   skipInit idx stepFun xs =
-    let score = ac_gap_opening_penalty + ac_gap_penalty * fromIntegral (idx+1)
+    let score = acGapOpen + acGapExtension * fromIntegral (idx+1)
         tr = reverse [stepFun (xs G.! xi) | xi <- [0..idx]]
     in AffineTrace (Trace score tr) (Trace score tr) (Trace score tr)
 
@@ -254,7 +251,7 @@ centerStar conf vs =
   centerPairs
     = snd  -- drop cache
     . L.maximumBy (comparing fst)
-    . map (\g -> (starSum g, g)) -- cache scores
+    . map (\g -> (starSum g, g))  -- cache scores
     . L.groupBy ((==) `on` (fst . fst))
     . L.sortBy (comparing fst)
     $ pairAligns
@@ -270,47 +267,7 @@ centerStar conf vs =
             go (Left (Left a)) = Left (Right a)
             go (Left (Right a)) = Left (Left a)
             go (Right (c,d)) = Right (d,c)    
-{-
-
-    pairAligns:: (G.Vector v a, Num s, Ord s, Ord i)
-                => AlignConfig a s
-                -> [(i, v a)]
-                -> [((i,i),Trace a s)]
-    pairAligns conf vs = concat (map gotr xys `using` parListChunk il rseq)
-        where
-        is = V.fromList vs
-        il = (length is) - 1
-        xys = [(x,y) | x <- [0..il], y <- [x..il]]
-        gotr (x,y) = [((jj,kk), tr),((kk,jj), flipLR tr)]
-            where 
-            j = is V.! x
-            k = is V.! y
-            jj = fst j
-            kk = fst k
-            tr = align conf (snd j) (snd k)
-            flipLR tr = tr { trace = map go . trace $ tr }
-                where
-                go (Left (Left a)) = Left (Right a)
-                go (Left (Right a)) = Left (Left a)
-                go (Right (c,d)) = Right (d,c)
-
-
-    pairAligns conf vs = (concat . concat) (map go ts `using` parList rseq)
-        where
-        ts = L.tails vs
-        go [] = []
-        go [x] = []
-        go (i:js) = map go2 js
-            where
-            go2 j = [((fst i,fst j),tr),((fst j, fst i), flipLR tr)]
-                where
-                tr = align conf (snd i) (snd j)
-                flipLR tr = tr { trace = map go3 . trace $ tr }
-                    where
-                    go3 (Left (Left a)) = Left (Right a)
-                    go3 (Left (Right a)) = Left (Left a)
-                    go3 (Right (c,d)) = Right (d,c)  
--}
+    --
     starSum = sum . map (traceScore . snd)
 
 -- | Renders a char-based multi-alignment result to a string.
