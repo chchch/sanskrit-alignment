@@ -29,13 +29,13 @@ filterTest start len str =
     let startstr = substr start len str
         filtered = runFilter startstr
         unfiltered = concat $ fst $ runUnfilter filtered
-        finalstr = xmlToUnicode $ transliterateString slp1' iast unfiltered
+        finalstr = xmlToUnicode $ transliterateString slp1'2iast unfiltered
     in testCase startstr (assertEqual "Should be equal" startstr finalstr)
 
 xmlToUnicode s = replaceAll "&#(\\d+);" (\mt -> [chr $ strToInt (fst $ mt ! 1)]) s
 
 strToInt s = read s :: Int
 
-runFilter = (filterAll' (filters ++ [spaceFilter]) ) . unicodeToXmlEntity . (transliterateString iast slp1')
+runFilter = (filterAll' (filters ++ [spaceFilter]) ) . unicodeToXmlEntity . (transliterateString iast2slp1')
 
 runUnfilter (fs,s) = let split = splitGlyphs slp1' s in (unfilterAll' fs split, split)
