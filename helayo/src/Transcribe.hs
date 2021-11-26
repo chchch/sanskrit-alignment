@@ -1,61 +1,81 @@
 module Transcribe (
 ScriptScheme,
 TransScheme,
-iast,
-slp1,
-slp1',
-fasta,
+iast,slp1',
+iast2slp1',
+slp1'2iast,
 transliterateString,
 splitGlyphs, splitGlyphs_,
 splitAksaras
 ) where
 
-import Data.Maybe
-import Data.Array
-import Data.List
-import Data.Ord
-import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+import Data.List (maximumBy)
+import Data.Ord (comparing)
+import qualified Data.Map as Map (Map, fromList, lookup)
 
 
-data ScriptScheme = ScriptScheme { vowels :: [String],
-                                   consonants :: [String],
-                                   marks :: [String] } deriving (Show)
+data ScriptScheme = ScriptScheme { vowels :: [String]
+                                 , consonants :: [String]
+                                 , marks :: [String]
+                                 , ssAll :: [String]
+                                 , ssLength :: Int
+                                   } deriving (Show)
 
-iast = ScriptScheme {vowels = ["a","ā","i","ī","u","ū","ṛ","ṝ","ḷ","ḹ","ẽ","e","ai","õ","o","au","ê","ô","aî","aû"],
-                     consonants = ["k","kh","g","gh","ṅ","c","ch","j","jh","ñ","ṭ","ṭh","ḍ","ḍh","ṇ","t","th","d","dh","n","p","ph","b","bh","m","y","r","l","v","ś","ṣ","s","h","ḻ","ḻh","ṙ"],
-                     marks = ["ṃ","ḥ","m̐","oṁ","oḿ"]}
+makeScriptScheme:: [String] -> [String] -> [String] -> ScriptScheme
+makeScriptScheme v c m =
+    let vcm = v ++ c ++ m
+    in ScriptScheme { vowels = v
+                    , consonants = c
+                    , marks = m
+                    , ssAll = vcm
+                    , ssLength = findLongest vcm
+                    }
 
-slp1 = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"],
-                     consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"],
-                     marks = ["M","H","~","'","`"]}
+findLongest:: [String] -> Int
+findLongest ss = length $ maximumBy (comparing length) ss
 
-slp1' = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","ẽ","e","E","õ","o","O","ê","ô","aî","aû"],
-                     consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","LL","ṙ"],
-                     marks = ["M","H","m̐","oṁ","oḿ"]}
+iast = makeScriptScheme 
+    ["a","ā","i","ī","u","ū","ṛ","ṝ","ḷ","ḹ","ẽ","e","ai","õ","o","au","ê","ô","aî","aû"]
+    ["k","kh","g","gh","ṅ","c","ch","j","jh","ñ","ṭ","ṭh","ḍ","ḍh","ṇ","t","th","d","dh","n","p","ph","b","bh","m","y","r","l","v","ś","ṣ","s","h","ḻ","ḻh","ṙ"]
+    ["ṃ","ḥ","m̐","oṁ","oḿ"]
+
+slp1 = makeScriptScheme
+    ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"]
+    ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"]
+    ["M","H","~","'","`"]
+
+slp1' = makeScriptScheme
+    ["a","A","i","I","u","U","f","F","x","X","ẽ","e","E","õ","o","O","ê","ô","aî","aû"]
+    ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","LL","ṙ"]
+    ["M","H","m̐","oṁ","oḿ"]
 
 -- SLP1 with variations for use with bioinformatics software
-fasta = ScriptScheme {vowels = ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"],
-                     consonants = ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","1"],
-                     marks = ["M","H","2","4","6"]}
+fasta = makeScriptScheme
+    ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"]
+    ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","1"]
+    ["M","H","2","4","6"]
 
-data TransScheme = TransScheme { fromScheme :: ScriptScheme,
-                                 toScheme :: ScriptScheme,
-                                 charKeys :: [String],
-                                 charMap :: Map.Map String String,
-                                 maxLength :: Int} deriving (Show)
+data TransScheme = TransScheme { fromScheme :: ScriptScheme
+                               , toScheme :: ScriptScheme
+                               , charKeys :: [String]
+                               , charMap :: Map.Map String String
+                               , tsLength :: Int
+                               } deriving (Show)
 
 makeTransScheme:: ScriptScheme -> ScriptScheme -> TransScheme
-makeTransScheme a b = TransScheme {fromScheme = a,
-                                   toScheme = b,
-                                   charKeys = allChars a,
-                                   charMap = mapChars a b,
-                                   maxLength = findLongest $ allChars a}
+makeTransScheme a b = TransScheme { fromScheme = a
+                                  , toScheme = b
+                                  , charKeys = ssAll a
+                                  , charMap = mapChars a b
+                                  , tsLength = ssLength a
+                                  }
     where
-    allChars s = (consonants s) ++ (vowels s) ++ (marks s)
     mapChars:: ScriptScheme -> ScriptScheme -> Map.Map String String
-    mapChars a b = Map.fromList $ zip (allChars a) (allChars b)
-    findLongest:: [String] -> Int
-    findLongest ss = length $ maximumBy (comparing length) ss
+    mapChars a b = Map.fromList $ zip (ssAll a) (ssAll b)
+
+iast2slp1' = makeTransScheme iast slp1'
+slp1'2iast = makeTransScheme slp1' iast
 
 matchGlyph :: String -> TransScheme -> Int -> (String,String)
 matchGlyph s ts 0 = ([head s],tail s) -- if nothing matches, leave the first character as is
@@ -71,52 +91,36 @@ matchGlyph s ts n
 splitGlyphs_ :: ScriptScheme -> String -> [String]
 splitGlyphs_ sc = reverse . splitLoop []
     where
-    charList = (consonants sc) ++ (vowels sc) ++ (marks sc)
-    maxLen = length $ maximumBy (comparing length) charList
     splitLoop :: [String] -> String -> [String]
     splitLoop ss ""  = ss
     splitLoop ss rem = splitLoop (fst result:ss) (snd result)
         where
-        result = findChar rem charList maxLen
-            where
-            findChar :: String -> [String] -> Int -> (String,String)
-            findChar s2 cl 0 = ([head s2],tail s2)
-            findChar s2 cl n
-                | pre `elem` cl = (pre,post)
-                | otherwise = findChar s2 cl (n-1)
-                where
-                pre = take n s2
-                post = drop n s2
+        result = findChar rem (ssAll sc) (ssLength sc)
 
 --- includes trailing spaces with each character
 splitGlyphs :: ScriptScheme -> String -> [String]
 splitGlyphs sc = reverse . splitLoop []
     where
-    charList = (consonants sc) ++ (vowels sc) ++ (marks sc)
-    maxLen = length $ maximumBy (comparing length) charList
     splitLoop :: [String] -> String -> [String]
     splitLoop ss ""  = ss
-    splitLoop ss rem = splitLoop (fst result':ss) (snd result')
+    splitLoop ss rem = splitLoop (fst result:ss) (snd result)
         where
-        result = findChar rem charList maxLen
-            where
-            findChar :: String -> [String] -> Int -> (String,String)
-            findChar s2 cl 0 = ([head s2],tail s2)
-            findChar s2 cl n
-                | pre `elem` cl = (pre,post)
-                | otherwise = findChar s2 cl (n-1)
-                where
-                pre = take n s2
-                post = drop n s2
-        result' = gobbleSpaces result
+        result = gobbleSpaces $ findChar rem (ssAll sc) (ssLength sc)
             where
             gobbleSpaces :: (String,String) -> (String,String)
             gobbleSpaces (pre,post)
                 | post == []       = (pre,post)
                 | otherwise        = (pre ++ spaces,other)
                     where (spaces,other) = span (== ' ') post
-                -- | head post == ' ' = gobbleSpaces (pre ++ " ",drop 1 post)
-                -- | otherwise        = (pre,post)
+
+findChar :: String -> [String] -> Int -> (String,String)
+findChar s2 cl 0 = ([head s2],tail s2)
+findChar s2 cl n
+    | pre `elem` cl = (pre,post)
+    | otherwise = findChar s2 cl (n-1)
+    where
+    pre = take n s2
+    post = drop n s2
 
 data CharType = Consonant | Vowel | Mark | Other | Space
     deriving (Eq)
@@ -147,17 +151,17 @@ splitAksaras sc ss = reverse $ go [] Space chars
             splitOff t = go (ch:mems) t chs
             addOn t = go ((mem++ch):rems) t chs
 
-transliterateString :: ScriptScheme -> ScriptScheme -> String -> String
-transliterateString sc1 sc2 = transliterateLoop ts id
+transliterateString :: TransScheme -> String -> String
+transliterateString ts = transliterateLoop id
     where
-    ts = makeTransScheme sc1 sc2
-    transliterateLoop :: TransScheme -> (String -> String) -> String -> String
-    transliterateLoop _ s1 ""  = s1 ""
-    transliterateLoop ts s1 s2 = transliterateLoop ts (s1 . (fst result ++)) (snd result)
+    transliterateLoop :: (String -> String) -> String -> String
+    transliterateLoop s1 ""  = s1 ""
+    transliterateLoop s1 s2 = transliterateLoop (s1 . (fst result ++)) (snd result)
         where
-        maxLen = maxLength ts
+        maxLen = tsLength ts
         result = matchGlyph s2 ts maxLen
 
+{-
 transliterateString' :: ScriptScheme -> ScriptScheme -> String -> [String]
 transliterateString' sc1 sc2 = transliterateLoop ts id
     where
@@ -166,6 +170,6 @@ transliterateString' sc1 sc2 = transliterateLoop ts id
     transliterateLoop _ s1 ""  = s1 []
     transliterateLoop ts s1 s2 = transliterateLoop ts (s1 . ([fst result] ++)) (snd result)
         where
-        maxLen = maxLength ts
+        maxLen = tsLength ts
         result = matchGlyph s2 ts maxLen
-
+-}

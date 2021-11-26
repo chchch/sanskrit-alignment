@@ -46,7 +46,7 @@ extra-deps:
 #- pipes-4.3.14
 #- pipes-text-0.0.2.5
 #- pipes-safe-2.3.2
-
+- align-affine-0.1.0.0@sha256:b6e3bfd08bb6c2b44195bf096eb8b9deda5b34fe9923017f7e443ed25ed33e90,941
 - fasta-0.10.4.2
 #- pipes-4.3.16
 - pipes-text-1.0.0

@@ -11,15 +11,13 @@ filterReplace
 )
 where
 
-import Data.List
-import Data.Char
-import Data.Array
-import Text.Regex.PCRE
-import Data.String.Unicode
-import qualified Data.List.Split as S
-import Data.Fasta.String.Types
-import Control.Parallel.Strategies
-import Transcribe
+import Data.List (foldl')
+import Data.Array ((!))
+import Text.Regex.PCRE ((=~), MatchText)
+import Data.String.Unicode (unicodeToXmlEntity)
+import qualified Data.List.Split as S (split, condense, keepDelimsR, oneOf)
+import Data.Fasta.String.Types (FastaSequence(..))
+import Transcribe (transliterateString, splitAksaras, splitGlyphs, slp1', iast2slp1')
 
 type ReplaceFn = MatchText String -> String
 
@@ -88,7 +86,7 @@ filters = [
         filterReplace = (const "")
     },
     Filter {
-        filterDesc = "geminated aspirated consonants",
+        filterDesc = "gemhttps://github.com/chchch/sanskrit-alignment/tree/master/helayo/distinated aspirated consonants",
         filterSearch = "(?:kK|gG|cC|jJ|wW|qQ|tT|dD|pP|bB)",
         filterReplace = (\mt -> tail . fst $ mt ! 0)
     },
@@ -279,166 +277,6 @@ filters = [
     }
     ]
 
-filters' = [
-    Filter {
-        filterDesc = "valapalagilaka",
-        filterSearch = "&#7769;",
-        filterReplace = (const "r")
-    },
-    Filter {
-        filterDesc = "pṛṣṭhamātrā e",
-        filterSearch = "&#234;",
-        filterReplace = (const "e")
-    },
-    Filter {
-        filterDesc = "pṛṣṭhamātrā o",
-        filterSearch = "&#244;",
-        filterReplace = (const "o")
-    },
-    Filter {
-        filterDesc = "pṛṣṭhamātrā ai",
-        filterSearch = "a&#238;",
-        filterReplace = (const "E")
-    },
-    Filter {
-        filterDesc = "pṛṣṭhamātrā au",
-        filterSearch = "a&#251;",
-        filterReplace = (const "O")
-    },
-    Filter {
-        filterDesc = "candrabindu",
-        filterSearch = "m&#784;",
-        filterReplace = (const "M")
-    },
-    Filter {
-        filterDesc = "oṃkāras",
-        filterSearch = "o&#774[35];",
-        filterReplace = (const "oM")
-    },
-    Filter {
-        filterDesc = "non-ASCII characters",
-        filterSearch ="&#\\d+;",
-        filterReplace = (const "")
-    },
-    Filter {
-        filterDesc = "additional punctuation",
-        filterSearch = "['()\\[\\],;'|_\\-=\\d'.\"\\\\/]+",
-        filterReplace = (const "")
-    },
-    Filter {
-        filterSearch = "(?:kK|gG|cC|jJ|wW|qQ|tT|dD|pP|bB)",
-        filterReplace = (\mt -> tail . fst $ mt ! 0),
-        filterDesc = "geminated aspirated consonants"
-    },
-    Filter {
-        filterDesc = "geminated m after h",
-        filterSearch = "(?:Mhm|hmm)",
-        filterReplace = (const "hm")
-    },
-    Filter {
-        filterDesc = "geminated t",
-        filterSearch = "(?<=[rfi]|p[aA])tt|tt(?=[rvy]\\S)",
-        filterReplace = (const "t")
-    },
-    Filter { 
-        filterSearch = "(?<=[rf]|[rf]\\s)([kgcjwqdpbRnmyvl])\\1{1,2}", 
-        filterReplace = (\mt -> fst $ mt ! 1),
-        filterDesc = "geminated consonants after r"
-    },
-    Filter {
-        filterDesc = "final nasal variants",
-        filterSearch = "(?:M[lSs]|nn)(?!\\S)",
-        filterReplace = (const "n")
-    },
-    Filter {
-        filterDesc = "internal nasal variants",
-        filterSearch = "[mnNYR](?=[pPbBmdDtTnwWqQcCjJkKgG])",
-        filterReplace = (const "M")
-    },
-    Filter {
-        filterDesc = "visarga āḥ variants",
-        filterSearch = "AH(?=\\s+[aAiIeEuUogGjJqQdDbBnmyrlvh])",
-        filterReplace = (const "A")
-    },
-    Filter {
-        filterDesc = "final anusvāra variants", -- A 8.4.59
-        filterSearch = "M?[mN](?!\\S)|(?<=k[aiu])n(?=\\s+t)|Y(?=\\s+[jc])",
-        filterReplace = (const "M")
-    }, 
-    Filter {
-        filterDesc = "visarga aḥ before voiced consonants",
-        filterSearch = "(?<!\\sB)(?:a[Hr]|[o])(?=\\s[gGjJqQdDnbBmrylvh])", -- ignore bho
-        filterReplace = (const "aH")
-    },
-    Filter {
-        filterDesc = "visarga aḥ before vowels",
-        filterSearch = "aH(?=\\s[AiIeuUof])",
-        filterReplace = (const "a")
-    },
-    Filter {
-        filterDesc = "other visarga variants",
-        filterSearch = "H?[rszS](?!\\S)",
-        filterReplace = (const "H")
-    },
-    Filter {
-        filterDesc = "internal visarga variants",
-        --filterSearch = "(?<=u)z|z(?=k)|s(?=s)",
-        filterSearch = "z(?=[kK])|s(?=s)",
-        filterReplace = (const "H")
-    },
-    Filter {
-        filterDesc = "final au/āv",
-        filterSearch = "Av(?!\\S)",
-        filterReplace = (const "O")
-    },
-    Filter {
-        filterDesc = "final su",
-        filterSearch = "(?<=[sz])v(?=\\s[aAiIuUoOeE])",
-        filterReplace = (const "u")
-    },
-    Filter {
-        filterDesc = "final i",
-        filterSearch = "y(?=\\s[aAuUoOeE])",
-        filterReplace = (const "i")
-    },
-    Filter {
-        filterDesc = "kcch/kś",
-        filterSearch = "k\\s*(?:S|c?C)",
-        filterReplace = (const "kS")
-    },
-    Filter {
-        filterDesc = "cch/ch/cś/tś",
-        filterSearch = "c\\s*[CS]|t\\sS",
-        filterReplace = (const "C")
-    },
-    Filter {
-        filterDesc = "final t + voiced syllable", -- different rule for t + h = ddh
-        filterSearch = "d(?=(?:\\s+[aAiIeEuUoOgGdDbByrv]|\\s*$))",
-        filterReplace = (const "t")
-    },
-    Filter {
-        filterDesc = "final t + n/m",
-        --filterSearch = "t(?=\\s[nm])",
-        filterSearch = "(?<=[ai])n(?=\\s[nm])",
-        filterReplace = (const "t")
-    },
-    Filter {
-        filterDesc = "final t + c/j",
-        filterSearch = "j(?=\\sj)|c(?=\\sc)",
-        filterReplace = (const "t")
-    },
-    Filter {    
-        filterDesc = "i/y + vowel",
-        filterSearch = "y(?=\\s[aAuUeo])",
-        filterReplace = (const "i")
-    },
-    Filter {
-        filterDesc = "bhd for bdh",
-        filterSearch = "Bd",
-        filterReplace = (const "bD")
-    }
-    ]
-
 spaceFilter' = 
     Filter {
         filterDesc = "collapse spaces",
@@ -448,7 +286,7 @@ spaceFilter' =
 
 spaceFilter =
     Filter {
-        filterDesc = "spaces",
+        filterDesc = "remove spaces",
         filterSearch = "\\s+",
         filterReplace = (const "")
     }
@@ -497,37 +335,26 @@ unreplaceAll (f,ms) s = start end
 -------
 
 -- outputs a list of (siglum,(unnormalized,normalized))
-prepSeqs :: [FastaSequence] -> [(String,([String],[String]))]
-prepSeqs ss = zip sigla unfiltered
-    where 
-    sigla = map fastaHeader ss
-    filtered :: [([Filtered],String)]
-    filtered = map (filterAll' (filters ++ [spaceFilter]) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
-    --filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
-    unfiltered :: [([String],[String])]
-    unfiltered = map go filtered
-        where go (fs,s) = let split = splitGlyphs slp1' s in (unfilterAll' fs split,split)
-        --where go (fs,s) = let split = splitGlyphs_ slp1' s in (unfilterAll' fs split,split)
-
-prepWords :: [FastaSequence] -> [(String,([String],[String]))]
-prepWords ss = zip sigla unfiltered
-    where 
-    sigla = map fastaHeader ss
-    filtered :: [([Filtered],String)]
-    filtered = map (filterAll' (filters ++ [spaceFilter']) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
-    unfiltered :: [([String],[String])]
-    unfiltered = map go filtered
-        where go (fs,s) = let split = S.split (S.condense . S.keepDelimsR $ S.oneOf " ") s in (unfilterAll' fs split,split)
+prepSeqs    :: [FastaSequence] -> [(String,([String],[String]))]
+prepSeqs    = prepX (filters ++ [spaceFilter]) (splitGlyphs slp1')
+--prepSeqs    = prepX (filters ++ [spaceFilter']) (splitGlyphs_ slp1')
 
 prepAksaras :: [FastaSequence] -> [(String,([String],[String]))]
-prepAksaras ss = zip sigla unfiltered
+prepAksaras = prepX (filters ++ [spaceFilter]) (splitAksaras slp1')
+
+prepWords   :: [FastaSequence] -> [(String,([String],[String]))]
+prepWords   = prepX (filters ++ [spaceFilter']) 
+                    (S.split (S.condense . S.keepDelimsR $ S.oneOf " "))
+
+prepX :: [Filter] -> (String -> [String]) -> [FastaSequence] -> [(String,([String],[String]))]
+prepX fs splitfn ss = zip sigla unfiltered
     where 
     sigla = map fastaHeader ss
     filtered :: [([Filtered],String)]
-    filtered = map (filterAll' (filters ++ [spaceFilter]) . unicodeToXmlEntity . transliterateString iast slp1' . fastaSeq) ss
+    filtered = map (filterAll' fs . unicodeToXmlEntity . transliterateString iast2slp1' . fastaSeq) ss
     unfiltered :: [([String],[String])]
     unfiltered = map go filtered
-        where go (fs,s) = let split = splitAksaras slp1' s in (unfilterAll' fs split,split)
+        where go (fs',s) = let split = splitfn s in (unfilterAll' fs' split,split)
 
 replaceAll' :: String -> ReplaceFn -> String -> (Filtered,String)
 replaceAll' re f s = ((f,ms),start end)
@@ -565,6 +392,7 @@ unreplaceAll' (f,ms) ss = start end
                                                         replacelen -> (h [x],xs,0)
                 | otherwise    = (h [],xxs,n)
                 where cell_len = length x
+        ---
         replaceAt' :: (Int,Int) -> String -> [String] -> [String]
         replaceAt' (n,m) y [x] =
             let (start,middle) = splitAt n x
@@ -581,19 +409,6 @@ unreplaceAll' (f,ms) ss = start end
                     new_m = m - leftoverlen
                 in  (start ++ replacewith):(replaceAt' (0,new_m) leftover xs)
             where leftoverlen = (length x) - n
-
-{-
--- old ugly version
-filterAll'' :: [Filter] -> String -> ([Filtered],String)
-filterAll'' fs s = let (a,b) = go fs [] s in (reverse a,b) 
-        where
-        go :: [Filter] -> [Filtered] -> String -> ([Filtered],String)
-        go [] us s = (us,s)
-        go (x:xs) us s = (u:r1,r2)
-            where 
-            (r1,r2) = go xs us result
-            (u,result) = replaceAll' (filterSearch x) (filterReplace x) s
--}
 
 filterAll' :: [Filter] -> String -> ([Filtered],String)
 filterAll' fs s = go fs [] s 

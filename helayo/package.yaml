@@ -25,7 +25,7 @@ dependencies:
 - vector
 - split
 - containers
-#- align
+- align-affine
 - regex-pcre-builtin
 - parsec
 - MissingH

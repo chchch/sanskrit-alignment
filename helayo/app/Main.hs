@@ -3,50 +3,59 @@ module Main where
 import System.Environment (getArgs)
 import System.Console.GetOpt (getOpt, OptDescr(Option), ArgOrder(Permute), ArgDescr(ReqArg))
 import Data.Maybe (fromJust)
-import Affine (allIndices, multiTrace)
+import Data.Align.Affine (allIndices, multiTrace)
 import MyFasta (parseFasta')
 import Collate (alignPrep, multiXMLAlign, alignLookup, recursiveLookup, simpleLookup, mtr, makeMatrix, makeArray, makePenalties)
 import Filter (prepAksaras, prepSeqs, prepWords)
 
 data Options = Options
-    {optMatrixFile :: Maybe FilePath,
-     optMatch :: Double,
-     optMismatch :: Double,
-     optGap :: Double,
-     optGapOpen :: Double,
-     optScript :: String,
-     optLemma :: String
+    { optMatrixFile :: Maybe FilePath
+    , optMatch :: Double
+    , optMismatch :: Double
+    , optGapOpen :: Double
+    , optGap :: Double
+    , optScript :: String
+    , optLemma :: String
     }
     deriving Show
 
 defaultOptions:: Options
 defaultOptions = Options
-    {optMatrixFile = Nothing,
-     optMatch = 0.5,
-     optMismatch = -1,
-     optGap = -0.25,
-     optGapOpen = -3,
-     optScript = "iast",
-     optLemma = "character"
+    { optMatrixFile = Nothing
+    , optMatch = 0.5
+    , optMismatch = -1
+    , optGapOpen = -3
+    , optGap = -0.25
+    , optScript = "iast"
+    , optLemma = "character"
     }
 
 options :: [OptDescr (Options -> Options)]
 options =
-    [ Option ['x']  ["matrix-file"] (ReqArg (\f opts -> opts {optMatrixFile = Just f}) "FILE")  "matrix file",
-      Option ['M']  ["match"]      (ReqArg (\o opts -> opts {optMatch = read o::Double}) "MATCHSCORE") "match score",
-      Option ['m']  ["mismatch"]   (ReqArg (\o opts -> opts {optMismatch = read o::Double}) "MISMATCHSCORE") "mismatch score",
-      Option ['g']  ["gap"]        (ReqArg (\o opts -> opts {optGap = read o::Double}) "GAPSCORE") "gap score",
-      Option ['o']  ["gap-open"]        (ReqArg (\o opts -> opts {optGapOpen = read o::Double}) "GAPOPENSCORE") "gap opening score",
-      Option ['s']  ["script"]     (ReqArg (\s opts -> opts {optScript = s}) "SCRIPT") "script (iast or slp1)",
-      Option ['l']  ["lemma"]      (ReqArg (\s opts -> opts {optLemma = s}) "LEMMA") "lemma size (character, aksara, word)"
+    [ Option ['x']  ["matrix-file"] 
+        (ReqArg (\f opts -> opts {optMatrixFile = Just f}) "MATRIXFILE")  "matrix file",
+      Option ['M']  ["match"]      
+        (ReqArg (\o opts -> opts {optMatch = read o::Double}) "MATCHSCORE") "match score",
+      Option ['m']  ["mismatch"]   
+        (ReqArg (\o opts -> opts {optMismatch = read o::Double}) "MISMATCHSCORE") "mismatch score",
+      Option ['G']  ["gap-open"]        
+        (ReqArg (\o opts -> opts {optGapOpen = read o::Double}) "GAPOPENSCORE") "gap opening score",
+      Option ['g']  ["gap-extend"]        
+        (ReqArg (\o opts -> opts {optGap = read o::Double}) "GAPEXTENDSCORE") "gap extension score",
+      Option ['s']  ["script"]     
+        (ReqArg (\s opts -> opts {optScript = s}) "SCRIPT") "script (iast or slp1)",
+      Option ['l']  ["lemma"]      
+        (ReqArg (\s opts -> opts {optLemma = s}) "LEMMA") "lemma size (character, aksara, word)"
       ]
 
 parseArgs :: [String] -> IO(Options, String)
 parseArgs argv = case getOpt Permute options argv of
     (args,strs,[]) -> do
-        if length strs /= 1
+        if length strs == 0
             then do ioError (userError "no filename specified")
-            else return (foldl (flip id) defaultOptions args, head strs)
+            else if length strs /= 1
+                then do ioError (userError "too many arguments")
+                else return (foldl (flip id) defaultOptions args, head strs)
     (_,_,errs) -> do
         ioError (userError $ concat errs)
 
@@ -59,16 +68,20 @@ main = do
             | optLemma as == "word"   = prepWords seqs
             | optLemma as == "aksara" = prepAksaras seqs
             | otherwise               = prepSeqs seqs
+
     let penalties = makePenalties (optMatch as) (optMismatch as) (optGapOpen as) (optGap as)
     let m = optMatrixFile as
-    if m /= Nothing then do
-        contents <- readFile $ fromJust m
-        let mm = makeMatrix . makeArray $ lines contents
-        let result
-                | optLemma as == "word"   = mtr (recursiveLookup mm) penalties split
-                | optLemma as == "aksara" = mtr (recursiveLookup mm) penalties split
-                | otherwise               = mtr (alignLookup mm) penalties split
-        putStrLn $ multiXMLAlign $ alignPrep (allIndices result) (multiTrace result) split-- make this take [String]s
-    else do
-        let result = mtr simpleLookup penalties split
-        putStrLn $ multiXMLAlign $ alignPrep (allIndices result) (multiTrace result) split
+    contents <- maybeReadFile m
+    let lookupfn
+            | contents == ""          = simpleLookup
+            | optLemma as == "word"   = recursiveLookup mm
+            | optLemma as == "aksara" = recursiveLookup mm
+            | otherwise               = alignLookup mm
+            where mm = makeMatrix . makeArray $ lines contents
+    let result = mtr lookupfn penalties split
+    putStrLn $ multiXMLAlign $ alignPrep (allIndices result) (multiTrace result) split
+
+maybeReadFile:: Maybe FilePath -> IO (String)
+maybeReadFile f
+    | f == Nothing  = pure ""
+    | otherwise     = readFile $ fromJust f

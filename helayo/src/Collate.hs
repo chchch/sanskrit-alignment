@@ -15,12 +15,12 @@ alignLookup,recursiveLookup,simpleLookup
 
 import Data.Maybe (fromJust, fromMaybe)
 import qualified Data.Vector as V (fromList)
-import Affine (alignConfig, align, stepOfAll, trace, traceScore, centerStar, MultiStep)
+import Data.Align.Affine (alignConfig, align, stepOfAll, trace, traceScore, centerStar, MultiStep)
 import Data.List (transpose, foldl')
 import Data.List.Split (wordsBy)
 import qualified Data.Map as M (lookup, fromList, Map)
 import qualified Data.Matrix as X (Matrix, fromLists, (!))
-import Transcribe (splitGlyphs, slp1', iast, transliterateString)
+import Transcribe (splitGlyphs, slp1', slp1'2iast, iast2slp1', transliterateString)
 
 data Penalties = Penalties {
     pMatch :: Double,
@@ -110,8 +110,8 @@ makeMatrix' (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scor
 makeMatrix :: [[String]] -> SubstMatrix
 makeMatrix (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
-    xaxis = M.fromList $ zip (map (transliterateString iast slp1') ss) [1..]
-    yaxis = M.fromList $ zip (map (transliterateString iast slp1' . head) sss) [1..]
+    xaxis = M.fromList $ zip (map (transliterateString iast2slp1') ss) [1..]
+    yaxis = M.fromList $ zip (map (transliterateString iast2slp1' . head) sss) [1..]
     size = length xaxis * length yaxis - 1
     scores = X.fromLists $ map (map (\s -> read s::Double)) $ map (drop 1) sss
 
@@ -191,10 +191,12 @@ multiStrAlign' as = foldl' (\x acc -> x ++ "\n" ++ acc) "" (map go as)
 
 multiXMLAlign :: [(String,([String],[Maybe String]))] -> String
 multiXMLAlign as = 
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<teiCorpus xmlns=\"http://www.tei-c.org/ns/1.0\">\n" ++
+    header ++
     (foldl' (\x acc -> x ++ "\n" ++ acc) "" $ map formatTEIText as) ++
-    "\n</teiCorpus>"
+    footer
     where
+    header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<teiCorpus xmlns=\"http://www.tei-c.org/ns/1.0\">\n"
+    footer = "\n</teiCorpus>"
     formatTEIText :: (String,([String],[Maybe String])) -> String
     formatTEIText (i,(s,m)) = "<TEI n=\"" ++ i ++ "\">\n<text>\n" ++ snd result ++ "\n</text></TEI>"
         where 
@@ -204,11 +206,11 @@ multiXMLAlign as =
             go x acc =
                 (num, 
                     "<w n=\"" ++ show num ++ lemma ++ "\">" ++ 
-                    (transliterateString slp1' iast $ fst x) ++ "</w>" ++ 
+                    (transliterateString slp1'2iast $ fst x) ++ "</w>" ++ 
                     snd acc
                 )
                 where 
                 num = fst acc - 1
                 lemma
-                    | snd x /= "" = "\" lemma=\"" ++ (transliterateString slp1' iast (snd x))
+                    | snd x /= "" = "\" lemma=\"" ++ (transliterateString slp1'2iast (snd x))
                     | otherwise   = "" 
