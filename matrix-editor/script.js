@@ -12,6 +12,7 @@ const comboView = (function() {
     const lemmaXSLT = window.lemmaXSLT;
     const treeXSLT = window.treeXSLT;
     const matrixXSLT = window.matrixXSLT;
+    const Normalizer = window.Normalizer;
     
     var _filename;
     var _xml;
@@ -70,87 +71,6 @@ const comboView = (function() {
             if(arr[i] != '') return arr[i];
     };
     */
-    const normalize = function(lemma,next,both=false) {
-        const concated = lemma+';'+next;
-        const clean1 = concated
-        // <del>
-            .replace(/<del\b(?:"[^"]*"|'[^']*'|[^'">])*>.*?<\/del>/g,'')
-        // other tags
-            .replace(/<\/?\w+?\b(?:"[^"]*"|'[^']*'|[^'">])*?\/?>/g,'')
-        // punctuation
-            .replace(/\s*[|,?—―-]/g,'');
-        // numbers
-        // .replace(/\d/g,'')
-
-        const clean1split = clean1.split(';');
-        if(clean1split[0] === 'bho' || clean1split[0] === 'bhobho')
-            return clean1split;
-
-        const arr = clean1
-        // geminated consonants after r
-            .replace(/([rṛi];?)([kgcjṭḍṇdnpbmyvl])\2{1,2}/,'$1$2')
-        // geminated t
-            .replace(/([rṛri];?|pa;?)tt/,'$1t')
-            .replace(/tt(?=;?[rvy])/,'t')
-        // final nasal variants
-            .replace(/(?:ṃ[lśs]|nn)(?=[;\s])/,'n')
-        // internal nasal variants
-        //.replace(/[mnñṇṅ](?=[pbmdtnṭḍcjkg])/,'ṃ')
-            .replace(/ṃ(?=;?[pbm])/,'m')
-            .replace(/ṃ(?=;?[dtn])/,'n')
-            .replace(/ṃ(?=;?[ṭḍṇ])/,'ṇ')
-            .replace(/ṃ(?=;?[cj])/,'ñ')
-            .replace(/ṃ(?=;?[kg])/,'ṅ')
-        // visarga āḥ variants
-            .replace(/ā(;?)ḥ(?=[;\s][aāiīeuūogjḍdbnmyrlvh])/,'ā$1')
-        // visarga aḥ before unvoiced consonants and avagraha
-            .replace(/o([;\s])(?=[kcṭtpśṣs'])/,'aḥ$1a')
-        // visarga aḥ before voiced consonants
-            .replace(/(?:aḥ|aḥ?r|o)(?=[;\s][gjḍdbnmrylvh])/,'aḥ')
-        // saḥ before voiced consonants
-            .replace(/^(s;?a;?)ḥ(?=[;\s][gjḍdbnmrylvh])/,'$1')
-        // visarga aḥ before vowels other than short a
-            .replace(/(a;?)ḥ(?=[;\s][āiīeuūoṛ])/,'$1')
-        // other visarga variants
-            .replace(/ḥ?[rsśṣ](?=[;\s])/,'ḥ')
-        // internal visarga variants
-            .replace(/([ui])[sṣ](?=[sk])/,'$1ḥ')
-        // final anusvāra variants
-            .replace(/ṃ?[mṅ](?=;)|ñ(?=[;\s][jc])/,'ṃ')
-        // cch/ch
-            .replace(/c(;?ch)/,'$1')
-        // t + ś
-            .replace(/c([;\s])ch/,'t$1ś')
-        // final (a)t + voiced syllable, n/m, c, or j
-            .replace(/d(?=[;\s][aāiīuūeogdbyrv])/,'t')
-            .replace(/([ai];?)n(\s;?)(?=[;\s][nm])/,'$1t$2')
-            .replace(/([^āai];?)t(\s;?)(?=[nm])/,'$1n$2')
-            .replace(/j(\s;?)(?=j)/,'t$1')
-            .replace(/c(\s;?)(?=c)/,'t$1')
-        // intial chr
-            .replace(/^chr/,'śr')
-        // i/y + vowel
-            .replace(/([^aāiīuūeo];?)y(?=[;\s][āauūeo])/,'$1i')
-        // ḻ/l
-            .replace(/ḻ/,'l')
-        // -ena + u-
-            .replace(/ena u/,'eno')
-        // -sya + u-
-            .replace(/sya u/,'syo')
-        // other avagrahas
-            .replace(/'/g,'')
-            .split(';');
-        const withnums = arr[0].trim();
-        const nonums = withnums.replace(/\d/g,'');
-        if(both) {
-            const second = arr[1].trim();
-            const nonums2 = second.replace(/\d/g,'');
-            return [nonums === '' ? withnums : nonums,
-                nonums2 === '' ? second : nonums2];
-        }
-        else
-            return nonums === '' ? withnums : nonums;
-    };
 
     const pickColour = function(fadeFraction, rgbColor1, rgbColor2, rgbColor3) {
     // from https://gist.github.com/gskema/2f56dc2e087894ffc756c11e6de1b5ed
@@ -1497,6 +1417,10 @@ const reconstructLemma = function(paths) {
                 toggle: check.anyhighlit,
                 func: multi.highlightAll
             },
+            {text: '(Re)normalize columns',
+                greyout: check.anyhighlit,
+                func: edit.startRenormalize.bind(null,false)
+            },
             {text: 'Delete column',
                 greyout: check.anyhighlit,
                 func: edit.startRemoveCol.bind(null,false)
@@ -1546,8 +1470,9 @@ const reconstructLemma = function(paths) {
                 checkbox: check.headerView,
                 func: view.toggleHeader,
             },
-            {text: 'Normalize',
+            {text: 'Normalized',
                 checkbox: check.normalizedView,
+                greyout: check.anyNormalized,
                 func: view.toggleNormalize,
             },
         ]);
@@ -1669,9 +1594,6 @@ END;
         },
 
         processOptions: function(opts) {
-            if(opts.get('option_normalize') && !check.anyNormalized()) 
-                view.normalizeAll();
-
             const doc = _xml.cloneNode(true);
 
             if(opts.get('option_normalize')) {
@@ -1822,14 +1744,13 @@ END;
                     word.parentElement.insertBefore(app,word);
                     if(lem.textContent.match(/\s$/)) {
                         word.parentElement.insertBefore(
-                        newdoc.createTextNode(' '),
-                        word);
+                            newdoc.createTextNode(' '),
+                            word);
                     }
                 }
 
                 word.remove();
             }
-            console.log(newdoc.innerHTML);
             return newdoc;
         },
 
@@ -2060,8 +1981,8 @@ const fullTreeClick = function(e) {
                 else if(e.key === 'z')
                     edit.undo();
             }
-            else if(!_editing && 
-                    !_matrix.closed &&
+            else if(!_editing &&
+                    _matrix && !_matrix.closed &
                     e.key === 'Enter') {
                 const td = find.highlitcell();
                 if(td) {
@@ -2571,7 +2492,7 @@ const fullTreeClick = function(e) {
             const cell = el || find.highlitcell();
             if(!cell) return;
             //cell.classList.add('highlitcell');
-            view.unnormalize(cell);
+            edit.unnormalize(cell);
             cell.dataset.oldContent = cell.textContent;
         
             cell.contentEditable = 'true';
@@ -2752,7 +2673,7 @@ const fullTreeClick = function(e) {
                 edit.doStack([edit.doChangeCell,[cellnum,rownum,cell.dataset.oldContent]],'do');
             delete cell.dataset.oldContent;
 
-            view.renormalize(cellnum-1,cellnum+1,rownum);
+            //view.renormalize(cellnum-1,cellnum+1,rownum);
             edit.refresh();
             //view.updateHeaders([cellnum]);
             view.updateAllHeaders(true);
@@ -2912,7 +2833,7 @@ const fullTreeClick = function(e) {
             for(const row of rows) {
                 const arr = [...nums].map(n => {
                         const cell = row.querySelector(tag+'['+attribute+'="'+n+'"]');
-                        view.unnormalize(cell);
+                        edit.unnormalize(cell);
                         return cell;
                     });
                 const arrclone = arr.map(el => el.cloneNode(true));
@@ -2940,44 +2861,28 @@ const fullTreeClick = function(e) {
                     /*
                     const arr = [...nums].map(n => {
                         const cell = cellfunc(n,row);
-                        view.unnormalize(cell);
+                        edit.unnormalize(cell);
                         return cell;
                     });
                     */
                     const arr = [...nums].map(n => cellfunc(n,row));
                     const arrclone = arr.map(el => el.cloneNode(true));
                     rowsclone.push(arrclone);
+                    for(const a of arr) edit.unnormalize(a);
                     const reduced = arr.reduce(function(acc,cur) {
-                        const targ = cur.IAST || cur;
-                        if(targ.dataset) {
-                            const oldlem = acc.dataset.normal || 
-                                           acc.textContent;
-                            const newlem = targ.dataset.normal ||
-                                           targ.textContent;
-                            acc.dataset.normal = oldlem + newlem;
-                        }
-                        else {
-                            const oldlem = acc.getAttribute('lemma') ||
-                                           acc.textContent;
-                            const newlem = targ.getAttribute('lemma') || 
-                                           targ.textContent;
-                            acc.setAttribute('lemma',oldlem + newlem);
-                        }
-
-                        if(targ.hasChildNodes()) {
-                            while(targ.firstChild)
-                                acc.appendChild(targ.firstChild);
+                        if(cur.hasChildNodes()) {
+                            while(cur.firstChild)
+                                acc.appendChild(cur.firstChild);
                         }
                         cur.parentNode.removeChild(cur);
                         return acc;
                     });
                     reduced.normalize();
                     if(reduced.dataset) {
-                        if(reduced.dataset.normal === reduced.textContent)
-                            delete reduced.dataset.normal;
+                        delete reduced.dataset.normal;
                         reduced.IAST = reduced.cloneNode(true);
                     }
-                    else if(reduced.getAttribute('lemma') === reduced.textContent)
+                    else 
                         reduced.removeAttribute('lemma');
                 }
                 return [rowfunc,cellfunc,rowsclone];
@@ -2991,7 +2896,7 @@ const fullTreeClick = function(e) {
             //edit.renumber(document,'.matrix tr','td','data-n',start);
             //edit.renumber(_xml,'text','w','n',start);
             edit.restyleGroups(nums);
-            view.renormalize(start,start+1);
+            //view.renormalize(start,start+1);
             edit.refresh();
             view.updateAllHeaders();
             //view.updateHeaders(nums);
@@ -3035,10 +2940,10 @@ const fullTreeClick = function(e) {
             const nums = unmerge(...oldxml);
             const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
             const start = sortednums[0];
-            const end = parseInt(sortednums[sortednums.length-1])+1;
             edit.renumber(start);
             edit.reIAST(nums);
-            view.renormalize(start,end);
+            //const end = parseInt(sortednums[sortednums.length-1])+1;
+            //view.renormalize(start,end);
             edit.refresh();
             edit.restyleGroups(nums);
             view.updateAllHeaders();
@@ -3164,7 +3069,7 @@ const fullTreeClick = function(e) {
                 for(const row of rows) {
                     const arr = [...nums].map(n => {
                         const cell = cellfunc(n,row);
-                        view.unnormalize(cell);
+                        edit.unnormalize(cell);
                         return cell;
                     });
                     const arrclone = arr.map(el => el.cloneNode(true));
@@ -3183,7 +3088,7 @@ const fullTreeClick = function(e) {
             edit.renumber(start);
             //edit.renumber(document,'.matrix tr','td','data-n',start);
             //edit.renumber(_xml,'text','w','n',start);
-            view.renormalize(start,start+1);
+            //view.renormalize(start-1,start);
             edit.refresh();
             edit.restyleGroups(nums,true);
             view.updateAllHeaders();
@@ -3213,13 +3118,13 @@ const fullTreeClick = function(e) {
             const nums = unremove(...oldxml);
             const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
             const start = parseInt(sortednums[0])-1;
-            const end = parseInt(sortednums[sortednums.length-1])+1;
             edit.renumber(start);
             const highlitcells = document.querySelectorAll('.highlitcell');
             for(const cell of highlitcells)
                 cell.classList.remove('highlitcell');
             edit.reIAST(nums);
-            view.renormalize(start,end);
+            //const end = parseInt(sortednums[sortednums.length-1])+1;
+            //view.renormalize(start,end);
             edit.refresh();
             edit.restyleGroups(nums,true);
             view.updateAllHeaders();
@@ -3242,7 +3147,7 @@ const fullTreeClick = function(e) {
             insert(find.trs,find.firsttd,make.emptycell,aftern);
             insert(find.texts,find.firstword,make.emptyword,aftern);
             edit.renumber(aftern);
-            view.renormalize(aftern,aftern+2);
+            //view.renormalize(aftern,aftern+2);
             edit.refresh();
             edit.restyleGroups([aftern,aftern+1],true);
             view.updateAllHeaders();
@@ -3288,7 +3193,7 @@ const fullTreeClick = function(e) {
         doChangeCell: function(cellnum,rownum,content,doing = 'do') {
             const oldcontent = edit.xmlChangeCell(cellnum,rownum,content);
             const cell = edit.htmlChangeCell(cellnum,rownum,content);
-            view.renormalize(cellnum-1,cellnum+1,rownum);    
+            //view.renormalize(cellnum-1,cellnum+1,rownum);    
             edit.refresh();
             view.updateAllHeaders(true);
             events.textClick({target: cell});
@@ -3306,7 +3211,7 @@ const fullTreeClick = function(e) {
             //const row = document.querySelector('.matrix table')
             //                    .querySelectorAll('tr')[rownum];
             //const cell = row.querySelector('td[data-n="'+cellnum+'"]');
-            view.unnormalize(cell);
+            edit.unnormalize(cell);
             cell.textContent = content;
             if(cell.IAST) cell.IAST = cell.cloneNode(true);
             return cell;
@@ -3318,7 +3223,7 @@ const fullTreeClick = function(e) {
             const cell = find.firstword(cellnum,row);
             //const row = _xml.querySelectorAll('text')[rownum];
             //const cell = row.querySelector('w[n="'+cellnum+'"]');
-            view.unnormalize(cell);
+            edit.unnormalize(cell);
             const oldcontent = cell.textContent;
             if(cell.childNodes.length === 0)
                 cell.appendChild(document.createTextNode(content));
@@ -3449,209 +3354,107 @@ const fullTreeClick = function(e) {
                     changeClass(tds);
             }
         },
-    };
+        
+        startRenormalize: function(nums) {
+            const numss = nums === false ?
+                find.highlit() :
+                nums;
+            edit.doRenormalize(Math.min(...numss),Math.max(...numss));
+        },
 
-    const view = {
-        toggleNormalize: function() {
-            if(check.normalizedView())
-                view.showUnnormalized();
-            else
-                view.showNormalized();
-        },
-        showNormalized: function(box) {
-            const par = box ? box : document.getElementById('views');
-            if(!box) par.classList.add('normalized');
-            //const par = box ? box : _matrix.boxdiv;
+        doRenormalize: function(startnum, endnum, rownum=false, doing='do') {
+            const showNormalized = check.normalizedView();
+            
+            const changedrows = new Map();
 
-            if(!check.anyNormalized()) {
-                view.normalizeAll();
-                for(const textbox of _textboxes)
-                    textbox.refresh();
-                multi.rehighlight();
-            }
-            else {
-                for(const textbox of _textboxes)
-                    textbox.updatescript();
-            }
-            _matrix.updatescript();
-            if(!check.anyhighlit())
-                multi.clearTrees();
-            else
-                multi.repopulateTrees(...find.lowhigh(find.highlit()));
-            //const tds = matrix.querySelectorAll('td[data-normal]');
-            /*        const lemmata = find.normal(par);
-        for(const lemma of lemmata) {
-            lemma.textContent = lemma.dataset.normal;
-            // do script change stuff here
-        }
-*/        
-            view.updateAllHeaders(true);
-            view.xScrollToHighlit();
-        },
-        showUnnormalized: function() {
-            document.getElementById('views').classList.remove('normalized');
-            //const tds = _matrix.boxdiv.querySelectorAll('td[data-normal]');
-            //const lemmata = find.normal();
-            /*        for(const lemma of lemmata) {
-            lemma.textContent = lemma.IAST.textContent;
-            // do script change stuff here
-        }*/
-            _matrix.updatescript();
-            for(const textbox of _textboxes)
-                textbox.updatescript();
-            /*        for(const tree of _trees) {
-            tree.fitch();
-            tree.updatescript();
-        } */
-            if(!check.anyhighlit())
-                multi.clearTrees();
-            else
-                multi.repopulateTrees(...find.lowhigh(find.highlit()));
-            view.updateAllHeaders(true);
-            view.xScrollToHighlit();
-        },
-    
-        normalizeAll: function() {
-            return false;
-            /*
-            const htmlrows = [...find.trs()];
-            const xmlrows = [...find.texts()];
-            for(let n=0;n<xmlrows.length;n++) {
-                const tr = htmlrows[n];
-                const text = xmlrows[n];
-                const words = [...find.words(false,text)];
-                //            for(const td of tds)
-                //                view.normalize(td,tr);
-                let i = 0;
-                let word = words[i];
-                while(word) {
-                    i = view.normalize(i,words);
-                    const lemma = word.getAttribute('lemma');
-                    if(lemma) {
-                        const td = find.firsttd(word.getAttribute('n'),tr);
-                        td.dataset.normal = lemma;
-                    }
-                    word = words[i];
-                }
-            }
-            */
-            //_normalization = true;
-            //const normalized = _matrix.boxdiv.querySelectorAll('td[data-normal]');
-            /*        const normalized = find.normal();
-        for(const td of normalized) {
-            const word_n = td.dataset.n;
-            const row_n = htmlrows.indexOf(td.closest('tr'));
-            const word = find.firstword(word_n,xmlrows[row_n]);
-            //const word = xmlrows[row_n].querySelector('w[n="'+word_n+'"]');
-            word.setAttribute('lemma',td.dataset.normal);
-        }
-        */
-        },
-    
-        renormalize: function(/*startnum, endnum, rownum=false*/) {
-            // TODO: fix this
-            return false;
-            /*
-            if(!check.anyNormalized()) return false;
-
-            const normalized = check.normalizedView();
             const htmlrows = [...find.trs()];
             const xmlrows = [...find.texts()];
             const rownums = rownum ? [rownum] : [...htmlrows.keys()];
-            const doNormal = function(index,words,htmlrow) {
-                const word = words[index];
-                const n = word.getAttribute('n');
-                const td = find.firsttd(n,htmlrow);
-                if(td.dataset.hasOwnProperty('normal'))
-                    delete td.dataset.normal;
-                if(word.hasAttribute('lemma'))
-                    word.removeAttribute('lemma');
-
-                const nextindex = view.normalize(index,words);
-                const lemma = word.getAttribute('lemma');
-
-                if(lemma) {
-                    td.dataset.normal = lemma;
-                    if(normalized)
-                        td.textContent = td.dataset.normal;
-                }
-                else
-                    td.textContent = td.IAST.textContent;
-
-                return nextindex;
-            };
 
             for(const r of rownums) {
-                const htmlrow = htmlrows[r];
+                const changedrow = new Map();
                 const xmlrow = xmlrows[r];
-                const words = [...find.words(false,xmlrow)];
+                const allwords = [...find.words(false,xmlrow)];
                 const firstword = find.firstword(startnum,xmlrow);
-                const startn = words.indexOf(firstword);
+                const lastword = find.firstword(endnum,xmlrow);
+                const startn = allwords.indexOf(firstword);
+                const endn = allwords.indexOf(lastword);
+                const words = allwords.slice(startn, endn + 1);
 
-                //let num = find.prevNonempty(startn-1,tds);
-                //if(!num) num = startn;
-                //let nextdatasetn;
+                const htmlrow = htmlrows[r];
+                const alltds = [...find.tds(false,htmlrow)];
+                const tds = alltds.slice(startn, endn + 1);
 
-                let cur = find.prevNonempty(startn-1,words);
-                if(!cur) cur = startn;
-                let curword = words[cur];
-                while(curword.getAttribute('n') <= endnum) {
-                    cur = doNormal(cur,words,htmlrow);
-                    curword = words[cur];
+                const unnormwords = words.map(w => w.textContent);
+                const normwords = Normalizer(unnormwords);
+                
+                for(let n=0;n<normwords.length;n++) {
+                    const word = words[n];
+                    const normword = normwords[n];
+                    const unnormword = unnormwords[n];
+                    const td = tds[n];
+
+                    const oldlemma = word.hasAttribute('lemma') ?
+                        word.getAttribute('lemma') :
+                        false;
+                    if(oldlemma !== false) {
+                        if(oldlemma === normword) continue;
+                        else {
+                            changedrow.set(td.dataset.n,oldlemma);
+                            edit.unnormalize(word);
+                            edit.unnormalize(td);
+                        }
+                    }
+                    else changedrow.set(td.dataset.n,null);
+
+                    if(normword !== unnormword) {
+                        word.setAttribute('lemma',normword);
+                        td.dataset.normal = normword;
+
+                        if(showNormalized) td.textContent = normword;
+                    }
                 }
-            
-                const lastindex = doNormal(cur,words,htmlrow);
-                const lastword = lastindex ? words[lastindex] : false;
-                if(lastword && lastword.getAttribute('prenormal'))
-                    lastword.removeAttribute('prenormal');
-            }*/
+                changedrows.set(r,changedrow);
+            }
+            view.updateAllHeaders(true);
+            view.xScrollToHighlit();
+
+            edit.doStack([edit.doUnrenormalize,[changedrows]],doing);
         },
+        
+        doUnrenormalize: function(rowsmap,doing = 'undo') {
+            const showNormalized = check.normalizedView();
+            const undomap = new Map();
+            const htmlrows = [...find.trs()];
+            const xmlrows = [...find.texts()];
 
-        normalize: function(index,words) {
-            /*        const nextTD = function(td) {
-            var el = td.nextElementSibling;
-            while(el) {
-                if(el.textContent !== '') return el;
-                el = el.nextElementSibling;
-            }
-            return false;
-        }*/
+            for(const [rownum, row] of rowsmap.entries()) {
+                const htmlrow = htmlrows[rownum];
+                const xmlrow = xmlrows[rownum];
+                const undorowmap = new Map();
 
-            //const arr = tds ? tds : find.tds(false,td.closest('tr'));
-            //const td = arr[index];
-            const word = words[index];
-            /*
-        if(!td.hasOwnProperty('IAST')) {
-            td.IAST = td.cloneNode(true);
-        }
-        const txt = td.IAST.textContent;
-        */
-            const txt = word.textContent;
-            const nextindex = find.nextNonempty(index+1,words);
+                for(const [n, normword] of row.entries()) {
+                    const td = find.firsttd(n,htmlrow);
+                    const word = find.firstword(n,xmlrow);
 
-            if(txt !== '' && txt[0] !== '{') {
-            //const nexttd = nextTD(td);
-                const nextword = nextindex ? words[nextindex] : false;
-                const nextstr = nextword ? nextword.textContent : '';
-                let normal,nextnormal;
-                const prenormal = word.getAttribute('prenormal');
-                if(prenormal) {
-                    [normal,nextnormal] = normalize(prenormal,nextstr,true);
-                    word.removeAttribute('prenormal');
+                    const undo = word.hasAttribute('lemma') ?
+                        word.getAttribute('lemma') :
+                        null;
+                    undorowmap.set(n,undo);
+                    
+                    if(normword === null) {
+                        edit.unnormalize(td);
+                        edit.unnormalize(word);
+                    }
+                    else {
+                        td.dataset.normal = normword;
+                        word.setAttribute('lemma',normword);
+                        if(showNormalized) td.textContent = normword;
+                    }
                 }
-                else
-                    [normal,nextnormal] = normalize(txt.trim(),nextstr,true);
-
-                if(normal !== txt.trim())
-                    word.setAttribute('lemma',normal);
-                if(nextnormal !== nextstr.trim())
-                    nextword.setAttribute('prenormal',nextnormal);
+                undomap.set(rownum,undorowmap);
             }
-            else { // for {{}} fields that get prenormalized 
-                if(word.getAttribute('prenormal'))
-                    word.removeAttribute('prenormal');
-            }
-            return nextindex;
+            edit.doStack([edit.doUnrenormalize,[undomap]],doing);
         },
 
         unnormalize: function(cell) {
@@ -3664,6 +3467,49 @@ const fullTreeClick = function(e) {
                 cell.removeAttribute('lemma');
         },
 
+    }; // end edit
+
+    const view = {
+        toggleNormalize: function() {
+            if(check.normalizedView())
+                view.showUnnormalized();
+            else
+                view.showNormalized();
+        },
+        showNormalized: function(box) {
+            const par = box || document.getElementById('views');
+            if(box) // called from Box.show()
+                box.updatescript();
+            else {
+                par.classList.add('normalized');
+                for(const textbox of _textboxes)
+                    textbox.updatescript();
+                _matrix.updatescript();
+                if(!check.anyhighlit())
+                    multi.clearTrees();
+                else
+                    multi.repopulateTrees(...find.lowhigh(find.highlit()));
+            }
+
+            view.updateAllHeaders(true);
+            view.xScrollToHighlit();
+        },
+        showUnnormalized: function() {
+            document.getElementById('views').classList.remove('normalized');
+            _matrix.updatescript();
+            
+            for(const textbox of _textboxes)
+                textbox.updatescript();
+            
+            if(!check.anyhighlit())
+                multi.clearTrees();
+            else
+                multi.repopulateTrees(...find.lowhigh(find.highlit()));
+
+            view.updateAllHeaders(true);
+            view.xScrollToHighlit();
+        },
+    
         toggleHeader: function() {
             const header = _matrix.boxdiv.querySelector('tr.header');
             if(header.style.display === 'none')
