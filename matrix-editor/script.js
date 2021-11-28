@@ -2984,6 +2984,10 @@ const fullTreeClick = function(e) {
                     td.classList.add('group-internal');
                 }
             }
+            
+            for(const textbox of _textboxes)
+                textbox.refresh();
+
             if(doing === 'multido')
                 return [edit.doUngroup,[nums]];
             else edit.doStack([edit.doUngroup,[nums]],doing);
@@ -3012,6 +3016,9 @@ const fullTreeClick = function(e) {
             for(const td of tds)
                 td.classList.remove('group-start','group-internal','group-end');
         
+            for(const textbox of _textboxes)
+                textbox.refresh();
+
             if(doing === 'multido')
                 return [edit.doGroup,[nums]];
             else
@@ -3039,9 +3046,10 @@ const fullTreeClick = function(e) {
                     for(const td of tds) {
 
                         const txt = td.IAST ? td.IAST.textContent : td.textContent;
-                        if(txt === '')
-                            total--;
-                        else if(txt.slice(-1) === ' ')
+                        //if(txt === '')
+                        //    total--;
+                        //else 
+                        if(txt.slice(-1) === ' ')
                             spaced++;
                     }
                 }
@@ -3477,10 +3485,10 @@ const fullTreeClick = function(e) {
                 view.showNormalized();
         },
         showNormalized: function(box) {
-            const par = box || document.getElementById('views');
             if(box) // called from Box.show()
                 box.updatescript();
             else {
+                const par = document.getElementById('views');
                 par.classList.add('normalized');
                 for(const textbox of _textboxes)
                     textbox.updatescript();
@@ -4231,7 +4239,7 @@ const fullTreeClick = function(e) {
         show() {
             _descs.appendChild(this.descbox);
             if(check.normalizedView())
-                view.showNormalized(this.boxdiv);
+                view.showNormalized(this);
             _viewdiv.appendChild(this.boxdiv);
             this.closed = false;
         }
