@@ -86,7 +86,7 @@ filters = [
         filterReplace = (const "")
     },
     Filter {
-        filterDesc = "gemhttps://github.com/chchch/sanskrit-alignment/tree/master/helayo/distinated aspirated consonants",
+        filterDesc = "geminated aspirated consonants",
         filterSearch = "(?:kK|gG|cC|jJ|wW|qQ|tT|dD|pP|bB)",
         filterReplace = (\mt -> tail . fst $ mt ! 0)
     },
@@ -267,7 +267,7 @@ filters = [
     },
     Filter {    
         filterDesc = "i/y + vowel",
-        filterSearch = "y(?=\\s+[aAuUeo])",
+        filterSearch = "y(?=\\s+[aAuUeEoO])",
         filterReplace = (const "i")
     },
     Filter {
