@@ -1,3 +1,9 @@
+0.8 (2021-11-28)
+
+* added Edit -> (Re)normalize columns
+* improved word grouping
+* code cleanup
+
 0.7 (2021-11-22)
 
 * simplified header

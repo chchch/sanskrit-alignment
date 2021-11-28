@@ -101,7 +101,7 @@
                 <li>Reconstructing a text
                     <ul>
                         <li>open the NeXML tree in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a>.</li>
-                        <li>make sure that the texts are normalized (<code>View -&gt; Normalize</code>).</li>
+                        <li>make sure that the texts are normalized (<code>View -&gt; Normalized</code>).</li>
                         <li>click on the node that you want to reconstruct (probably the root).</li>
                     </ul>
                 </li>
@@ -200,10 +200,10 @@ You should end up with a zip archive full of <code>.fas</code> files, as in the 
             </p>
             <h3 id="alignment-prep">Preparing the alignment tool</h3>
             <p>
-There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, currently named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote">As implemented in the <a href="http://hackage.haskell.org/package/align-0.1.1.2/docs/Data-Align.html">Data.Align</a> Haskell package, following <a href="b-chin2003">Chin et al. 2003</a>. <i>helayo</i> uses a modified version of Data.Align which employs an affine gap penalty function. See <a href="#b-gusfield1997">Gusfield 1997</a>, 243-244 or <a href="#b-sung2009">Sung 2009</a>, 42-45 for a presentation of the affine gap penalty model.</span> and is written in Haskell.
+There has been a lot of research on sequence alignment, and a lot of software has been developed to perform it, but, unfortunately, they are almost all exclusively focused on biological sequences.<label class="margin-toggle sidenote-number" for="n-alignment3"></label><input type="checkbox" id="n-alignment3" class="margin-toggle" /><span class="sidenote">Apart from <em>helayo</em> mentioned here, other possibilities for aligning texts include <a href="https://collatex.net">CollateX</a> or <a href="https://mafft.cbrc.jp/alignment/software/">MAFFT</a> with the <code>--text</code> option.</span> In this repository, I have included a command-line tool to perform sequence alignment on Sanskrit texts, named <em>helayo</em>. It uses the <em>Center Star</em> algorithm<label class="margin-toggle sidenote-number" for="n-alignment4"></label><input type="checkbox" id="n-alignment4" class="margin-toggle" /><span class="sidenote">As implemented in the <a href="https://hackage.haskell.org/package/align-affine-0.1.0.0">Data.Align.Affine</a> package, also by the author. It has been forked from <a href="https://hackage.haskell.org/package/align">Data.Align</a>, which follows <a href="b-chin2003">Chin et al. 2003</a>. Data.Align.Affine employs an affine gap penalty function. See <a href="#b-gusfield1997">Gusfield 1997</a>, 243-244 or <a href="#b-sung2009">Sung 2009</a>, 42-45 for a presentation of the affine gap penalty model.</span> and is written in Haskell.
             </p>
             <p>
-There are pre-built binaries for the MacOS, Ubuntu Linux, and Windows. Download the appropriate <code>helayo</code> file from the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/dist"><code>dist</code> directory of the GitHub repository</a>.
+There are pre-built binaries for MacOS, Ubuntu Linux, and Windows. Download the appropriate <code>helayo</code> file from the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/dist"><code>dist</code> directory of the GitHub repository</a>.
             </p>
             <p>Otherwise, you will need the <a href="https://www.haskell.org/platform/">Haskell Platform</a>, which should include the <a href="https://docs.haskellstack.org/en/stable/install_and_upgrade/">stack</a> build tool. Once you have installed that, go into the <code>helayo/</code> directory and issue the following command:
             </p>
@@ -321,20 +321,48 @@ Now that the texts are aligned, you can check them in the <a href="https://githu
                 <img src="img/matrix-editor-1.png" alt="image of the matrix editor"/>
             </figure>
             <p>
-To see how the alignment tool has normalized the text, use the <code>View</code> menu and click <code>Normalize</code>.
+To see how the alignment tool has normalized the text, use the <code>View</code> menu and click <code>Normalized</code>.
             </p>
            <figure>
                 <img src="img/matrix-editor-2.png" alt="image of the matrix editor"/>
             </figure>
             <p>
-There may be some minor mis-alignments; the matrix-editor contains some basic functions for editing the alignment, but the software is still in development. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect. The <cite>Dravyasamuddeśa</cite> with commentary, split up as akṣaras, amounts to 7486 lemmata.
+There may be some minor mis-alignments; you can edit an individual cell by clicking it and pressing <code>Enter</code> or using the menu option <code>Edit -&gt; Edit cell</code>. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect. The <cite>Dravyasamuddeśa</cite> with commentary, split up as akṣaras, amounts to 7486 lemmata.
             </p>
             <p>
-It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data.
+It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data. You can, however, re-normalize the texts at any time by selecting columns and using the menu option <code>Edit -&gt; (Re)normalize</code>.
+            </p>
+            <p>
+If you have done a character- or akṣara-based alignment, you can also ask the editor to try to group the columns into words, using the whitespace between characters as cues. This can be done by using the <code>Group words</code> command in the <code>Edit</code> menu.
+            </p>
+            <figure>
+            <img src="img/matrix-editor-grouped-words-2.png"/>
+            </figure>
+            <p>
+The results will differ depending on whether characters or akṣaras are being grouped. In this example,
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+pa dā rthā vi tyu ktaṃ
+                </pre>
+            </blockquote>
+            <p>
+has been grouped together as <q>padārthāvityuktaṃ</q>, even though, in the unnormalized text, there are spaces between <q>padārthāv</q>, <q>ity</q>, and <q>uktaṃ</q>. The sequence <code>v i</code> is a single akṣara and cannot be split; the same applies to <code>ty u</code>. However, if we had done a character-based alignment,
+            </p>
+            <blockquote>
+                <pre style="font-size: 0.7em">
+p a d ā r th ā v i t y u k t a ṃ
+                </pre>
+            </blockquote>
+            <p>
+the sequence would have been split as <q>padārthāv ity utakṃ</q>.
             </p>
             <p>
 <label class="margin-toggle" for="n-alignment3">⊕</label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
 When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
+            </p>
+            <p>
+At this point, if you have done a character- or akṣara-based alignment, and you have used the <code>Group words</code> function, you can also use the <code>Merge groups</code> option in order to try analyzing the alignment as words rather than characters or akṣaras.
             </p>
             <p>
 The resulting NEXUS file is available in the GitHub repository at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/full-alignment.nex">example/full-alignment.nex</a>.
@@ -460,7 +488,7 @@ I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</su
             </p>
             <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
             <p>
-Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalize</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
+Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalized</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
                 <label class="margin-toggle" for="n-root1">⊕</label>
                 <input id="n-root1" class="margin-toggle" type="checkbox"/>
                 <span class="marginnote">
@@ -482,17 +510,14 @@ Where the algorithm is able to come up with a definitive reading, it will be dis
             </figure>
             <h3 id="export-apparatus">Exporting a critical apparatus</h3>
             <p>
-After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group words</code> command in the <code>Edit</code> menu. This function tries to group words together using the whitespace between lemmata as cues.
+After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group words</code> command in the <code>Edit</code> menu, if you haven't already. 
             </p>
             <figure>
                 <img src="img/matrix-editor-grouped-words.png">
             </figure>
             <p>
-The results will differ depending on whether characters or akṣaras are being grouped. In this example, <code>a rtha va stva bhi dhā ya ke na</code> has been grouped together as <q>arthavastvabhidhāyakena</q>. However, if we had done a character-based alignment, <code>a r th a v a s t v a bh i dh ā y a k e n a</code> would have been split into <q>arthavastv</q> and <q>abhidhāyakena</q>.
-            </p>
-            <p>
 <label class="margin-toggle" for="n-export-apparatus">⊕</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
-Once you are satisfied with the groupings, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
+If you want to change the groups, you can select columns and use the <code>Edit -&gt; Ungroup columns</code> and <code>Edit -&gt; Group columns</code> commands to reform them. Once you are satisfied, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
             </p>
             <p>
 The resulting TEI XML file can then be edited — for example, you may wish to prune the apparatus so that only the most important variants are shown. Since all of the manuscript witnesses have been transcribed already and can be compared using tools like <a href="https://saktumiva.org/">saktumiva.org</a>, this <q>curated</q> apparatus can be a useful way to focus on certain textual issues, while still having a fully positive apparatus available to the reader.

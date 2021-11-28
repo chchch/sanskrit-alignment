@@ -1793,9 +1793,6 @@ END;
         <input type="checkbox" id="option__app_insignificant" name="option_app_insignificant"><label for="option_app_insignificant">Ignore insignifiant lemmata</label>
       </div>
       <div>
-        <input type="checkbox" id="option__app_insignificant" name="option_app_insignificant"><label for="option_app_insignificant">Ignore insignifiant lemmata</label>
-      </div>
-      <div>
         <input type="checkbox" id="option_mergegroups" name="option_mergegroups" checked><label for="option_mergegroups">Merge groups</label>
       </div>
       <div>

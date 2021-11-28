@@ -2,16 +2,19 @@
 
 ![helayo build & test](https://github.com/chchch/sanskrit-alignment/actions/workflows/build.yml/badge.svg)
 
-This repository contains some work-in-progress centered on aligning Sanskrit texts (for doing collation, reconstruction, etc.)
+This repository contains a _helayo_, a program for aligning/collating Sanskrit texts, and _matrix-editor_, a web-based interface for editing those alignments and producing tree-based textual reconstructions.
 
-See the docs at https://chchch.github.io/sanskrit-alignment/docs/index.html for more information.
+See the docs at https://chchch.github.io/sanskrit-alignment/docs/ for more information.
 
 ## directories
 
-* csv2mafft/ — tools for working with MAFFT (not covered here)
-* docs/ — the location of this tutorial
-* example/ — containing the example files used in this tutorial
+* csv2mafft/ — tools for working with MAFFT
+* docs/ — the location of the tutorial
+* example/ — the example files used in the tutorial
     * example/fastt/ — FASTT files exported from saktumiva.org
     * example/xml/ — those files aligned, which can be opened in the matrix-editor
-* helayo/ — the alignment tool (see Alignment)
-* matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees 
+    * example/trees/ ― phylogenetic trees produced from the alignments
+* helayo/ — the alignment program
+    * helayo/dist/ ― binaries for MacOS, Ubuntu Linux, and Windows
+* matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees; this can accessed [online](https://chchch.github.io/matrix-editor)
+* sabdasagara/ ― a program to analyze Sanskrit texts using akṣara ngrams
