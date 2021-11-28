@@ -22,7 +22,7 @@ data Options = Options
 defaultOptions:: Options
 defaultOptions = Options
     { optMatrixFile = Nothing
-    , optMatch = 0.5
+    , optMatch = 1
     , optMismatch = -1
     , optGapOpen = -3
     , optGap = -0.25
