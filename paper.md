@@ -34,7 +34,7 @@ In addition, a web-based `matrix editor` can be used to edit an alignment. It is
 
 # Implementation
 
-`helayo` is written in Haskell, and implements the Center Star multiple sequence alignment algorithm [@Gusfield:1997, 347-350] with an affine gap penalty model. It can be run in three different tokenization modes (character, akṣara, or whitespace-delimited word) and outputs a TEI XML file which can then be edited using the `matrix editor`.
+`helayo` is written in Haskell, and implements the Center Star multiple sequence alignment algorithm [@Gusfield:1997, 347-350] with an affine gap penalty model [@align-affine]. It can be run in three different tokenization modes (character, akṣara, or whitespace-delimited word) and outputs a TEI XML file which can then be edited using the `matrix editor`.
 
 The `matrix editor` is written in Javascript and can be used either online or offline. It loads both TEI XML alignments produced by `helayo` as well as phylogenetic trees in NeXML format, which can be used together to reconstruct a text.
 
