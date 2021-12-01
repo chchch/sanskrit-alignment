@@ -10,10 +10,10 @@ The file `substitution_matrix.ods` is a LibreOffice spreadsheet with a basic sco
 
 Scoring scheme:
     
-* match: 2
-* mismatch between a vowel and a vowel: -2
-* mismatch between a consonant and a consonant: -2
-* mismatch between a vowel and a consonant: -3
+* match: 1
+* mismatch between a vowel and a vowel: -1
+* mismatch between a consonant and a consonant: -1
+* mismatch between a vowel and a consonant: -1.25
 
 Effectively, it tries to align vowels with vowels and consonants with consonants. Anusvāra and visarga are treated as a third category.
 
