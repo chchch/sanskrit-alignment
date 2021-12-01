@@ -15,7 +15,7 @@ affiliations:
     - name: Centre nationale de la recherche scientifique
     - index: 1
     - name: École des hautes études en sciences sociales
-    - index :2
+    - index: 2
 date: 1 December 2021
 bibliography: paper.bib
 ---
