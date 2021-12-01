@@ -17,4 +17,3 @@ See the docs at https://chchch.github.io/sanskrit-alignment/docs/ for more infor
 * helayo/ — the alignment program
     * helayo/dist/ ― binaries for MacOS, Ubuntu Linux, and Windows
 * matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees; this can accessed [online](https://chchch.github.io/matrix-editor)
-* sabdasagara/ ― a program to analyze Sanskrit texts using akṣara ngrams
