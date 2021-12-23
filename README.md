@@ -16,4 +16,4 @@ See the docs at https://chchch.github.io/sanskrit-alignment/docs/ for more infor
     * example/trees/ ― phylogenetic trees produced from the alignments
 * helayo/ — the alignment program
     * helayo/dist/ ― binaries for MacOS, Ubuntu Linux, and Windows
-* matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees; this can accessed [online](https://chchch.github.io/matrix-editor)
+* matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees; this can accessed [online](https://chchch.github.io/sanskrit-alignment/matrix-editor)
