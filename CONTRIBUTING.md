@@ -1,6 +1,6 @@
 # Contributing to the project
 
-Comments, suggestions, bug reports, and pull requests are welcome!
+Comments, suggestions, bug reports, and pull requests are all welcome!
 
 ## Reporting bugs
 
@@ -14,4 +14,6 @@ When explaining your problem, providing the following details will help the main
 
 ## Pull requests
 
-The code in this project uses an indent of 4 spaces, across all programming languages. 
+The code in this project uses an indent of 4 spaces, across all programming languages. Code is currently licensed under the 3-clause BSD license, and documentation is licensed under a Creative Commons CC-BY 4.0 International license.
+
+See the [documentation](https://chchch.github.io/sanskrit-alignment/docs) for a description of the directory structure of the project.
