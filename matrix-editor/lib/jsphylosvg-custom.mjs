@@ -4,6 +4,9 @@
 //
 // color-v0.0.2 (mooreryan): color vertical branches the same as their
 //   children if possible
+//
+// custom-v0.0.1 (chchch): read <color> tag from NeXML
+
 'use strict';
 var Smits = {};Smits.Common = {
     nodeIdIncrement : 0,
@@ -269,6 +272,7 @@ Smits.PhyloCanvas.Node.prototype = {
     getMidbranchPosition : function(firstBranch){
         if( this._midBranchPosition !== false ) return this._midBranchPosition;
         var y = [0,0];  // bounds
+
         for (var i = 0; i < this.children.length; i++) {
             var child = this.children[i];
             if(child.children && child.children.length > 0){
@@ -296,6 +300,7 @@ Smits.PhyloCanvas.Node.prototype = {
                 }
             }
         }
+
         this._midBranchPosition = y[1] >= y[0] ? ((y[1] + y[0]) / 2) : y[0];
         return this._midBranchPosition;
     }
@@ -477,7 +482,7 @@ Smits.PhyloCanvas.NewickParse.prototype = {
             } else {
                 node.red   = 0;
                 node.green = 0;
-                node.blue  = 0; 
+                node.blue  = 0;
             }
             if(clade.property &&
                clade.property[0].applies_to == "node" &&
@@ -1339,6 +1344,7 @@ Smits.PhyloCanvas.Render.SVG.prototype = {
         textPadding = function (y){
             return y + Math.round(y / 4);
         },
+
         rectLinePathArray = function (x1, y1, x2, y2){
             return ["M", x1, y1, "L", x2, y1, "L", x2, y2, "L", x1, y2, "Z"];
         },
@@ -1357,6 +1363,7 @@ Smits.PhyloCanvas.Render.SVG.prototype = {
                     x2 = positionX = Smits.Common.roundFloat(positionX + (scaleX * node.len), 4);
                     y1 = absoluteY + (node.getMidbranchPosition(firstBranch) * scaleY);
                     y2 = y1;
+
                     r = node.red;
                     g = node.green;
                     b = node.blue;
@@ -1505,6 +1512,7 @@ Smits.PhyloCanvas.Render.SVG.prototype = {
                 x2 = Smits.Common.roundFloat(positionX + (scaleX * node.len), 2);
                 y1 = absoluteY;
                 y2 = absoluteY;
+
                 r = node.red;
                 g = node.green;
                 b = node.blue;
@@ -2689,3 +2697,5 @@ var XMLObjectifier = (function() {
     };
     return _self;
 })();
+
+export {Smits};

@@ -1,18 +1,18 @@
-const comboView = (function() {
+import { Sanscript } from './lib/sanscript.mjs';
+import { Normalizer } from './lib/normalize.mjs';
+import { CSV } from './lib/csv.mjs';
+import { Smits } from './lib/jsphylosvg-custom.mjs';
+import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js'
+window.comboView = (function() {
 
     'use strict';
     
-    const Sanscript = window.Sanscript;
-    const Smits = window.Smits;
-    const FileSaver = window.FileSaver;
-    const CSV = window.CSV;
     const lgXSLT = window.lgXSLT;
     const csvXSLT = window.csvXSLT;
     const prettyXSLT = window.prettyXSLT;
     const lemmaXSLT = window.lemmaXSLT;
     const treeXSLT = window.treeXSLT;
     const matrixXSLT = window.matrixXSLT;
-    const Normalizer = window.Normalizer;
     
     var _filename;
     var _xml;
@@ -1496,7 +1496,7 @@ const reconstructLemma = function(paths) {
     };
 
     const exp = {
-        xml: function(doc) {
+        xml: async function(doc) {
             const xslt_proc = makeXSLTProc(prettyXSLT);
             const str = new XMLSerializer().serializeToString(
                 //  XSLTransformElement(_xml,xslt_proc)
@@ -1504,10 +1504,17 @@ const reconstructLemma = function(paths) {
             );
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = find.basename() + '.xml';
-            FileSaver(file,fileURL);
+            const fileHandle = await showSaveFilePicker({
+                _preferPolyfill: false,
+                suggestedName: fileURL,
+                types: [ {description: 'TEI XML', accept: {'text/xml': ['.xml']} } ],
+            });
+            const writer = await fileHandle.createWritable();
+            writer.write(file);
+            writer.close();
         },
 
-        csv: function(doc) {
+        csv: async function(doc) {
             const xslt_proc = makeXSLTProc(csvXSLT);
             //const str = new XMLSerializer().serializeToString(XSLTransformElement(doc,xslt_proc));
             //const str = new XMLSerializer().serializeToString(xslt_proc.transformToDocument(_xml));
@@ -1515,10 +1522,17 @@ const reconstructLemma = function(paths) {
             const str = xslt_proc.transformToDocument(doc).documentElement.textContent;
             const file = new Blob([str], {type: 'text/csv;charset=utf-8'});
             const fileURL = find.basename() + '.csv';
-            FileSaver(file,fileURL);
+            const fileHandle = await showSaveFilePicker({
+                _preferPolyfill: false,
+                suggestedName: fileURL,
+                types: [ {description: 'CSV file', accept: {'text/csv': ['.csv']} } ],
+            });
+            const writer = fileHandle.getWritable();
+            writer.write(file);
+            writer.close();
         },
   
-        nexus: function(doc) {
+        nexus: async function(doc) {
             const texts = [...find.texts(doc)];
             const ntax = texts.length;
             const symbols = '0 1 2 3 4 5 6 7 8 9 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
@@ -1590,7 +1604,14 @@ END;
 `;
             const file = new Blob([str], {type: 'text/nexus;charset=iso8859-1'});
             const fileURL = find.basename() + '.nex';
-            FileSaver(file,fileURL);
+            const fileHandle = await showSaveFilePicker({
+                _preferPolyfill: false,
+                suggestedName: fileURL,
+                types: [ {description: 'NEXUS file', accept: {'text/nexus': ['.nex']} } ],
+            });
+            const writer = await fileHandle.createWritable();
+            writer.write(file);
+            writer.close();
         },
 
         processOptions: function(opts) {
@@ -5273,4 +5294,4 @@ const fullTreeClick = function(e) {
 
 }());
 
-window.comboView = comboView;
+window.addEventListener('load',window.comboView.maininit);

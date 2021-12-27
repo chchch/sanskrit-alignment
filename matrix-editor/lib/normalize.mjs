@@ -1,6 +1,6 @@
-const Sanscript = window.Sanscript;
+import {Sanscript} from './sanscript.mjs';
 
-window.Normalizer = (function() {
+const Normalizer = (function() {
     
     const filters_slp1 = [
         {
@@ -461,3 +461,5 @@ window.Normalizer = (function() {
 
 //console.log(Normalizer(['a','r','t','th','ī','s','ā','r','tth','o ','p','a','t','ś','a','l','ī','m','artthisārttho ','pagacchati']));
 //console.log(Normalizer(['artthisārttho pārttho pārttho ','pārttho ','pagacchati']));
+
+export {Normalizer};
