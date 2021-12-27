@@ -1,3 +1,6 @@
+/* Adapted from https://github.com/okfn/csv.js */
+/* Modified to be used as an ES6 module */
+
 /* global jQuery, _ */
 var CSV = {};
 
@@ -357,11 +360,4 @@ var CSV = {};
   }
 })(CSV);
 
-// backwards compatability for use in Recline
-var recline = recline || {};
-recline.Backend = recline.Backend || {};
-recline.Backend.CSV = CSV;
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CSV;
-}
+export {CSV};
