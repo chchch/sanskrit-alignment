@@ -1,4 +1,4 @@
-window.treeXSLT = 
+export const treeXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.w3.org/1999/xhtml"
                 exclude-result-prefixes="x">
@@ -99,7 +99,7 @@ window.treeXSLT =
 </xsl:template>
 </xsl:stylesheet>`;
 
-const lgXSLT =
+export const lgXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.w3.org/1999/xhtml"
                 exclude-result-prefixes="x">

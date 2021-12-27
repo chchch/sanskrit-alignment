@@ -1,8 +1,8 @@
-const Sanscript = window.Sanscript;
+import {Sanscript} from "./sanscript";
 
-window.Normalizer = (function() {
-    
-    const filters_slp1 = [
+export class Normalizer {
+
+    filters_slp1 = [
         {
             name: 'valapalagilaka',
             search: 'ṙ',
@@ -73,9 +73,9 @@ window.Normalizer = (function() {
             search: '([rfi]|p[aA])tt|tt(?=[rvy]\\S)',
             replace: (match) => `${match[1]}t`
         },
-        { 
+        {
             name: 'geminated consonants after r',
-            search: '([rf]\\s*)([kgcjwqdpbRnmyvl])\\2{1,2}', 
+            search: '([rf]\\s*)([kgcjwqdpbRnmyvl])\\2{1,2}',
             replace: (match) => `${match[1]}${match[2]}`
         },
         {
@@ -83,7 +83,7 @@ window.Normalizer = (function() {
             search: '(?:M[lSs]|nn)(?!\\S)',
             replace: () => 'n'
         },
-    
+
         {
             name: 'internal nasal variants',
             search: '[mnNYR](?=[pPbBmdDtTnwWqQcCjJkKgG])',
@@ -93,7 +93,7 @@ window.Normalizer = (function() {
             name: 'final anusvāra variants', // A 8.4.59
             search: 'M?[mN](?!\\S)|n(?=\\s+[tdn])|Y(?=\\s+[jc])',
             replace: () => 'M'
-        }, 
+        },
         {
             name: 'visarga aḥ before voiced consonants',
             search: '(?<!\\sB)(?:a[Hr]|[o])(?=\\s+[\'gGjJqQdDnbBmrylvh])', // ignore bho?
@@ -179,7 +179,7 @@ window.Normalizer = (function() {
             search: 'j(?=\\s+j)|c(?=\\s+c)',
             replace: () => 't'
         },
-        {    
+        {
             name: 'i/y + vowel',
             search: 'y(?=\\s+[aAuUeEoO])',
             replace: () => 'i'
@@ -191,7 +191,7 @@ window.Normalizer = (function() {
         }
     ];
 
-    const filters = [
+    filters = [
         {
             name: 'valapalagilaka',
             search: 'ṙ',
@@ -250,7 +250,7 @@ window.Normalizer = (function() {
         {
             name: 'geminated aspirated consonants',
             search: '([kgcjṭḍtdpb]){2}h',
-            replace: (match) => `${match[1]}h` 
+            replace: (match) => `${match[1]}h`
         },
         {
             name: 'geminated m after h',
@@ -262,9 +262,9 @@ window.Normalizer = (function() {
             search: '([rṛi]|p[aā])tt|tt(?=[rvy]\\S)',
             replace: (match) => `${match[1]}t`
         },
-        { 
+        {
             name: 'geminated consonants after r',
-            search: '([rṛ]\\s*)([kgcjṭḍṇtdnpbmyvl])\\2{1,2}', 
+            search: '([rṛ]\\s*)([kgcjṭḍṇtdnpbmyvl])\\2{1,2}',
             replace: (match) => `${match[1]}${match[2]}`
         },
         {
@@ -272,7 +272,7 @@ window.Normalizer = (function() {
             search: '(?:ṃ[lṣs]|nn)(?!\\S)',
             replace: () => 'n'
         },
-    
+
         {
             name: 'internal nasal variants',
             search: '[mnṅñṇ](?=[pbmdtnṭḍcjkg])',
@@ -282,7 +282,7 @@ window.Normalizer = (function() {
             name: 'final anusvāra variants', // A 8.4.59
             search: 'ṃ?[mṅ](?!\\S)|n(?=\\s+[tdn])|ñ(?=\\s+[jc])',
             replace: () => 'ṃ'
-        }, 
+        },
         {
             name: 'visarga aḥ before voiced consonants',
             search: '(?:a[ḥr]|[o])(?=\\s+[\'gjḍdnbmyrlvh])', // ignore bho?
@@ -368,7 +368,7 @@ window.Normalizer = (function() {
             search: 'j(?=\\s+j)|c(?=\\s+c)',
             replace: () => 't'
         },
-        {    
+        {
             name: 'i/y + vowel',
             search: 'y(?=\\s+[aāuūeo])',
             replace: () => 'i'
@@ -380,7 +380,7 @@ window.Normalizer = (function() {
         }
     ];
 
-    const spaces = {
+    spaces = {
         none: {
             name: 'remove spaces',
             search: '\\s',
@@ -393,9 +393,15 @@ window.Normalizer = (function() {
         }
     };
 
-    const replaceAll = function(filter, strs) {
+    sanscript = null
+
+    constructor(sanscript) {
+        this.sanscript = sanscript
+    }
+
+    replaceAll (filter, strs) {
         const full = strs.join('');
-        const newstrs = []; 
+        const newstrs = [];
         const matches = [...full.matchAll(filter.search)];
         let start = 0;
         let remainder = null;
@@ -406,7 +412,7 @@ window.Normalizer = (function() {
 
             if(remainder) {
                 if(remainder.length <= str.length) {
-                    newstr = strSplice(str,0,remainder.length,remainder.text);
+                    newstr = this.strSplice(str,0,remainder.length,remainder.text);
                     offset = remainder.text.length - remainder.length;
                     remainder = null;
                 }
@@ -425,7 +431,7 @@ window.Normalizer = (function() {
                 const newtxt = filter.replace(match);
 
                 if(match.index + match[0].length < end) {
-                    newstr = strSplice(newstr,matchstart,match[0].length,newtxt);
+                    newstr = this.strSplice(newstr,matchstart,match[0].length,newtxt);
                     offset = offset + newtxt.length - match[0].length;
                 }
                 else {
@@ -443,21 +449,19 @@ window.Normalizer = (function() {
         }
         return newstrs;
     };
-    
-    const strSplice = function(str,start,len,splice_in) {
+
+    strSplice (str,start,len,splice_in) {
         return str.slice(0,start) + splice_in + str.slice(start + len);
     };
 
-    const filterAll = function(strs) {
-        let retstrs = strs.map(s => Sanscript.t(s,'iast','slp1'));
-        for(const filter of [...filters_slp1,spaces.none]) {
-            retstrs = replaceAll(filter,retstrs);
+    filterAll (strs) {
+        let retstrs = strs.map(s => this.sanscript.t(s,'iast','slp1'));
+        for(const filter of [...this.filters_slp1, this.spaces.none]) {
+            retstrs = this.replaceAll(filter,retstrs);
         }
-        return retstrs.map(s => Sanscript.t(s,'slp1','iast'));
+        return retstrs.map(s => this.sanscript.t(s,'slp1','iast'));
     };
-
-    return filterAll;
-})();
+}
 
 //console.log(Normalizer(['a','r','t','th','ī','s','ā','r','tth','o ','p','a','t','ś','a','l','ī','m','artthisārttho ','pagacchati']));
 //console.log(Normalizer(['artthisārttho pārttho pārttho ','pārttho ','pagacchati']));

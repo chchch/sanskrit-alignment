@@ -1,19 +1,24 @@
+import {Sanscript} from "./sanscript.js";
+import {Normalizer} from "./normalize.js";
+import * as xsltsheet from "./xsltsheet.js";
+import * as xsltsheetTree from "./xsltsheet-tree.js";
+
 const comboView = (function() {
 
     'use strict';
-    
-    const Sanscript = window.Sanscript;
+
+    const sanscript = new Sanscript();
     const Smits = window.Smits;
     const FileSaver = window.FileSaver;
     const CSV = window.CSV;
-    const lgXSLT = window.lgXSLT;
-    const csvXSLT = window.csvXSLT;
-    const prettyXSLT = window.prettyXSLT;
-    const lemmaXSLT = window.lemmaXSLT;
-    const treeXSLT = window.treeXSLT;
-    const matrixXSLT = window.matrixXSLT;
-    const Normalizer = window.Normalizer;
-    
+    const lgXSLT = xsltsheetTree.lgXSLT;
+    const csvXSLT = xsltsheet.csvXSLT;
+    const prettyXSLT = xsltsheet.prettyXSLT;
+    const lemmaXSLT = xsltsheet.lemmaXSLT;
+    const treeXSLT = xsltsheetTree.treeXSLT;
+    const matrixXSLT = xsltsheet.matrixXSLT;
+    const normalizer = new Normalizer(sanscript);
+
     var _filename;
     var _xml;
     const _teins = 'http://www.tei-c.org/ns/1.0';
@@ -107,10 +112,10 @@ const comboView = (function() {
 
         smush: function(text,placeholder) {
             return text.toLowerCase()
-        
+
             // remove space between a word that ends in a consonant and a word that begins with a vowel
                 .replace(/([ḍdrmvynhs]) ([aāiīuūṛeoéó])/g, '$1$2'+placeholder)
-        
+
             // remove space between a word that ends in a consonant and a word that begins with a consonant
                 .replace(/([kgcjṭḍtdpb]) h/g, '$1\u200C'+placeholder+'h')
                 .replace(/([kgcjñḍtdnpbmrlyvśṣsṙ]) ([kgcjṭḍtdnpbmyrlvśṣshḻ])/g, '$1'+placeholder+'$2')
@@ -149,12 +154,12 @@ const comboView = (function() {
 
             return in_deva.replace(/¯/g, 'ꣻ');
         },
-    
+
         malayalam: function(text,p) {
 
             const placeholder = p || '';
             const options = {skip_sgml: true};
-	
+
             const chillu = {
                 'ക':'ൿ',
                 'ത':'ൽ',
@@ -173,21 +178,21 @@ const comboView = (function() {
                 .replace(/ḿ/g,'ṃ')
                 .replace(/í/g,'i') // no pṛṣṭhamātras
                 .replace(/ú/g,'u')
-                .replace(/é/g,'e'); 
+                .replace(/é/g,'e');
 
             const in_mlym = Sanscript.t(smushed,'iast','malayalam',options);
-	
+
             // use dot reph
             return in_mlym.replace(/(^|[^്])ര്(?=\S)/g,'$1ൎ')
-        
-            // use chillu final consonants	
-                .replace(/([കതനമര])്(?![^\s\u200C,—’―])/g, 
+
+            // use chillu final consonants
+                .replace(/([കതനമര])്(?![^\s\u200C,—’―])/g,
                     function(match,p1) {
                         return chillu[p1];
                     }
                 );
         },
-    
+
         grantha: function(text,p) {
 
             const placeholder = p || '';
@@ -201,8 +206,8 @@ const comboView = (function() {
                 ['ശ','\ue1d2'],
             ]);
 
-            // use classical final consonants	
-            const finals_regex = new RegExp('(['+[...finals.keys()].join('')+'])്(?![^\u200C ,—’―])','g'); 
+            // use classical final consonants
+            const finals_regex = new RegExp('(['+[...finals.keys()].join('')+'])്(?![^\u200C ,—’―])','g');
 
             const presmush = text.replace(/^_ā/,'\u0D3D\u200D\u0D3E');
 
@@ -214,14 +219,14 @@ const comboView = (function() {
                 .replace(/ḿ/g,'ṃ')
                 .replace(/í/g,'i') // no pṛṣṭhamātras
                 .replace(/ú/g,'u')
-                .replace(/é/g,'e'); 
+                .replace(/é/g,'e');
 
             const in_gnth = Sanscript.t(smushed,'iast','malayalam',options);
-	
+
             // use dot reph (post-consonantal reph in grantha)
             return in_gnth.replace(/(^|[^്])ര്(?=\S)/g,'$1ൎ')
                 .replace(finals_regex, (match,p1) => finals.get(p1))
-    
+
             // use classical tamil kṣi
                 .replace(/ക്ഷി/g,'க்ஷி');
         },
@@ -253,11 +258,11 @@ const comboView = (function() {
         const func = to[script];
         const node = orignode.cloneNode(true);
 
-        const loop = function(node,cur_lang) { 
+        const loop = function(node,cur_lang) {
             let kids = node.childNodes;
 
             for(let kid of kids) {
-            
+
                 if(kid.nodeType === 8) continue;
 
                 if(kid.nodeType === 3) {
@@ -293,7 +298,7 @@ const jiggle = function(node,script) {
     const telu_cons_headstroke = ['h','k','ś','y','g','gh','c','ch','jh','ṭh','ḍ','ḍh','t','th','d','dh','n','p','ph','bh','m','r','l','v','ṣ','s'];
     var telugu_del_headstroke = false;
     var telugu_kids = [];
-    
+
     for (let kid of kids) {
         let txt = kid.textContent;
         if(kid.nodeType === 3) {
@@ -306,7 +311,7 @@ const jiggle = function(node,script) {
                 cap.appendChild(kid.cloneNode(false));
                 node.replaceChild(cap,kid);
                 kid = cap;
-            }            
+            }
             else if(!txt.trim().match(vowels_regex)) {
                 if(script === 'telugu' &&
                    telu_cons_headstroke.indexOf(txt.trim()) >= 0)
@@ -319,11 +324,11 @@ const jiggle = function(node,script) {
 
         else if(kid.nodeType !== 1) continue;
 
-        else if(txt === 'a') { 
+        else if(txt === 'a') {
             kid.textContent = '';
             continue;
         }
-        
+
         else if(txt.trim().match(cons_regex)) {
             const last_txt = findTextNode(kid,true);
             last_txt.textContent = last_txt.textContent.replace(/\s+$/,'') + 'a';
@@ -335,7 +340,7 @@ const jiggle = function(node,script) {
 
             switch (script) {
                 case 'devanagari':
-                    if(txt === 'i' || txt === 'é') 
+                    if(txt === 'i' || txt === 'é')
                         add_at_beginning.unshift(kid);
                     break;
                 case 'grantha':
@@ -352,7 +357,7 @@ const jiggle = function(node,script) {
                 case 'telugu':
                     if(!telugu_del_headstroke &&
                        telugu_vowels.indexOf(txt) >= 0)
-                        
+
                         telugu_del_headstroke = true;
                     break;
 
@@ -428,10 +433,10 @@ const jiggle = function(node,script) {
         return false;
     };
     */
-    const findSelection = function() {    
+    const findSelection = function() {
         const sel = window.getSelection();
         if(sel.isCollapsed) return false;
-    
+
         const range = (sel.rangeCount > 1) ? // firefox returns multiple ranges, chrome doesn't
             sel.getRangeAt(1).cloneContents() :
             sel.getRangeAt(0).cloneContents();
@@ -458,7 +463,7 @@ const jiggle = function(node,script) {
             node = cur;
         else if(cur.nodeType === 3)
             node = cur.parentElement;
-    
+
         if(node && node.classList.contains('lemma'))
                 nums.add(node.dataset.n);
         else {
@@ -606,7 +611,7 @@ const reconstructLemma = function(paths) {
             longest_lemma = lemma;
         }
         else if(paths[lemma].length === cur_longest.length) {
-            // same number of edges; use total branch 
+            // same number of edges; use total branch
             if(paths[lemma].branch_length > cur_longest.branch_length) {
                 cur_longest = paths[lemma];
                 longest_lemma = lemma;
@@ -621,14 +626,14 @@ const reconstructLemma = function(paths) {
         if(typeof paths[key] === 'string' && paths[key] === longest_lemma)
             aliases.push(key);
     }
-    return {lemma: longest_lemma, path: cur_longest, aliases: aliases}; 
+    return {lemma: longest_lemma, path: cur_longest, aliases: aliases};
 }
 */
 
     /*** Same-window view-updating functions ***/
 
     const jiggle = function(node,script) {
-        if(node.firstChild.nodeType !== 3 && node.lastChild.nodeType !== 3) 
+        if(node.firstChild.nodeType !== 3 && node.lastChild.nodeType !== 3)
             return;
 
         const kids = node.childNodes;
@@ -651,7 +656,7 @@ const reconstructLemma = function(paths) {
 
             const txt = kid.textContent.trim();
             if(txt === '') continue;
-            if(txt === 'a') { 
+            if(txt === 'a') {
                 kid.textContent = '';
                 continue;
             }
@@ -662,20 +667,20 @@ const reconstructLemma = function(paths) {
                 last_txt.textContent = last_txt.textContent.replace(/\s+$/,'') + 'a';
                 if(script === 'telugu' &&
                telu_cons_headstroke.indexOf(txt) >= 0) {
-                // if there's a vowel mark in the substitution, 
+                // if there's a vowel mark in the substitution,
                 // remove the headstroke from any consonants
                     telugu_kids.push(kid);
                 }
             }
-        
+
             // case 1, use aalt:
             // ta<subst>d <del>ip</del><add>it</add>i</subst>
             // case 2, use aalt:
             // <subst>d <del>apy </del><add>ity </add>i</subst>va
             // case 3, no aalt:
             // <subst><del>apy </del><add>ity </add>i</subst>va
-        
-            // use aalt if node is a text node or 
+
+            // use aalt if node is a text node or
             // if it starts with a vowel
             if(kid === node.lastChild && kid.nodeType === 3) {
                 const cap = document.createElement('span');
@@ -687,15 +692,15 @@ const reconstructLemma = function(paths) {
 
             else if(starts_with_text && txt.match(starts_with_vowel))
                 kid.classList.add('aalt');
-        
+
             switch (script) {
             case 'devanagari':
-                if(txt === 'i' || txt === 'é') 
+                if(txt === 'i' || txt === 'é')
                     add_at_beginning.unshift(kid);
                 break;
             case 'grantha':
             case 'malayalam':
-                if(txt === 'e' || txt === 'ai') 
+                if(txt === 'e' || txt === 'ai')
                     add_at_beginning.unshift(kid);
                 else if(txt === 'o') {
                     const new_e = kid.cloneNode(true);
@@ -707,7 +712,7 @@ const reconstructLemma = function(paths) {
             case 'telugu':
                 if(!telugu_del_headstroke &&
                    telugu_vowels.indexOf(txt) >= 0)
-                    
+
                     telugu_del_headstroke = true;
                 break;
 
@@ -741,7 +746,7 @@ const reconstructLemma = function(paths) {
             lemma.classList.remove('transposed');
     };
     */
-    /*    
+    /*
     const underlineVariants = function() {
         clearUnderlines();
         const transpositions = [];
@@ -767,7 +772,7 @@ const reconstructLemma = function(paths) {
     };
 
     const fillSelector = function() {
-        const menudiv = document.getElementById('left_menu'); 
+        const menudiv = document.getElementById('left_menu');
         menudiv.innerHTML =
  `<div id="matrixmenu" class="menubox">
     <div class="heading">Matrix</div>
@@ -863,9 +868,9 @@ const reconstructLemma = function(paths) {
     const multiHighlight = function(nums) {
         if(!nums || nums.size === 0) return;
         multi.unHighlightAll();
-    
+
         const [low,high] = find.lowhigh(nums);
-        /*    
+        /*
     const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
     const low = parseInt(sortednums[0]);
     const high = sortednums.length > 1 ?
@@ -880,7 +885,7 @@ const reconstructLemma = function(paths) {
         multi.repopulateTrees(low,high);
         for(const box of _viewdiv.querySelectorAll('.text-box'))
             if(!box.querySelector('.highlit'))
-                box.querySelector('[data-n="'+low+'"]').classList.add('highlit');      
+                box.querySelector('[data-n="'+low+'"]').classList.add('highlit');
         view.xScroll(low);
     };
 
@@ -911,7 +916,7 @@ const reconstructLemma = function(paths) {
                 window.mainWindow.comboView.getWindows() :
                 _windows;
         },
-    
+
         forEachWindow: function(fn) {
             const windows = multi.getAllWindows();
             for(const win of windows) {
@@ -934,7 +939,7 @@ const reconstructLemma = function(paths) {
                 }
             });
         },
-        
+
         highlightAll: function() {
             if(check.anyhighlit()) multi.unHighlightAll();
             else multiHighlight(new Set([0,find.maxlemma()]));
@@ -1045,7 +1050,7 @@ const reconstructLemma = function(paths) {
         reader.onload = func.bind(null,f,fs);
         reader.readAsText(f);
     };
-    
+
     const csvOrXml = function(f,fs,e) {
         _filename = f.name;
         document.title = document.title + `: ${_filename}`;
@@ -1248,7 +1253,7 @@ const reconstructLemma = function(paths) {
         left_menu.appendChild(viewbox.box);
         left_menu.appendChild(editbox.box);
         left_menu.appendChild(expbox.box);
-   
+
         const views = document.getElementById('views');
         views.style.justifyContent = 'flex-start';
         views.removeChild(views.querySelector('#splash'));
@@ -1290,7 +1295,7 @@ const reconstructLemma = function(paths) {
         _xml.normalize();
 
         _maxlemma = find.maxlemma();
-        
+
         //if(fs.length > 0) csvLoadAdditional(fs);
 
         menuPopulate();
@@ -1299,7 +1304,7 @@ const reconstructLemma = function(paths) {
     const matrixLoad = function(f,fs,e) {
         const xParser = new DOMParser();
         _xml = xParser.parseFromString(e.target.result,'text/xml');
-        
+
         const trees = _xml.querySelectorAll('teiHeader xenoData stemma nexml');
         for(const tree of trees) {
             const nexml = document.implementation.createDocument('http://www.nexml.org/2009','',null);
@@ -1308,7 +1313,7 @@ const reconstructLemma = function(paths) {
         }
 
         _maxlemma = find.maxlemma();
-        
+
         if(fs.length > 0) matrixLoadAdditional(fs);
 
         else menuPopulate();
@@ -1327,7 +1332,7 @@ const reconstructLemma = function(paths) {
         const go = function(add,e) {
             const xParser = new DOMParser();
             const newxml = xParser.parseFromString(e.target.result,'text/xml');
-            
+
             const oldteis = new Map();
             for(const tei of find.teis()) {
                 const siglum = tei.getAttribute('n');
@@ -1345,7 +1350,7 @@ const reconstructLemma = function(paths) {
             const tofill = setDiff(oldsigla,newsigla);
             const toadd  = setDiff(newsigla,oldsigla);
 
-            
+
             for(const el of toadd) make.tei(el);
 
             const addlemma = [...newxml.querySelector('text').querySelectorAll('w[n]')].length;
@@ -1386,7 +1391,7 @@ const reconstructLemma = function(paths) {
         const reader = new FileReader();
         reader.onload = go.bind(null,fss);
         reader.readAsText(f);
-        
+
     };
 
     const mssMenuPopulate = function() {
@@ -1481,7 +1486,7 @@ const reconstructLemma = function(paths) {
         left_menu.appendChild(viewbox.box);
         left_menu.appendChild(editbox.box);
         left_menu.appendChild(expbox.box);
-   
+
         const views = document.getElementById('views');
         views.style.justifyContent = 'flex-start';
         views.removeChild(views.querySelector('#splash'));
@@ -1517,7 +1522,7 @@ const reconstructLemma = function(paths) {
             const fileURL = find.basename() + '.csv';
             FileSaver(file,fileURL);
         },
-  
+
         nexus: function(doc) {
             const texts = [...find.texts(doc)];
             const ntax = texts.length;
@@ -1631,7 +1636,7 @@ END;
                 const els = doc.querySelectorAll('w[binary="true"]');
                 const nonempty = [...els].filter(el => el.textContent !== '');
                 if(!nonempty) return;
-                
+
                 const placeholder = '['+nonempty[0].textContent+']';
                 for(const el of nonempty)
                     el.textContent = placeholder;
@@ -1662,7 +1667,7 @@ END;
             }
 
             // early return for no apparatus
-            if(!opts.get('option_basetext')) 
+            if(!opts.get('option_basetext'))
                 return doc;
             else
                 return exp.makeApp(opts,doc);
@@ -1699,7 +1704,7 @@ END;
             const words = find.words(false,basetext);
             for(const word of words) {
                 const dataN = word.getAttribute('n');
-                const lemma = normlem ? 
+                const lemma = normlem ?
                     (word.getAttribute('lemma') || word.textContent) :
                     word.textContent;
                 const posapp = [];
@@ -1712,15 +1717,15 @@ END;
                     else if(otherword.textContent === lemma)
                         posapp.push(id);
                     else {
-                        const newstr = otherword.textContent === '' ? 
-                            '[om.]' : 
+                        const newstr = otherword.textContent === '' ?
+                            '[om.]' :
                             otherword.textContent;
                         const negwits = negapp.get(newstr) || [];
                         negwits.push(id);
                         negapp.set(newstr,negwits);
                     }
                 }
-                
+
                 if(negapp.size === 0) {
                     while(word.firstChild)
                         word.parentElement.insertBefore(word.firstChild,word);
@@ -1851,7 +1856,7 @@ END;
             }
         }
     };
-    
+
     /*
     const fullTreeMouseover = function(e) {
         const targ = e.target.classList.contains('littletree') ?
@@ -1868,7 +1873,7 @@ END;
             }
         }
     };
-    
+
     const fullTreeMouseout = function(e) {
         const targ = e.target.classList.contains('littletree') ?
             e.target :
@@ -1921,7 +1926,7 @@ const fullTreeClick = function(e) {
                 multi.highlightTreeLemma(targ.dataset.id);
                 targ.addEventListener('mouseout',multi.unhighlightTrees);
             }
-        
+
             const title = e.target.dataset.reconstructed;
             if(!title) return;
 
@@ -1935,7 +1940,7 @@ const fullTreeClick = function(e) {
 
             const textbox = document.createElement('div');
             textbox.appendChild(document.createTextNode(title));
-            this.script !== 0 ? // this is bound to the TreeBox 
+            this.script !== 0 ? // this is bound to the TreeBox
                 box.appendChild(changeScript(textbox,_scripts[this.script])) :
                 box.appendChild(textbox);
 
@@ -1953,7 +1958,7 @@ const fullTreeClick = function(e) {
 
             window.getComputedStyle(box).opacity;
             box.style.opacity = 1;
-        
+
             e.target.addEventListener('mouseout', removeBox);
         },
 
@@ -1966,7 +1971,7 @@ const fullTreeClick = function(e) {
             //newBox.text(e.target.dataset.label,_texts);
             else if(e.target.classList.contains('internal'))
                 edit.startReconstruction(e);
-        
+
             removeBox();
         },
 
@@ -1990,7 +1995,7 @@ const fullTreeClick = function(e) {
         },
 
         cycleVariant(e) {
-            const highlitcell = find.highlitcell() || 
+            const highlitcell = find.highlitcell() ||
                 _viewdiv.querySelector('td.highlit') ||
                 _viewdiv.querySelector('td[data-n="0"]');
 
@@ -2000,7 +2005,7 @@ const fullTreeClick = function(e) {
                 if(!_matrix.closed && highlitcell) {
                     const next = highlitcell.nextElementSibling;
                     if(next) events.textClick({target: next});
-                } 
+                }
                 else {
                     const highlit = _viewdiv.querySelector('.highlit');
                     const cur = highlit ? highlit.dataset.n : 0;
@@ -2046,17 +2051,17 @@ const fullTreeClick = function(e) {
             case 'ArrowUp': {
                 if(_matrix.closed || !highlitcell) return;
 
-                const tr = highlitcell.closest('tr'); 
+                const tr = highlitcell.closest('tr');
                 const prevtr = tr.previousElementSibling;
                 if(!prevtr || !prevtr.dataset.n) return;
                 const newtd = prevtr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
                 events.textClick({target: newtd});
-                
+
                 break;
             }
             case 'ArrowDown': {
                 if(_matrix.closed || !highlitcell) return;
-                const tr = highlitcell.closest('tr'); 
+                const tr = highlitcell.closest('tr');
                 const nexttr = tr.nextElementSibling;
                 if(!nexttr || nexttr.tagName !== 'TR') return;
                 const newtd = nexttr.querySelector(`td[data-n="${highlitcell.dataset.n}"]`);
@@ -2070,7 +2075,7 @@ const fullTreeClick = function(e) {
                 events.matrixHeaderClick(e);
                 return;
             }
-            const targ = e.target.classList.contains('lemma') ? 
+            const targ = e.target.classList.contains('lemma') ?
                 e.target :
                 e.target.closest('.lemma');
 
@@ -2106,7 +2111,7 @@ const fullTreeClick = function(e) {
         },
 
         /*const lemmaMouseover = function(e) {
-        
+
         const title = e.target.dataset.title;
         if(!title) return;
 
@@ -2123,7 +2128,7 @@ const fullTreeClick = function(e) {
         box.appendChild(textbox);
         window.getComputedStyle(box).opacity;
         box.style.opacity = 1;
-        
+
         e.target.addEventListener('mouseout', removeBox);
     };
     */
@@ -2174,7 +2179,7 @@ const fullTreeClick = function(e) {
             edit.startMoveRow(e.target.parentNode,e);
         },
         trDragEnter(e) {
-            const tr = e.target.nodeType === 1 ? 
+            const tr = e.target.nodeType === 1 ?
                 e.target.closest('tr') :
                 e.target.parentElement.closest('tr');
             if(tr)
@@ -2183,7 +2188,7 @@ const fullTreeClick = function(e) {
         trDragLeave(e) {
             const tr = e.target.nodeType === 1 ?
                 e.target.closest('tr') :
-                e.target.parentElement.closest('tr'); 
+                e.target.parentElement.closest('tr');
             if(tr)
                 tr.classList.remove('dragenter');
         },
@@ -2210,7 +2215,7 @@ const fullTreeClick = function(e) {
                 e.target.closest('.lemma') :
                 e.target.parentElement.closest('.lemma');
             if(lemma) {
-            
+
                 if(lemma.isContentEditable) return;
 
                 multi.unHighlightAll();
@@ -2278,14 +2283,14 @@ const fullTreeClick = function(e) {
                     (events.textClick(e,true), new Set([td.dataset.n])) :
                     (function() {
                         const ret = find.highlit();
-                        if(ret.size === 1 && 
+                        if(ret.size === 1 &&
                        !td.classList.contains('highlitcell')) {
-                            multi.unCelllightAll(); 
+                            multi.unCelllightAll();
                             td.classList.add('highlitcell');
                         }
                         return ret;
                     })();
-                const items = nums.size > 1 ? 
+                const items = nums.size > 1 ?
                     [
                         {text: 'merge columns',
                             func: edit.startMerge.bind(null,nums)
@@ -2306,7 +2311,7 @@ const fullTreeClick = function(e) {
                      cond: check.checkbox.bind(null,'binary',nums),
                      func: edit.startMarkAs.bind(null,'binary',nums),
                     }, */
-                    ] : 
+                    ] :
                     [
                         {text: 'edit cell',
                             func: edit.startEditCell.bind(null,td)
@@ -2332,7 +2337,7 @@ const fullTreeClick = function(e) {
                 contextMenu.show(menu);
             }
         },
-        
+
     };
 
     const edit = {
@@ -2361,7 +2366,7 @@ const fullTreeClick = function(e) {
                 _redo = [];
             }
         },
-    
+
         doMulti: function(dolist,doing) {
             const undolist = [];
             for(const item of dolist) {
@@ -2439,7 +2444,7 @@ const fullTreeClick = function(e) {
             const args = [...clgroups].map(s => [edit.doUngroup,[s]]);
             edit.doMulti(args,'do');
         },
-        
+
         startInsertCol: function() {
             const insertafter = Math.max([...find.highlit()]) || _maxlemma;
             edit.doInsertCol(insertafter);
@@ -2491,7 +2496,7 @@ const fullTreeClick = function(e) {
             //cell.classList.add('highlitcell');
             edit.unnormalize(cell);
             cell.dataset.oldContent = cell.textContent;
-        
+
             cell.contentEditable = 'true';
             cell.focus();
             _editing = true;
@@ -2514,7 +2519,7 @@ const fullTreeClick = function(e) {
                     e.preventDefault();
                     edit.finishEditCell(e);
                     events.cycleVariant({key: 'ArrowRight'});
-                    edit.startEditCell(find.highlitcell()); 
+                    edit.startEditCell(find.highlitcell());
                 }
                 break;
             }
@@ -2524,14 +2529,14 @@ const fullTreeClick = function(e) {
                     e.preventDefault();
                     edit.finishEditCell(e);
                     events.cycleVariant({key: 'ArrowLeft'});
-                    edit.startEditCell(find.highlitcell()); 
+                    edit.startEditCell(find.highlitcell());
                 }
                 break;
             }
-            
+
             }
         },
-     
+
         startMarkAs: function(type,nums,e) {
             const targ = e.target.tagName === 'INPUT' ?
                 e.target :
@@ -2552,7 +2557,7 @@ const fullTreeClick = function(e) {
                 cell.dataset.insignificant = 'true';
         _undo.push([edit.unmarkSignificance,[oldstates,true]]); */
         },
-    
+
         startNewRow: function() {
             const tr = make.row('new row');
             const th = tr.querySelector('th');
@@ -2612,11 +2617,11 @@ const fullTreeClick = function(e) {
             const th = e.target;
             const label = th.textContent;
             th.closest('tr').dataset.n = label;
-        
+
             const tei = make.tei(label);
 
             _xml.documentElement.appendChild(tei);
-        
+
             _editing = false;
             th.contentEditable = false;
             th.removeEventListener('blur',edit.finishNewRow);
@@ -2635,14 +2640,14 @@ const fullTreeClick = function(e) {
             cell.blur();
             events.deselect();
             const content = cell.textContent;
-            
+
             if(content === '') {
                 const br = cell.querySelector('br');
                 if(br) br.remove();
             }
 
             if(cancel || content === cell.dataset.oldContent) return;
-        
+
             if(!cell.hasOwnProperty('IAST'))
                 cell.IAST = cell.cloneNode(true);
             cell.IAST.textContent = content;
@@ -2695,9 +2700,9 @@ const fullTreeClick = function(e) {
             _dragged.classList.remove('dragging');
             _dragged = null;
         },
-    
+
         doReconstruction: function(tree,key,label) {
- 
+
             const tr = make.row(label,'pending');
             tr.dataset.treename = tree.name;
             tr.dataset.nodename = key;
@@ -2710,10 +2715,10 @@ const fullTreeClick = function(e) {
             tei.setAttribute('type','reconstructed');
             tei.setAttribute('corresp',tree.name);
             tei.setAttribute('select',`#${key}`);
-        
+
             const tds = [...find.tds(false,tr)];
             const words = [...find.words(false,tei)];
-        
+
             _matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
@@ -2745,7 +2750,7 @@ const fullTreeClick = function(e) {
                     liel.setAttribute('data-name',label);
                     liel.appendChild(document.createTextNode(label));
                     mslist.appendChild(liel);
-                    
+
                     edit.doStack([edit.doDeleteRow,[label]],'do');
 
                 }
@@ -2879,7 +2884,7 @@ const fullTreeClick = function(e) {
                         delete reduced.dataset.normal;
                         reduced.IAST = reduced.cloneNode(true);
                     }
-                    else 
+                    else
                         reduced.removeAttribute('lemma');
                 }
                 return [rowfunc,cellfunc,rowsclone];
@@ -2903,7 +2908,7 @@ const fullTreeClick = function(e) {
             else
                 edit.doStack([edit.doUnmerge,[oldhtml,oldxml]],doing);
         },
-    
+
         doUnmerge: function(oldhtml,oldxml,doing = 'undo') {
             /*        const unmerge = function(doc,parents,childs,attribute,oldels) {
             const nums = oldels[0].map(el => el.getAttribute(attribute));
@@ -2913,7 +2918,7 @@ const fullTreeClick = function(e) {
                 const lastchild = oldels[n].pop();
                 const anchor = rows[n].querySelector(childs+'['+attribute+'="'+firstn+'"]');
                 anchor.parentNode.replaceChild(lastchild,anchor);
-                for(const cell of oldels[n]) 
+                for(const cell of oldels[n])
                     lastchild.parentNode.insertBefore(cell,lastchild);
             }
             edit.renumber(doc,parents,childs,attribute,firstn);
@@ -2928,7 +2933,7 @@ const fullTreeClick = function(e) {
                     const lastchild = oldels[n].pop();
                     const anchor = cellfunc(firstn,rows[n]);
                     anchor.parentNode.replaceChild(lastchild,anchor);
-                    for(const cell of oldels[n]) 
+                    for(const cell of oldels[n])
                         lastchild.parentNode.insertBefore(cell,lastchild);
                 }
                 return nums;
@@ -2947,14 +2952,14 @@ const fullTreeClick = function(e) {
 
             if(doing === 'multido')
                 return [edit.doMerge,[nums]];
-            else 
+            else
                 edit.doStack([edit.doMerge,[nums]],doing);
         },
-   
+
         doGroup: function(nums,doing = 'do') {
             const numarr = [...nums];
             const firstnum = numarr.shift();
-        
+
             const texts = find.texts();
             for(const text of texts) {
                 //const cl = document.createElementNS('http://www.w3.org/1999/xhtml','cl');
@@ -2969,7 +2974,7 @@ const fullTreeClick = function(e) {
             }
 
             const lastnum = numarr.pop();
-        
+
             for(const td of find.tds(firstnum)) {
                 td.classList.add('group-start');
             }
@@ -2981,7 +2986,7 @@ const fullTreeClick = function(e) {
                     td.classList.add('group-internal');
                 }
             }
-            
+
             for(const textbox of _textboxes)
                 textbox.refresh();
 
@@ -2989,7 +2994,7 @@ const fullTreeClick = function(e) {
                 return [edit.doUngroup,[nums]];
             else edit.doStack([edit.doUngroup,[nums]],doing);
         },
-   
+
         doUngroup: function(nums,doing = 'do') {
         //const texts = _xml.querySelectorAll('text');
             const texts = find.texts();
@@ -3005,14 +3010,14 @@ const fullTreeClick = function(e) {
                 }
                 cl.parentNode.removeChild(cl);
             }
-        
+
             // ungroup html
             const tds = [...nums].map(
                 n => [...find.tds(n)]
             ).reduce((a,b) => a.concat(b),[]);
             for(const td of tds)
                 td.classList.remove('group-start','group-internal','group-end');
-        
+
             for(const textbox of _textboxes)
                 textbox.refresh();
 
@@ -3021,17 +3026,17 @@ const fullTreeClick = function(e) {
             else
                 edit.doStack([edit.doGroup,[nums]],doing);
         },
-        
+
         doGroupWords: function() {
             let groupstart = 0;
             const todo = [];
             for(let n=0;n<=_maxlemma;n++) {
                 const tds = find.tds(n);
-                const classtest = tds[0].classList; 
+                const classtest = tds[0].classList;
                 if(classtest.contains('group-start') ||
                    classtest.contains('group-internal') ||
                    classtest.contains('group-end')) {
-                    
+
                     groupstart = n+1;
                     continue;
                 }
@@ -3045,7 +3050,7 @@ const fullTreeClick = function(e) {
                         const txt = td.IAST ? td.IAST.textContent : td.textContent;
                         //if(txt === '')
                         //    total--;
-                        //else 
+                        //else
                         if(txt.slice(-1) === ' ')
                             spaced++;
                     }
@@ -3156,7 +3161,7 @@ const fullTreeClick = function(e) {
             edit.refresh();
             edit.restyleGroups([aftern,aftern+1],true);
             view.updateAllHeaders();
-            
+
             const arg = [aftern+1];
             if(doing === 'multido')
                 return [edit.doRemoveCol,[arg]];
@@ -3198,7 +3203,7 @@ const fullTreeClick = function(e) {
         doChangeCell: function(cellnum,rownum,content,doing = 'do') {
             const oldcontent = edit.xmlChangeCell(cellnum,rownum,content);
             const cell = edit.htmlChangeCell(cellnum,rownum,content);
-            //view.renormalize(cellnum-1,cellnum+1,rownum);    
+            //view.renormalize(cellnum-1,cellnum+1,rownum);
             edit.refresh();
             view.updateAllHeaders(true);
             events.textClick({target: cell});
@@ -3221,7 +3226,7 @@ const fullTreeClick = function(e) {
             if(cell.IAST) cell.IAST = cell.cloneNode(true);
             return cell;
         },
-    
+
         xmlChangeCell: function(cellnum,rownum,content) { // returns oldcontent
             const row = find.tei(rownum).querySelector('text');
             //const row = [...find.texts()][rownum];
@@ -3246,7 +3251,7 @@ const fullTreeClick = function(e) {
                 //const cells = document.querySelectorAll('.matrix table td[data-n="'+num+'"]');
                 //const words = _xml.querySelectorAll('w[n="'+num+'"]');
                 if(states.get(num) === true) {
-                    for(const cell of cells) 
+                    for(const cell of cells)
                         cell.dataset[type] = 'true';
                     for(const word of words)
                         word.setAttribute(type,'true');
@@ -3263,7 +3268,7 @@ const fullTreeClick = function(e) {
             if(doing === 'multido')
                 return [edit.doMarkAs,[type,oldstates]];
             edit.doStack([edit.doMarkAs,[type,oldstates]],doing);
-        }, 
+        },
 
         refresh: function() {
             /*
@@ -3310,7 +3315,7 @@ const fullTreeClick = function(e) {
             _maxlemma = find.maxlemma();
         //_maxlemma = find.firsttext().lastElementChild.getAttribute('n');
         },
-    
+
         reIAST: function(nums) {
             const lemmata = [...nums].map(n => [...find.lemmata(n)]).flat();
             for(const lemma of lemmata)
@@ -3325,7 +3330,7 @@ const fullTreeClick = function(e) {
                 newarr.unshift(prepend);
                 newarr.push(postpend);
                 return newarr;
-            };        
+            };
 
             const nums = extend ? pend(ns) : ns;
 
@@ -3359,7 +3364,7 @@ const fullTreeClick = function(e) {
                     changeClass(tds);
             }
         },
-        
+
         startRenormalize: function(nums) {
             const numss = nums === false ?
                 find.highlit() :
@@ -3369,7 +3374,7 @@ const fullTreeClick = function(e) {
 
         doRenormalize: function(startnum, endnum, rownum=false, doing='do') {
             const showNormalized = check.normalizedView();
-            
+
             const changedrows = new Map();
 
             const htmlrows = [...find.trs()];
@@ -3391,8 +3396,8 @@ const fullTreeClick = function(e) {
                 const tds = alltds.slice(startn, endn + 1);
 
                 const unnormwords = words.map(w => w.textContent);
-                const normwords = Normalizer(unnormwords);
-                
+                const normwords = normalizer.filterAll(unnormwords);
+
                 for(let n=0;n<normwords.length;n++) {
                     const word = words[n];
                     const normword = normwords[n];
@@ -3426,7 +3431,7 @@ const fullTreeClick = function(e) {
 
             edit.doStack([edit.doUnrenormalize,[changedrows]],doing);
         },
-        
+
         doUnrenormalize: function(rowsmap,doing = 'undo') {
             const showNormalized = check.normalizedView();
             const undomap = new Map();
@@ -3446,7 +3451,7 @@ const fullTreeClick = function(e) {
                         word.getAttribute('lemma') :
                         null;
                     undorowmap.set(n,undo);
-                    
+
                     if(normword === null) {
                         edit.unnormalize(td);
                         edit.unnormalize(word);
@@ -3502,10 +3507,10 @@ const fullTreeClick = function(e) {
         showUnnormalized: function() {
             document.getElementById('views').classList.remove('normalized');
             _matrix.updatescript();
-            
+
             for(const textbox of _textboxes)
                 textbox.updatescript();
-            
+
             if(!check.anyhighlit())
                 multi.clearTrees();
             else
@@ -3514,7 +3519,7 @@ const fullTreeClick = function(e) {
             view.updateAllHeaders(true);
             view.xScrollToHighlit();
         },
-    
+
         toggleHeader: function() {
             const header = _matrix.boxdiv.querySelector('tr.header');
             if(header.style.display === 'none')
@@ -3532,7 +3537,7 @@ const fullTreeClick = function(e) {
                 readspan.textContent = readings;
             }
         },
-    
+
         updateAllHeaders(readingsonly = false) {
             const trs = [...find.trs()];
             const trwalkers = trs.map(tr => find.trWalker(tr));
@@ -3550,7 +3555,7 @@ const fullTreeClick = function(e) {
                 head.appendChild(th);
                 return th;
             };
-        
+
             for(let n = 0;n<tds.length;n++) {
                 const th = n >= ths.length ?
                     newTh() : ths[n];
@@ -3566,7 +3571,7 @@ const fullTreeClick = function(e) {
                         unique.add(txt);
                     }
                 }
-            
+
                 const readings = count < 2 ? count : `${count}(${unique.size})`;
                 th.querySelector('span.readings').textContent = readings;
                 if(!readingsonly) {
@@ -3582,7 +3587,7 @@ const fullTreeClick = function(e) {
         xScrollToHighlit: function() {
             const hl = find.highlit();
             if(hl.size > 0) view.xScroll([...hl][0]);
-        },    
+        },
         xScroll: function(num,row) {
             if(!num) return;
             const par = row || find.firsttr();
@@ -3650,7 +3655,7 @@ const fullTreeClick = function(e) {
             const el = element ? element : _matrix.boxdiv;
             return el.querySelector('tr[data-n]:last-of-type');
         },
-    
+
         trWalker: function(tr) {
             return document.createNodeIterator(tr,NodeFilter.SHOW_ELEMENT,
                 {acceptNode: function(node) {if(node.tagName === 'TD') return NodeFilter.FILTER_ACCEPT;}},
@@ -3675,7 +3680,7 @@ const fullTreeClick = function(e) {
             const el = element ? element : _xml;
             return el.querySelectorAll('text');
         },
-    
+
         serializedtexts: function(tree) {
             const otus = [...tree.querySelectorAll('otu[label]')].map(el => el.getAttribute('label'));
             const teis = [...find.teis()].filter(el => otus.indexOf(el.getAttribute('n')) !== -1);
@@ -3690,7 +3695,7 @@ const fullTreeClick = function(e) {
                 ])
             );
         },
-    
+
         serializedlevels: function(levels) {
             return levels.map(arr => {
                 if(arr instanceof Map) {
@@ -3707,7 +3712,7 @@ const fullTreeClick = function(e) {
         },
 
         firsttext: function(id) {
-            return !id ? 
+            return !id ?
                 _xml.querySelector('text') :
                 _xml.querySelector(`[n="${id}"] text`);
         },
@@ -3730,20 +3735,20 @@ const fullTreeClick = function(e) {
             //const par = el ? el : _matrix.boxdiv;
             return par.querySelectorAll('.lemma[data-normal], .tree-lemma[data-normal]');
         },
-    
+
         htmlreading: function(el) {
             return check.normalizedView() && el.dataset.normal ?
                 el.dataset.normal :
                 el.IAST.textContent;
         },
-    
+
         xmlreading: function(label,n) {
             const el = _xml.querySelector(`TEI[n="${label}"] > text > w[n="${n}"]`);
             return check.normalizedView() && el.hasAttribute('lemma') ?
                 el.getAttribute('lemma') :
                 el.textContent;
         },
-    
+
         xmlreadings: function(label) {
             const els = [..._xml.querySelectorAll(`TEI[n="${label}"] > text > w`)];
 
@@ -3821,7 +3826,7 @@ const fullTreeClick = function(e) {
             }
             return new Map(states);
         },
-    
+
         whichattr: function(el) {
             if(el.hasAttribute('n')) return 'n';
             else if(el.hasAttribute('data-n')) return 'data-n';
@@ -3841,7 +3846,7 @@ const fullTreeClick = function(e) {
                 if(cl) cls.add(cl);
                 else if(strict) someungrouped = true;
             }
-        
+
             if(cls.size === 0) return false;
             else {
             // get list of numbers in each clause
@@ -3856,7 +3861,7 @@ const fullTreeClick = function(e) {
                     return clgroups;
             }
         },
-    
+
         clausesToRemove: function(clgroups,nums,threshold = 0) {
             const toremove = new Set();
             for(const group of clgroups) {
@@ -3868,7 +3873,7 @@ const fullTreeClick = function(e) {
             }
             return [...toremove];
         },
-    
+
         empty: function() {
             const emptyset = new Set();
             const trs = [...find.trs()];
@@ -3903,7 +3908,7 @@ const fullTreeClick = function(e) {
         }
         return num; */
         },
-    
+
         nextNonempty: function(index,arr) {
             for(let n=index;n<arr.length;n++) {
                 const td = arr[n];
@@ -3965,7 +3970,7 @@ const fullTreeClick = function(e) {
                     return false;
             return true;
         },
-    
+
         grouped: function() {
             const nums = find.highlit();
             if(!nums) return false;
@@ -4039,7 +4044,7 @@ const fullTreeClick = function(e) {
             }
             return tei;
         },
-        
+
         emptycell: function(n) {
             const td = document.createElement('td');
             td.className = 'lemma';
@@ -4060,7 +4065,7 @@ const fullTreeClick = function(e) {
                 const word = make.emptyword(n);
                 text.appendChild(word);
             }
-            
+
 
         },
         row: function(label,type) {
@@ -4152,7 +4157,7 @@ const fullTreeClick = function(e) {
         }
 
         populate(items) {
-            const ul = this.box.querySelector('ul') || 
+            const ul = this.box.querySelector('ul') ||
             (function(obj) {
                 const newul = document.createElement('ul');
                 obj.box.appendChild(newul);
@@ -4180,11 +4185,11 @@ const fullTreeClick = function(e) {
                 }
                 else
                     li.appendChild(document.createTextNode(item.text));
-            
+
                 if(item.hasOwnProperty('greyout')) {
                     this.conditions.set(li,item.greyout);
                 }
-            
+
                 this.items.set(li,item.func);
                 ul.appendChild(li);
             }
@@ -4206,15 +4211,15 @@ const fullTreeClick = function(e) {
         checkConditions() {
             const checked = new Map();
             for(const [el, func] of this.conditions) {
-                const result = checked.get(func) || 
-                (function() {const x = func(); 
-                    checked.set(func,x); 
+                const result = checked.get(func) ||
+                (function() {const x = func();
+                    checked.set(func,x);
                     return x;})();
                 if(el.tagName === 'INPUT') {
                     el.checked = result;
                 }
                 else if (el.tagName === 'SPAN') {
-                    if(result) 
+                    if(result)
                         el.textContent = el.dataset.alt;
                     else
                         el.textContent = el.dataset.text;
@@ -4232,7 +4237,7 @@ const fullTreeClick = function(e) {
             this.name = name;
             this.script = 0;
         }
-   
+
         show() {
             _descs.appendChild(this.descbox);
             if(check.normalizedView())
@@ -4247,7 +4252,7 @@ const fullTreeClick = function(e) {
             if(this.svgcontainer) {
                 this.clearsvg();
                 this.boxdiv.appendChild(this.svgcontainer);
-            
+
             }
         }
 
@@ -4323,7 +4328,7 @@ const fullTreeClick = function(e) {
             else scripter.classList.remove('grantha');
             this.updatescript();
         }
-  
+
         updatescript() {
             const nodes = this.boxdiv.querySelectorAll('.lemma,.tree-lemma');
             for(const node of nodes) {
@@ -4347,7 +4352,7 @@ const fullTreeClick = function(e) {
                 while(newnode.firstChild)
                     node.appendChild(newnode.firstChild);
             }
-            if(_scripts[this.script] === 'grantha') 
+            if(_scripts[this.script] === 'grantha')
                 this.boxdiv.classList.add('grantha');
             else this.boxdiv.classList.remove('grantha');
             if(this.boxdiv.classList.contains('matrix'))
@@ -4425,12 +4430,12 @@ const fullTreeClick = function(e) {
                     newedge.setAttribute('source','fakeroot');
                     newedge.setAttribute('target',oldroot.id);
                     oldroot.parentElement.insertBefore(newedge,oldedge);
-            
+
                     oldedge.setAttribute(newsrctrgt,newroot.id);
                 }
             }
         }
-    
+
         findLevels() {
             const alledges = this.nexml.querySelectorAll('edge');
             const taxa = [...this.nexml.querySelectorAll('node[otu]')];
@@ -4479,7 +4484,7 @@ const fullTreeClick = function(e) {
                         acc.push(nodups.get(key).child);
                     return acc;
                 },[]);
-            
+
                 const unusededges = [...edges].reduce((acc,e) => {
                     if(usededges.indexOf(e) === -1)
                         acc.push(e);
@@ -4575,7 +4580,7 @@ const fullTreeClick = function(e) {
             while(this.svgcontainer.firstChild)
                 this.svgcontainer.removeChild(this.svgcontainer.firstChild);
         }
-    
+
         removecolors() {
             //const colored = this.nexml.evaluate('//nex:node[@color]',this.nexml,this.nsResolver,XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,null);
 
@@ -4592,7 +4597,7 @@ const fullTreeClick = function(e) {
             const edges = this.getPath(...nodearr
                         .map(s => s.replace(/[-_]/g,''))
                     ).path;
-            
+
             */
                 const edges = this.getPath(...nodes.split(';')).path;
                 const nodeset = new Set();
@@ -4632,7 +4637,7 @@ const fullTreeClick = function(e) {
             this.drawlines();
             this.makeLabels();
         }
-    
+
         clearLabels() {
             for(const txt of this.boxdiv.firstChild.querySelectorAll('text')) {
                 txt.parentElement.removeChild(txt);
@@ -4679,7 +4684,7 @@ const fullTreeClick = function(e) {
                 this.boxdiv.appendChild(newEl);
             }
         }
-    
+
         clearlemmata() {
             for(const el of this.boxdiv.querySelectorAll('span.tree-lemma')) {
                 el.innerHTML = '';
@@ -4688,7 +4693,7 @@ const fullTreeClick = function(e) {
                 el.IAST = el.cloneNode(true);
             }
         }
-    
+
         populate(n,m) {
             const proc = makeXSLTProc(treeXSLT);
             /*        for(const [key,value] of _texts)
@@ -4807,7 +4812,7 @@ const fullTreeClick = function(e) {
             }
             return false;
         }
-    
+
         analyzeVariants(n,m) {
             /* arguments: n -- index of lemma in each witness of the _texts object
      * returns object of longest paths:
@@ -4853,7 +4858,7 @@ const fullTreeClick = function(e) {
                 };
             for(const text of find.texts()) {
                 const key = text.parentNode.getAttribute('n');
-            
+
                 // ignore reconstructions and texts not in current tree
                 if(!this.nexml.querySelector(`otu[label="${key}"]`))
                     continue;
@@ -4936,7 +4941,7 @@ const fullTreeClick = function(e) {
             return path.map(node => node.getAttribute('length'))
                 .reduce((acc,cur) => parseFloat(acc)+parseFloat(cur));
         }
-    
+
         colourizeVariants(n,m) {
             const paths = this.analyzeVariants(n,m);
             for(const el of this.boxdiv.querySelectorAll('span.tree-lemma')) {
@@ -4985,7 +4990,7 @@ const fullTreeClick = function(e) {
             this.descbox.style.paddingLeft = '5px';
             this.boxdiv.addEventListener('mouseup',events.textMouseup);
         }
-    
+
         refresh() {
         //this.text = _texts.get(this.name).text;
         //this.text = find.firsttext(this.name);
@@ -5003,7 +5008,7 @@ const fullTreeClick = function(e) {
 
         makeTextBox() {
             const textbox = document.createElement('div');
-            textbox.dataset.id = this.name; 
+            textbox.dataset.id = this.name;
             textbox.classList.add('text-box');
             const xslt_proc = makeXSLTProc(lemmaXSLT);
             textbox.appendChild(xslt_proc.transformToFragment(this.text,document));
@@ -5062,7 +5067,7 @@ const fullTreeClick = function(e) {
             scroller.addEventListener('drop',events.trDragDrop);
             scroller.addEventListener('mousedown',events.matrixMousedown);
             //this.boxdiv.append(header);
-        
+
             const head = document.createElement('tr');
             head.classList.add('header');
             const firsttd = document.createElement('td');
@@ -5092,9 +5097,9 @@ const fullTreeClick = function(e) {
                 readspan.appendChild(document.createTextNode(readings));
                 th.appendChild(readspan);
                 const form = document.createElement('form');
-                form.innerHTML = '<div><input class="insignificant" title="insignificant" type="checkbox"' + 
+                form.innerHTML = '<div><input class="insignificant" title="insignificant" type="checkbox"' +
                              (td.dataset.insignificant ? 'checked' : '') +
-                             '></div><div><input class="binary" title="binary" type="checkbox"'+ 
+                             '></div><div><input class="binary" title="binary" type="checkbox"'+
                              (td.dataset.binary ? 'checked' : '') +
                              '></div>';
                 th.appendChild(form);
@@ -5149,7 +5154,7 @@ const fullTreeClick = function(e) {
                     for(const [node,children] of levels[m]) {
                         const readings = children.map(node => firstpass.get(node));
                         const intersection = find.setIntersection(...readings);
-                    
+
                         // shortcut, because we only care about one node
                         if(node === target && intersection.size === 1)
                             return [...intersection][0];
@@ -5168,7 +5173,7 @@ const fullTreeClick = function(e) {
             const fitch2 = function(firstpass,target) {
                 const taxa = levels[0];
                 const secondpass = new Map();
-                
+
                 /*
                 for(const [node,children] of levels[levels.length-1]) {
                     secondpass.set(node,firstpass.get(node));
@@ -5188,7 +5193,7 @@ const fullTreeClick = function(e) {
                             const result = intersection.size > 0 ?
                                 intersection :
                                 childreading;
-                        
+
                             // if reading of target node found, skip rest of reconstruction
                             if(child === target)
                                 return result;
@@ -5205,7 +5210,7 @@ const fullTreeClick = function(e) {
                 if(typeof firstpass === 'string') {
                     return firstpass;
                 }
-            
+
                 // do the second pass if the first pass is inconclusive
                 const formatOutput = function(m) {
                     if(m.size === 1) return [...m][0].trim();
