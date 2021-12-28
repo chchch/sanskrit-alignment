@@ -38,6 +38,7 @@ window.comboView = (function() {
     var _editing = false;
     var _normalization = false;
     const _scripts = ['iast','devanagari','telugu','grantha','malayalam'];
+    const hyphenator = new Hypher(HypherSa);
 
     /*** Pure functions ***/
 
@@ -895,8 +896,7 @@ const reconstructLemma = function(paths) {
     };
 
     const touchUpText = function(str) {
-        const h = new Hypher(HypherSa);
-        return h.hyphenate(
+        return hyphenator.hyphenateText(
             str
                 .replace(/ \|/g,'\u00a0|')
                 .replace(/\| (?=\d)/g,'|\u00a0')
