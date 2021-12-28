@@ -1,0 +1,37 @@
+0.8 (2021-11-28)
+
+* added Edit -> (Re)normalize columns
+* improved word grouping
+* code cleanup
+
+0.7 (2021-11-22)
+
+* simplified header
+* filename in page title
+* styling updates
+* better TEI apparatus export
+* bugfixes
+
+0.3 (2019-08-09)
+
+* new menu item: Edit -> Insert row
+* new context menu item: left click on MSS name -> delete [row]
+* NeXML trees are saved in the TEI XML file under <xenoData>
+* click on an internal tree node to reconstruct it and add it to the matrix
+* reconstructed texts are keyed to a specific node on a specific tree
+* editing a reconstructed reading marks it as "emended" (dotted red border)
+* emended readings are shown in addition to reconstructed ones on the tree
+* left and right arrow keys select the correct cell in the matrix
+* bug fixes and speedups
+
+0.2 (2019-07-19)
+
+* implemented ancestral reconstruction by Fitch's algorithm
+* improved normalization routine (added geminated k,c, and p after r)
+* new action: delete empty lemmata
+* bug fixes
+
+
+0.1 (2019-07-16)
+
+* initial commit
