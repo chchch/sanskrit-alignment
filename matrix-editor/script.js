@@ -1527,7 +1527,7 @@ const reconstructLemma = function(paths) {
                 suggestedName: fileURL,
                 types: [ {description: 'CSV file', accept: {'text/csv': ['.csv']} } ],
             });
-            const writer = fileHandle.getWritable();
+            const writer = fileHandle.createWritable();
             writer.write(file);
             writer.close();
         },
