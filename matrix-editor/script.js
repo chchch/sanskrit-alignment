@@ -1496,6 +1496,12 @@ const reconstructLemma = function(paths) {
     };
 
     const exp = {
+        write: async function(file,handle) {
+            const writer = await handle.createWritable();
+            writer.write(file);
+            writer.close();
+        },
+
         xml: async function(doc) {
             const xslt_proc = makeXSLTProc(prettyXSLT);
             const str = new XMLSerializer().serializeToString(
@@ -1509,9 +1515,7 @@ const reconstructLemma = function(paths) {
                 suggestedName: fileURL,
                 types: [ {description: 'TEI XML', accept: {'text/xml': ['.xml']} } ],
             });
-            const writer = await fileHandle.createWritable();
-            writer.write(file);
-            writer.close();
+            exp.write(file,fileHandle);
         },
 
         csv: async function(doc) {
@@ -1527,9 +1531,7 @@ const reconstructLemma = function(paths) {
                 suggestedName: fileURL,
                 types: [ {description: 'CSV file', accept: {'text/csv': ['.csv']} } ],
             });
-            const writer = fileHandle.createWritable();
-            writer.write(file);
-            writer.close();
+            exp.write(file,fileHandle);
         },
   
         nexus: async function(doc) {
@@ -1609,9 +1611,7 @@ END;
                 suggestedName: fileURL,
                 types: [ {description: 'NEXUS file', accept: {'text/nexus': ['.nex']} } ],
             });
-            const writer = await fileHandle.createWritable();
-            writer.write(file);
-            writer.close();
+            exp.write(file,fileHandle);
         },
 
         processOptions: function(opts) {
