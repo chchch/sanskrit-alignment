@@ -7,6 +7,8 @@
 //
 // custom-v0.0.1 (chchch): read <color> tag from NeXML
 
+import Raphael from 'raphael';
+
 'use strict';
 var Smits = {};Smits.Common = {
     nodeIdIncrement : 0,

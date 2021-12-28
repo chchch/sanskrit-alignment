@@ -1,4 +1,4 @@
-window.lemmaXSLT = 
+const lemmaXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
@@ -122,7 +122,8 @@ window.lemmaXSLT =
   </xsl:element>
 </xsl:template>
 </xsl:stylesheet>`;
-window.oldmatrixXSLT = 
+
+const oldmatrixXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
@@ -132,7 +133,7 @@ window.oldmatrixXSLT =
 </xsl:template>
 </xsl:stylesheet>
 `;
-window.oldXSLT = 
+const oldXSLT = 
 `<xsl:template match="x:teiCorpus">
     <xsl:element name="table">
         <xsl:apply-templates/>
@@ -193,7 +194,7 @@ window.oldXSLT =
 
 </xsl:stylesheet>`;
 
-window.prettyXSLT =
+const prettyXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
         xmlns:x="http://www.tei-c.org/ns/1.0"
         exclude-result-prefixes="x">
@@ -234,7 +235,8 @@ window.prettyXSLT =
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>`;
-window.csvXSLT =
+
+const csvXSLT =
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
         xmlns:x="http://www.tei-c.org/ns/1.0"
         exclude-result-prefixes="x">
@@ -269,7 +271,8 @@ window.csvXSLT =
         </xsl:copy>
     </xsl:template-->
 </xsl:stylesheet>`;
-window.matrixXSLT = 
+
+const matrixXSLT = 
 `<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
@@ -336,3 +339,5 @@ window.matrixXSLT =
     </xsl:element>
 </xsl:template>
 </xsl:stylesheet>`;
+
+export { lemmaXSLT, prettyXSLT, matrixXSLT, csvXSLT };

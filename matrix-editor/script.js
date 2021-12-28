@@ -2,17 +2,18 @@ import { Sanscript } from './lib/sanscript.mjs';
 import { Normalizer } from './lib/normalize.mjs';
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
-import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js'
+import { lemmaXSLT, prettyXSLT, csvXSLT, matrixXSLT } from './lib/xsltsheet.mjs';
+import { treeXSLT, lgXSLT } from './lib/xsltsheet-tree.mjs';
+import { HypherSa } from './lib/sa.mjs';
+
+import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js';
+//import { showSaveFilePicker } from 'native-file-system-adapter';
+
+import Hypher from 'hypher';
+
 window.comboView = (function() {
 
     'use strict';
-    
-    const lgXSLT = window.lgXSLT;
-    const csvXSLT = window.csvXSLT;
-    const prettyXSLT = window.prettyXSLT;
-    const lemmaXSLT = window.lemmaXSLT;
-    const treeXSLT = window.treeXSLT;
-    const matrixXSLT = window.matrixXSLT;
     
     var _filename;
     var _xml;
@@ -894,7 +895,8 @@ const reconstructLemma = function(paths) {
     };
 
     const touchUpText = function(str) {
-        return window['Hypher']['languages']['sa'].hyphenateText(
+        const h = new Hypher(HypherSa);
+        return h.hyphenate(
             str
                 .replace(/ \|/g,'\u00a0|')
                 .replace(/\| (?=\d)/g,'|\u00a0')
