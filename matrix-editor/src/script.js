@@ -9,10 +9,11 @@ import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-sys
 //import { showSaveFilePicker } from 'native-file-system-adapter';
 
 import { Normalizer } from './lib/normalize.mjs';
-import { to, changeScript } from './lib/transliterate.mjs';
-import { xslt as _xslt } from './lib/xslt.mjs';
+import { changeScript } from './lib/transliterate.mjs';
+import { xslt as _Xslt } from './lib/xslt.mjs';
+import { find as _Find } from './lib/find.mjs';
 
-import Hypher from 'hypher';
+import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
 
 'use strict';
@@ -41,8 +42,9 @@ window.comboView = (function() {
         editing: false
     };
 
-    const Hyphenator = new Hypher(hyphenation_sa);
-    const xslt = new _xslt(_state, _const);
+    const Hypher = new _Hypher(hyphenation_sa);
+    const Xslt = new _Xslt(_state, _const);
+    const Find = new _Find(_state);
 
     /*** Pure functions ***/
 
@@ -201,7 +203,7 @@ window.comboView = (function() {
     };
 
     const touchUpText = function(str) {
-        return Hyphenator.hyphenateText(
+        return Hypher.hyphenateText(
             str
                 .replace(/ \|/g,'\u00a0|')
                 .replace(/\| (?=\d)/g,'|\u00a0')
@@ -246,7 +248,7 @@ window.comboView = (function() {
             if(!nums || nums.size === 0) return;
             multi.unHighlightAll();
         
-            const [low,high] = find.lowhigh(nums);
+            const [low,high] = Find.lowhigh(nums);
             if(high !== undefined) {
                 for(let n=low;n<=high;n++) multi.highlightLemma(n,true);
             }
@@ -261,7 +263,7 @@ window.comboView = (function() {
 
         highlightAll: function() {
             if(check.anyhighlit()) multi.unHighlightAll();
-            else multi.highlightRange(new Set([0,find.maxlemma()]));
+            else multi.highlightRange(new Set([0,Find.maxlemma()]));
         },
 
         unHighlightAll: function() {
@@ -493,13 +495,13 @@ window.comboView = (function() {
         }
         //_texts = new Map(csvarr);
         //_state.maxlemma = _texts.get(_texts.keys().next().value).text.length;
-        //_state.maxlemma = find.firsttext().lastElementChild.getAttribute('n');
-        _state.maxlemma = find.maxlemma();
+        //_state.maxlemma = Find.firsttext().lastElementChild.getAttribute('n');
+        _state.maxlemma = Find.maxlemma();
 
         //var mss = Array.from(_texts.keys());
         //mss.sort();
         var msshtml = '';
-        const mss = [...find.teis()].map(el => el.getAttribute('n'));
+        const mss = [...Find.teis()].map(el => el.getAttribute('n'));
         for(const ms of mss)
         //    msshtml += `<li data-name="${ms}">${_texts.get(ms).desc}</li>`;
             msshtml += `<li data-name="${ms}">${ms}</li>`;
@@ -613,7 +615,7 @@ window.comboView = (function() {
         }
         _state.xml.normalize();
 
-        _state.maxlemma = find.maxlemma();
+        _state.maxlemma = Find.maxlemma();
         
         //if(fs.length > 0) csvLoadAdditional(fs);
 
@@ -631,7 +633,7 @@ window.comboView = (function() {
             treeXMLLoad(nexml,tree.closest('stemma').id,false);
         }
 
-        _state.maxlemma = find.maxlemma();
+        _state.maxlemma = Find.maxlemma();
         
         if(fs.length > 0) matrixLoadAdditional(fs);
 
@@ -653,7 +655,7 @@ window.comboView = (function() {
             const newxml = xParser.parseFromString(e.target.result,'text/xml');
             
             const oldteis = new Map();
-            for(const tei of find.teis()) {
+            for(const tei of Find.teis()) {
                 const siglum = tei.getAttribute('n');
                 oldteis.set(siglum,tei);
             }
@@ -702,7 +704,7 @@ window.comboView = (function() {
                 make.emptywords(text,lastlemma,_state.maxlemma + 1);
             }
 
-            _state.maxlemma = find.maxlemma(); // can probably change this
+            _state.maxlemma = Find.maxlemma(); // can probably change this
             if(add.length > 0) matrixLoadAdditional(add);
             else menuPopulate();
         };
@@ -715,7 +717,7 @@ window.comboView = (function() {
 
     const mssMenuPopulate = function() {
         var msshtml = '';
-        const mss = [...find.teis()].map(el => el.getAttribute('n'));
+        const mss = [...Find.teis()].map(el => el.getAttribute('n'));
         for(const ms of mss) {
         //    msshtml += `<li data-name="${ms}">${_texts.get(ms).desc}</li>`;
             msshtml += `<li data-name="${ms}">${ms}</li>`;
@@ -829,10 +831,10 @@ window.comboView = (function() {
         xml: async function(doc) {
             const str = new XMLSerializer().serializeToString(
                 //  XSLTransformElement(_state.xml,xslt_proc)
-                xslt.sheets['xml'].transformToDocument(doc)
+                Xslt.sheets['xml'].transformToDocument(doc)
             );
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
-            const fileURL = find.basename() + '.xml';
+            const fileURL = Find.basename() + '.xml';
             const fileHandle = await showSaveFilePicker({
                 _preferPolyfill: false,
                 suggestedName: fileURL,
@@ -845,9 +847,9 @@ window.comboView = (function() {
             //const str = new XMLSerializer().serializeToString(XSLTransformElement(doc,xslt_proc));
             //const str = new XMLSerializer().serializeToString(xslt_proc.transformToDocument(_state.xml));
             //const str = xslt_proc.transformToDocument(_state.xml).documentElement.textContent;
-            const str = xslt.sheets['csv'].transformToDocument(doc).documentElement.textContent;
+            const str = Xslt.sheets['csv'].transformToDocument(doc).documentElement.textContent;
             const file = new Blob([str], {type: 'text/csv;charset=utf-8'});
-            const fileURL = find.basename() + '.csv';
+            const fileURL = Find.basename() + '.csv';
             const fileHandle = await showSaveFilePicker({
                 _preferPolyfill: false,
                 suggestedName: fileURL,
@@ -857,13 +859,13 @@ window.comboView = (function() {
         },
   
         nexus: async function(doc) {
-            const texts = [...find.texts(doc)];
+            const texts = [...Find.texts(doc)];
             const ntax = texts.length;
             const symbols = '0 1 2 3 4 5 6 7 8 9 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
             const [siggap,...symbolarr] = symbols.split(' ');
             const gap = '-';
             const taxlabels = texts.map(el => '\''+el.parentElement.getAttribute('n')+'\'');
-            const textWalkers = texts.map(el => find.textWalker(el));
+            const textWalkers = texts.map(el => Find.textWalker(el));
             const nchar = texts[0].querySelectorAll('w').length;
             const charstatelabels = [];
             const matrix = taxlabels.map(s => [s + ' ']);
@@ -927,7 +929,7 @@ ${flatmatrix}
 END;
 `;
             const file = new Blob([str], {type: 'text/nexus;charset=iso8859-1'});
-            const fileURL = find.basename() + '.nex';
+            const fileURL = Find.basename() + '.nex';
             const fileHandle = await showSaveFilePicker({
                 _preferPolyfill: false,
                 suggestedName: fileURL,
@@ -979,7 +981,7 @@ END;
                 for(const el of nonempty)
                     el.textContent = placeholder;
                 */
-                const firstrow = find.firsttext().querySelectorAll('w[binary="true"]');
+                const firstrow = Find.firsttext().querySelectorAll('w[binary="true"]');
                 //const allels = [...doc.querySelectorAll('w[binary="true"]')];
                 const nums = [...firstrow].map(el => el.getAttribute('n'));
                 for(const num of nums) {
@@ -1015,7 +1017,7 @@ END;
             const filedesc = newdoc.createElementNS(_const.teins,'fileDesc');
             const sourcedesc = newdoc.createElementNS(_const.teins,'sourceDesc');
             const listwit = newdoc.createElementNS(_const.teins,'listWit');
-            for(const text of find.teis(doc)) {
+            for(const text of Find.teis(doc)) {
                 const n = text.getAttribute('n');
                 const wit = newdoc.createElementNS(_const.teins,'witness');
                 wit.setAttribute('xml:id',n);
@@ -1032,14 +1034,14 @@ END;
         },
         makeApp(opts,doc) {
             const baselabel = opts.get('option_basetext');
-            const basetext = find.tei(baselabel,doc);
+            const basetext = Find.tei(baselabel,doc);
             const normlem = opts.get('option_app_normalize');
 
             const newdoc = document.implementation.createDocument(_const.teins,'',null);
             newdoc.appendChild(basetext);
             const teiheader = exp.makeHeader(newdoc,doc);
             basetext.insertBefore(teiheader,basetext.firstChild);
-            const words = find.words(false,basetext);
+            const words = Find.words(false,basetext);
             for(const word of words) {
                 const dataN = word.getAttribute('n');
                 const lemma = normlem ? 
@@ -1047,7 +1049,7 @@ END;
                     word.textContent;
                 const posapp = [];
                 const negapp = new Map();
-                const otherwords = find.words(dataN,doc);
+                const otherwords = Find.words(dataN,doc);
                 for(const otherword of otherwords) {
                     const id = otherword.closest('TEI').getAttribute('n');
                     if(normlem && otherword.getAttribute('lemma') === lemma)
@@ -1150,7 +1152,7 @@ END;
     </form>
 </div>`);
             const select = frag.getElementById('option__basetext');
-            const sigla = [...find.trs()].map(el => el.dataset.n);
+            const sigla = [...Find.trs()].map(el => el.dataset.n);
             for(const siglum of sigla) {
                 const el = document.createElement('option');
                 el.value = siglum;
@@ -1324,7 +1326,7 @@ const fullTreeClick = function(e) {
             else if(!_state.editing &&
                     _state.matrix && !_state.matrix.closed &
                     e.key === 'Enter') {
-                const td = find.highlitcell();
+                const td = Find.highlitcell();
                 if(td) {
                     e.preventDefault();
                     edit.startEditCell(td);
@@ -1333,7 +1335,7 @@ const fullTreeClick = function(e) {
         },
 
         cycleVariant(e) {
-            const highlitcell = find.highlitcell() || 
+            const highlitcell = Find.highlitcell() || 
                 _state.viewdiv.querySelector('td.highlit') ||
                 _state.viewdiv.querySelector('td[data-n="0"]');
 
@@ -1423,7 +1425,7 @@ const fullTreeClick = function(e) {
                     return;
                 }
                 const n = targ.dataset.n;
-                const matrixrow = find.highlitrow();
+                const matrixrow = Find.highlitrow();
                 multi.unHighlightAll();
                 multi.highlightLemma(n);
                 multi.repopulateTrees(n);
@@ -1434,7 +1436,7 @@ const fullTreeClick = function(e) {
                     const textbox = targ.closest('.text-box');
                     if(textbox) {
                         const textid = textbox.dataset.id;
-                        const td = find.tr(textid).querySelector(`td[data-n="${n}"]`);
+                        const td = Find.tr(textid).querySelector(`td[data-n="${n}"]`);
                         td.classList.add('highlitcell');
                     }
                 }
@@ -1564,7 +1566,7 @@ const fullTreeClick = function(e) {
             }
         },
         matrixMouseup(/*e*/) {
-            const nums = find.highlit();
+            const nums = Find.highlit();
             multi.highlightRange(nums);
             const tabl = _state.matrix.boxdiv.querySelector('table');
             tabl.removeEventListener('mouseover',events.matrixMouseover);
@@ -1582,9 +1584,9 @@ const fullTreeClick = function(e) {
             const type = e.target.className;
             if(type !== 'insignificant' && type !== 'binary') return;
             const num = e.target.closest('th').dataset.ref;
-            const state = find.firsttd(num).dataset[type] === 'true' ? false : true;
+            const state = Find.firsttd(num).dataset[type] === 'true' ? false : true;
             const states = new Map([[num,state]]);
-            //if(find.firsttd(num).dataset[type] === 'true') e.target.checked = true;
+            //if(Find.firsttd(num).dataset[type] === 'true') e.target.checked = true;
             //else e.target.checked = false;
             //edit.startMarkAs(e.target.className,nums,e);
             edit.doMarkAs(type,states);
@@ -1620,7 +1622,7 @@ const fullTreeClick = function(e) {
                 const nums = !td.classList.contains('highlit') ?
                     (events.textClick(e,true), new Set([td.dataset.n])) :
                     (function() {
-                        const ret = find.highlit();
+                        const ret = Find.highlit();
                         if(ret.size === 1 && 
                        !td.classList.contains('highlitcell')) {
                             multi.unCelllightAll(); 
@@ -1719,7 +1721,7 @@ const fullTreeClick = function(e) {
             _state.dragged = targ;
             _state.dragged.classList.add('dragging');
             if(e.type !== 'dragstart') {
-                for(const tr of find.trs())
+                for(const tr of Find.trs())
                     tr.classList.add('moveinprogress');
                 _state.matrix.boxdiv.querySelector('table').addEventListener('mousedown',edit.finishMoveRow);
             }
@@ -1727,9 +1729,9 @@ const fullTreeClick = function(e) {
 
         startMerge: function(nums,/*e*/) {
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
-            const clgroups = find.clauses(numss,true);
+            const clgroups = Find.clauses(numss,true);
             if(!clgroups) {
                 edit.doMerge(numss,'do');
             }
@@ -1740,7 +1742,7 @@ const fullTreeClick = function(e) {
                 edit.doMulti(args,'do');
             }
             else {
-                const toremove = find.clausesToRemove(clgroups,numss);
+                const toremove = Find.clausesToRemove(clgroups,numss);
                 if(!toremove)
                     edit.doMerge(numss,'do');
                 else {
@@ -1754,7 +1756,7 @@ const fullTreeClick = function(e) {
 
         startGroup: function(nums,/*e*/) {
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
             if(check.grouped())
                 edit.startUngroup(numss);
@@ -1778,27 +1780,27 @@ const fullTreeClick = function(e) {
                     [new Set([...words].map(w => w.getAttribute('n')))]
                    ];
         }); */
-            const clgroups = find.clauses(nums);
+            const clgroups = Find.clauses(nums);
             const args = [...clgroups].map(s => [edit.doUngroup,[s]]);
             edit.doMulti(args,'do');
         },
         
         startInsertCol: function() {
-            const insertafter = Math.max([...find.highlit()]) || _state.maxlemma;
+            const insertafter = Math.max([...Find.highlit()]) || _state.maxlemma;
             edit.doInsertCol(insertafter);
         },
 
         startRemoveCol: function(nums,/*e*/) {
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
 
-            const clgroups = find.clauses(numss);
+            const clgroups = Find.clauses(numss);
             if(!clgroups) {
                 edit.doRemoveCol(numss,'do');
             }
             else {
-                const toremove = find.clausesToRemove(clgroups,numss,1);
+                const toremove = Find.clausesToRemove(clgroups,numss,1);
                 if(!toremove)
                     edit.doRemoveCol(numss,'do');
                 else {
@@ -1810,13 +1812,13 @@ const fullTreeClick = function(e) {
         },
 
         startRemoveEmpty: function() {
-            const nums = find.empty();
-            const clgroups = find.clauses(nums);
+            const nums = Find.empty();
+            const clgroups = Find.clauses(nums);
             if(!clgroups) {
                 edit.doRemoveCol(nums,'do');
             }
             else {
-                const toremove = find.clausesToRemove(clgroups,nums,1);
+                const toremove = Find.clausesToRemove(clgroups,nums,1);
                 if(!toremove)
                     edit.doRemoveCol(nums,'do');
                 else {
@@ -1829,7 +1831,7 @@ const fullTreeClick = function(e) {
 
         startEditCell: function(el) {
         //const cell = el || document.querySelector('.matrix td.highlitcell');
-            const cell = el || find.highlitcell();
+            const cell = el || Find.highlitcell();
             if(!cell) return;
             //cell.classList.add('highlitcell');
             edit.unnormalize(cell);
@@ -1852,22 +1854,22 @@ const fullTreeClick = function(e) {
                 edit.finishEditCell(e,true);
                 break;
             case 'ArrowRight': {
-                const pos = find.cursorPos(e.target);
+                const pos = Find.cursorPos(e.target);
                 if(pos[0] === pos[1]) {
                     e.preventDefault();
                     edit.finishEditCell(e);
                     events.cycleVariant({key: 'ArrowRight'});
-                    edit.startEditCell(find.highlitcell()); 
+                    edit.startEditCell(Find.highlitcell()); 
                 }
                 break;
             }
             case 'ArrowLeft': {
-                const pos = find.cursorPos(e.target);
+                const pos = Find.cursorPos(e.target);
                 if(pos[0] === 0) {
                     e.preventDefault();
                     edit.finishEditCell(e);
                     events.cycleVariant({key: 'ArrowLeft'});
-                    edit.startEditCell(find.highlitcell()); 
+                    edit.startEditCell(Find.highlitcell()); 
                 }
                 break;
             }
@@ -1880,7 +1882,7 @@ const fullTreeClick = function(e) {
                 e.target :
                 e.target.querySelector('input');
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
             const states = new Map([...numss].map(num => [num,!targ.checked]));
             edit.doMarkAs(type,states);
@@ -1998,7 +2000,7 @@ const fullTreeClick = function(e) {
             /*
             const row = cell.closest('tr');
             //const table = row.parentNode;
-            const trs = [...find.trs()];
+            const trs = [...Find.trs()];
             const rownum = trs.indexOf(row);
             edit.xmlChangeCell(cellnum,rownum,content);
             */
@@ -2027,12 +2029,12 @@ const fullTreeClick = function(e) {
             if(tr)
                 edit.doMoveRow(_state.dragged,tr,'do');
             if(e.type !== 'drop') {
-                for(const tr of find.trs())
+                for(const tr of Find.trs())
                     tr.classList.remove('moveinprogress');
                 _state.matrix.boxdiv.querySelector('table').removeEventListener('mousedown',edit.finishMoveRow);
             }
             else {
-                for(const tr of find.trs())
+                for(const tr of Find.trs())
                     tr.classList.remove('dragenter');
             }
             _state.dragged.classList.remove('dragging');
@@ -2054,16 +2056,17 @@ const fullTreeClick = function(e) {
             tei.setAttribute('corresp',tree.name);
             tei.setAttribute('select',`#${key}`);
         
-            const tds = [...find.tds(false,tr)];
-            const words = [...find.words(false,tei)];
+            const tds = [...Find.tds(false,tr)];
+            const words = [...Find.words(false,tei)];
         
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
             const workerblob = new Blob(['('+worker.fitch.toString()+')()'],{type: 'application/javascript'});
             const fitchWorker = new Worker(window.URL.createObjectURL(workerblob));
-            const serialreadings = find.serializedtexts(tree.nexml);
-            const seriallevels = find.serializedlevels(tree.levels);
+            const normalized = check.normalizedView();
+            const serialreadings = Find.serializedtexts(tree.nexml,normalized);
+            const seriallevels = Find.serializedlevels(tree.levels,normalized);
 
             fitchWorker.postMessage({readings:serialreadings,levels:seriallevels,num:0,id:key});
             fitchWorker.onmessage = function(e) {
@@ -2080,8 +2083,8 @@ const fullTreeClick = function(e) {
                     _state.xml.documentElement.appendChild(tei);
                     view.updateAllHeaders();
                     tree.draw();
-                    const hl = find.highlit();
-                    if(hl.size > 0) multi.repopulateTrees(...find.lowhigh(hl));
+                    const hl = Find.highlit();
+                    if(hl.size > 0) multi.repopulateTrees(...Find.lowhigh(hl));
 
                     const mslist = document.getElementById('menu').querySelector('.ms');
                     const liel = document.createElement('li');
@@ -2096,9 +2099,9 @@ const fullTreeClick = function(e) {
         },
 
         doDeleteRow: function(label,doing = 'do') {
-            const htmlrow = find.tr(label);
-            const xmlrow = find.tei(label);
-            const teis = [...find.teis()];
+            const htmlrow = Find.tr(label);
+            const xmlrow = Find.tei(label);
+            const teis = [...Find.teis()];
             const index = teis.indexOf(xmlrow);
 
             htmlrow.parentNode.removeChild(htmlrow);
@@ -2111,13 +2114,13 @@ const fullTreeClick = function(e) {
 
         doUndeleteRow: function(htmlrow,xmlrow,index,doing = 'do') {
             const label = xmlrow.getAttribute('n');
-            const teis = [...find.teis()];
+            const teis = [...Find.teis()];
             if(index === teis.length) {
                 _state.xml.documentElement.appendChild(xmlrow);
                 _state.matrix.boxdiv.querySelector('tbody').appendChild(htmlrow);
             }
             else {
-                const trs = [...find.trs()];
+                const trs = [...Find.trs()];
                 _state.xml.documentElement.insertBefore(xmlrow,teis[index]);
                 trs[index].parentNode.insertBefore(htmlrow,trs[index]);
             }
@@ -2130,7 +2133,7 @@ const fullTreeClick = function(e) {
         doMoveRow: function(movetr,appendafter,doing = 'do') {
             const table = movetr.parentNode;
             //const trs = [...table.children];
-            const trs = [...find.trs()];
+            const trs = [...Find.trs()];
             const oldsib = movetr.previousElementSibling;
             const previndex = trs.indexOf(movetr);
             const appendindex = appendafter !== null ?
@@ -2146,7 +2149,7 @@ const fullTreeClick = function(e) {
             };
             const XMLMove = function() {
                 const root = _state.xml.documentElement;
-                const teis = [...find.teis()];
+                const teis = [...Find.teis()];
                 const moverow = teis[previndex];
                 if(appendindex === null)
                     root.insertBefore(moverow,teis[0]);
@@ -2229,8 +2232,8 @@ const fullTreeClick = function(e) {
             };
             //const oldhtml = merge(document,'.matrix tr','td','data-n',nums);
             //const oldxml = merge(_state.xml,'text','w','n',nums);
-            const oldhtml = merge(find.trs,find.firsttd,nums);
-            const oldxml = merge(find.texts,find.firstword,nums);
+            const oldhtml = merge(Find.trs,Find.firsttd,nums);
+            const oldxml = merge(Find.texts,Find.firstword,nums);
             const start = parseInt([...nums][0]);
             edit.renumber(start);
             //edit.renumber(document,'.matrix tr','td','data-n',start);
@@ -2263,7 +2266,7 @@ const fullTreeClick = function(e) {
             return nums;
         } */
             const unmerge = function(rowfunc,cellfunc,oldels) {
-                const attr = find.whichattr(oldels[0][0]);
+                const attr = Find.whichattr(oldels[0][0]);
                 const nums = oldels[0].map(el => el.getAttribute(attr));
                 const firstn = nums[0];
                 const rows = rowfunc();
@@ -2298,29 +2301,29 @@ const fullTreeClick = function(e) {
             const numarr = [...nums];
             const firstnum = numarr.shift();
         
-            const texts = find.texts();
+            const texts = Find.texts();
             for(const text of texts) {
                 //const cl = document.createElementNS('http://www.w3.org/1999/xhtml','cl');
                 const cl = document.createElementNS('http://www.tei-c.org/ns/1.0','cl');
-                const firstw = find.firstword(firstnum,text);
+                const firstw = Find.firstword(firstnum,text);
                 //const firstw = text.querySelector('w[n="'+firstnum+'"]');
                 firstw.parentNode.insertBefore(cl,firstw);
                 cl.appendChild(firstw);
                 for(const num of nums)
-                    cl.appendChild(find.firstword(num,text));
+                    cl.appendChild(Find.firstword(num,text));
                 //cl.appendChild(text.querySelector('w[n="'+num+'"]'));
             }
 
             const lastnum = numarr.pop();
         
-            for(const td of find.tds(firstnum)) {
+            for(const td of Find.tds(firstnum)) {
                 td.classList.add('group-start');
             }
-            for(const td of find.tds(lastnum)) {
+            for(const td of Find.tds(lastnum)) {
                 td.classList.add('group-end');
             }
             for(const num of numarr) {
-                for(const td of find.tds(num)) {
+                for(const td of Find.tds(num)) {
                     td.classList.add('group-internal');
                 }
             }
@@ -2335,13 +2338,13 @@ const fullTreeClick = function(e) {
    
         doUngroup: function(nums,doing = 'do') {
         //const texts = _state.xml.querySelectorAll('text');
-            const texts = find.texts();
+            const texts = Find.texts();
 
             // ungroup xml
             for(const text of texts) {
                 let cl;
                 for(const num of nums) {
-                    const word = find.firstword(num,text);
+                    const word = Find.firstword(num,text);
                     //const word = text.querySelector('w[n="'+num+'"]');
                     if(!cl) cl = word.closest('cl');
                     cl.parentNode.insertBefore(word,cl);
@@ -2351,7 +2354,7 @@ const fullTreeClick = function(e) {
         
             // ungroup html
             const tds = [...nums].map(
-                n => [...find.tds(n)]
+                n => [...Find.tds(n)]
             ).reduce((a,b) => a.concat(b),[]);
             for(const td of tds)
                 td.classList.remove('group-start','group-internal','group-end');
@@ -2369,7 +2372,7 @@ const fullTreeClick = function(e) {
             let groupstart = 0;
             const todo = [];
             for(let n=0;n<=_state.maxlemma;n++) {
-                const tds = find.tds(n);
+                const tds = Find.tds(n);
                 const classtest = tds[0].classList; 
                 if(classtest.contains('group-start') ||
                    classtest.contains('group-internal') ||
@@ -2400,7 +2403,7 @@ const fullTreeClick = function(e) {
                         continue;
                     }
                     else {
-                        const range = find.range(groupstart,n);
+                        const range = Find.range(groupstart,n);
                         todo.push([edit.doGroup,[range]]);
                         groupstart = n+1;
                     }
@@ -2429,8 +2432,8 @@ const fullTreeClick = function(e) {
             };
             //const oldhtml = remove(document,'.matrix tr','td','data-n',nums);
             //const oldxml = remove(_state.xml,'text','w','n',nums);
-            const oldhtml = remove(find.trs,find.firsttd,nums);
-            const oldxml = remove(find.texts,find.firstword,nums);
+            const oldhtml = remove(Find.trs,Find.firsttd,nums);
+            const oldxml = remove(Find.texts,Find.firstword,nums);
             const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
             const start = parseInt([...sortednums][0])-1;
             edit.renumber(start);
@@ -2450,7 +2453,7 @@ const fullTreeClick = function(e) {
 
         doUnremoveCol: function(oldhtml,oldxml,doing) {
             const unremove = function(rowfunc,cellfunc,oldels) {
-                const attr = find.whichattr(oldels[0][0]);
+                const attr = Find.whichattr(oldels[0][0]);
                 const nums = oldels[0].map(el => el.getAttribute(attr));
                 const firstn = nums[0];
                 const rows = rowfunc();
@@ -2492,8 +2495,8 @@ const fullTreeClick = function(e) {
                     cell.insertAdjacentElement('afterend',newcell);
                 }
             };
-            insert(find.trs,find.firsttd,make.emptycell,aftern);
-            insert(find.texts,find.firstword,make.emptyword,aftern);
+            insert(Find.trs,Find.firsttd,make.emptycell,aftern);
+            insert(Find.texts,Find.firstword,make.emptyword,aftern);
             edit.renumber(aftern);
             //view.renormalize(aftern,aftern+2);
             edit.refresh();
@@ -2508,13 +2511,13 @@ const fullTreeClick = function(e) {
         },
 
         doEmend: function(cellnum,rownum,doing = 'do') {
-            const tr = [...find.trs()][rownum];
-            const td = find.firsttd(cellnum,tr);
+            const tr = [...Find.trs()][rownum];
+            const td = Find.firsttd(cellnum,tr);
             td.dataset.emended = true;
 
-            const text = find.tei(rownum).querySelector('text');
-            //const text = [...find.texts()][rownum];
-            const word = find.firstword(cellnum,text);
+            const text = Find.tei(rownum).querySelector('text');
+            //const text = [...Find.texts()][rownum];
+            const word = Find.firstword(cellnum,text);
             word.setAttribute('emended','true');
             if(doing === 'multido')
                 return [edit.doUnemend,[cellnum,rownum]];
@@ -2524,13 +2527,13 @@ const fullTreeClick = function(e) {
         },
 
         doUnemend: function(cellnum,rownum,doing = 'do') {
-            const tr = [...find.trs()][rownum];
-            const td = find.firsttd(cellnum,tr);
+            const tr = [...Find.trs()][rownum];
+            const td = Find.firsttd(cellnum,tr);
             delete td.dataset.emended;
 
-            const text = find.tei(rownum).querySelector('text');
-            //const text = [...find.texts()][rownum];
-            const word = find.firstword(cellnum,text);
+            const text = Find.tei(rownum).querySelector('text');
+            //const text = [...Find.texts()][rownum];
+            const word = Find.firstword(cellnum,text);
             word.removeAttribute('emended');
             if(doing === 'multido')
                 return [edit.doEmend,[cellnum,rownum]];
@@ -2553,9 +2556,9 @@ const fullTreeClick = function(e) {
         },
 
         htmlChangeCell: function(cellnum,rownum,content) { // returns cell
-            const row = find.tr(rownum);
-            //const row = [...find.trs()][rownum];
-            const cell = find.firsttd(cellnum,row);
+            const row = Find.tr(rownum);
+            //const row = [...Find.trs()][rownum];
+            const cell = Find.firsttd(cellnum,row);
             //const row = document.querySelector('.matrix table')
             //                    .querySelectorAll('tr')[rownum];
             //const cell = row.querySelector('td[data-n="'+cellnum+'"]');
@@ -2566,9 +2569,9 @@ const fullTreeClick = function(e) {
         },
     
         xmlChangeCell: function(cellnum,rownum,content) { // returns oldcontent
-            const row = find.tei(rownum).querySelector('text');
-            //const row = [...find.texts()][rownum];
-            const cell = find.firstword(cellnum,row);
+            const row = Find.tei(rownum).querySelector('text');
+            //const row = [...Find.texts()][rownum];
+            const cell = Find.firstword(cellnum,row);
             //const row = _state.xml.querySelectorAll('text')[rownum];
             //const cell = row.querySelector('w[n="'+cellnum+'"]');
             edit.unnormalize(cell);
@@ -2582,10 +2585,10 @@ const fullTreeClick = function(e) {
 
         doMarkAs: function(type,states,doing = 'do') {
             const nums = [...states.keys()];
-            const oldstates = find.attr(type,nums);
+            const oldstates = Find.attr(type,nums);
             for(const num of nums) {
-                const cells = find.tds(num);
-                const words = find.words(num);
+                const cells = Find.tds(num);
+                const words = Find.words(num);
                 //const cells = document.querySelectorAll('.matrix table td[data-n="'+num+'"]');
                 //const words = _state.xml.querySelectorAll('w[n="'+num+'"]');
                 if(states.get(num) === true) {
@@ -2600,7 +2603,7 @@ const fullTreeClick = function(e) {
                     for(const word of words)
                         word.removeAttribute(type);
                 }
-                const checkbox = find.checkbox(num,type);
+                const checkbox = Find.checkbox(num,type);
                 checkbox.checked = states.get(num);
             }
             if(doing === 'multido')
@@ -2626,7 +2629,7 @@ const fullTreeClick = function(e) {
             if(!check.anyhighlit())
                 multi.clearTrees();
             else
-                multi.repopulateTrees(...find.lowhigh(find.highlit()));
+                multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
         },
 
         /*    renumber: function(doc,parents,childs,attribute,start=0) {
@@ -2642,20 +2645,20 @@ const fullTreeClick = function(e) {
                 const rows = rowfunc();
                 for(const row of rows) {
                     const els = [...cellfunc(false,row)];
-                    const attr = find.whichattr(els[0]);
+                    const attr = Find.whichattr(els[0]);
                     for(var n=parseInt(start)+1;n < els.length;n++)
                         els[n].setAttribute(attr,n);
                 }
             };
-            dorenumber(find.trs,find.tds,start);
-            dorenumber(() => [true],find.ths,start);
-            dorenumber(find.texts,find.words,start);
-            _state.maxlemma = find.maxlemma();
-        //_state.maxlemma = find.firsttext().lastElementChild.getAttribute('n');
+            dorenumber(Find.trs,Find.tds,start);
+            dorenumber(() => [true],Find.ths,start);
+            dorenumber(Find.texts,Find.words,start);
+            _state.maxlemma = Find.maxlemma();
+        //_state.maxlemma = Find.firsttext().lastElementChild.getAttribute('n');
         },
     
         reIAST: function(nums) {
-            const lemmata = [...nums].map(n => [...find.lemmata(n)]).flat();
+            const lemmata = [...nums].map(n => [...Find.lemmata(n)]).flat();
             for(const lemma of lemmata)
                 lemma.IAST = lemma.cloneNode(true);
         },
@@ -2685,8 +2688,8 @@ const fullTreeClick = function(e) {
             };
 
             for(const num of nums) {
-                const word = find.firstword(num);
-                const tds = find.tds(num);
+                const word = Find.firstword(num);
+                const tds = Find.tds(num);
                 if(tds.length === 0) continue;
                 const cl = word.closest('cl');
                 if(cl) {
@@ -2705,7 +2708,7 @@ const fullTreeClick = function(e) {
         
         startRenormalize: function(nums) {
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
             edit.doRenormalize(Math.min(...numss),Math.max(...numss));
         },
@@ -2715,22 +2718,22 @@ const fullTreeClick = function(e) {
             
             const changedrows = new Map();
 
-            const htmlrows = [...find.trs()];
-            const xmlrows = [...find.texts()];
+            const htmlrows = [...Find.trs()];
+            const xmlrows = [...Find.texts()];
             const rownums = rownum ? [rownum] : [...htmlrows.keys()];
 
             for(const r of rownums) {
                 const changedrow = new Map();
                 const xmlrow = xmlrows[r];
-                const allwords = [...find.words(false,xmlrow)];
-                const firstword = find.firstword(startnum,xmlrow);
-                const lastword = find.firstword(endnum,xmlrow);
+                const allwords = [...Find.words(false,xmlrow)];
+                const firstword = Find.firstword(startnum,xmlrow);
+                const lastword = Find.firstword(endnum,xmlrow);
                 const startn = allwords.indexOf(firstword);
                 const endn = allwords.indexOf(lastword);
                 const words = allwords.slice(startn, endn + 1);
 
                 const htmlrow = htmlrows[r];
-                const alltds = [...find.tds(false,htmlrow)];
+                const alltds = [...Find.tds(false,htmlrow)];
                 const tds = alltds.slice(startn, endn + 1);
 
                 const unnormwords = words.map(w => w.textContent);
@@ -2773,8 +2776,8 @@ const fullTreeClick = function(e) {
         doUnrenormalize: function(rowsmap,doing = 'undo') {
             const showNormalized = check.normalizedView();
             const undomap = new Map();
-            const htmlrows = [...find.trs()];
-            const xmlrows = [...find.texts()];
+            const htmlrows = [...Find.trs()];
+            const xmlrows = [...Find.texts()];
 
             for(const [rownum, row] of rowsmap.entries()) {
                 const htmlrow = htmlrows[rownum];
@@ -2782,8 +2785,8 @@ const fullTreeClick = function(e) {
                 const undorowmap = new Map();
 
                 for(const [n, normword] of row.entries()) {
-                    const td = find.firsttd(n,htmlrow);
-                    const word = find.firstword(n,xmlrow);
+                    const td = Find.firsttd(n,htmlrow);
+                    const word = Find.firstword(n,xmlrow);
 
                     const undo = word.hasAttribute('lemma') ?
                         word.getAttribute('lemma') :
@@ -2836,7 +2839,7 @@ const fullTreeClick = function(e) {
                 if(!check.anyhighlit())
                     multi.clearTrees();
                 else
-                    multi.repopulateTrees(...find.lowhigh(find.highlit()));
+                    multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
             }
 
             view.updateAllHeaders(true);
@@ -2852,7 +2855,7 @@ const fullTreeClick = function(e) {
             if(!check.anyhighlit())
                 multi.clearTrees();
             else
-                multi.repopulateTrees(...find.lowhigh(find.highlit()));
+                multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
 
             view.updateAllHeaders(true);
             view.xScrollToHighlit();
@@ -2868,8 +2871,8 @@ const fullTreeClick = function(e) {
 
         updateHeaders(nums) {
             for(const num of nums) {
-                const th = find.firstth(num);
-                const [count,unique] = find.readings(num);
+                const th = Find.firstth(num);
+                const [count,unique] = Find.readings(num);
                 const readspan = th.querySelector('span.readings');
                 const readings = count < 2 ? count : `${count}(${unique.size})`;
                 readspan.textContent = readings;
@@ -2877,10 +2880,10 @@ const fullTreeClick = function(e) {
         },
     
         updateAllHeaders(readingsonly = false) {
-            const trs = [...find.trs()];
-            const trwalkers = trs.map(tr => find.trWalker(tr));
-            const tds = [...find.tds(false,trs[0])];
-            const ths = [...find.ths()];
+            const trs = [...Find.trs()];
+            const trwalkers = trs.map(tr => Find.trWalker(tr));
+            const tds = [...Find.tds(false,trs[0])];
+            const ths = [...Find.ths()];
             const head = _state.matrix.boxdiv.querySelector('tr.header');
             const newTh = function() {
                 const th = document.createElement('th');
@@ -2923,13 +2926,13 @@ const fullTreeClick = function(e) {
             }
         },
         xScrollToHighlit: function() {
-            const hl = find.highlit();
+            const hl = Find.highlit();
             if(hl.size > 0) view.xScroll([...hl][0]);
         },    
         xScroll: function(num,row) {
             if(!num) return;
-            const par = row || find.firsttr();
-            const el = find.firsttd(num,par);
+            const par = row || Find.firsttr();
+            const el = Find.firsttd(num,par);
             const elrect = el.getBoundingClientRect();
             const matrix = _state.matrix.boxdiv;
             const matrixrect = matrix.getBoundingClientRect();
@@ -2946,346 +2949,6 @@ const fullTreeClick = function(e) {
         },
     };
 
-    const find = {
-        basename: function() {
-            return _state.filename.split(/\.[^.]+$/)[0];
-        },
-        range: function(a,b) {
-            return Array.from(Array(parseInt(b)-parseInt(a)+1).keys(), x => x+a);
-        },
-        maxlemma: function() {
-            return [...find.firsttext().querySelectorAll('w[n]')].length-1;
-        },
-        lemmata: function(num,par) {
-            const el = par ? par : document.querySelector('#views');
-            return num === false ?
-                el.querySelectorAll('.lemma') :
-                el.querySelectorAll(`.lemma[data-n="${num}"]`);
-        },
-
-        tds: function(num,row) {
-            const el = row ? row : _state.matrix.boxdiv;
-            if(num === false)
-                return el.querySelectorAll('td[data-n]');
-            else
-                return el.querySelectorAll(`td[data-n="${num}"]`);
-        },
-
-        firsttd: function(num,row) {
-            const el = row ? row : _state.matrix.boxdiv;
-            return el.querySelector(`td[data-n="${num}"]`);
-        },
-
-        tr: function(label) {
-            return _state.matrix.boxdiv.querySelector(`tr[data-n="${label}"]`);
-        },
-
-        trs: function(element) {
-            const el = element ? element : _state.matrix.boxdiv;
-            return el.querySelectorAll('tr[data-n]');
-        },
-
-        firsttr: function(element) {
-            const el = element ? element : _state.matrix.boxdiv;
-            return el.querySelector('tr[data-n]');
-        },
-        lasttr: function(element) {
-            const el = element ? element : _state.matrix.boxdiv;
-            return el.querySelector('tr[data-n]:last-of-type');
-        },
-    
-        trWalker: function(tr) {
-            return document.createNodeIterator(tr,NodeFilter.SHOW_ELEMENT,
-                {acceptNode: function(node) {if(node.tagName === 'TD') return NodeFilter.FILTER_ACCEPT;}},
-                false);
-        },
-
-        textWalker: function(text) {
-            return document.createNodeIterator(text,NodeFilter.SHOW_ELEMENT,
-                {acceptNode: function(node) {if(node.tagName.toLowerCase() === 'w') return NodeFilter.FILTER_ACCEPT;}},
-                false);
-        },
-
-        tei: function(label, doc = _state.xml) {
-            return doc.querySelector(`TEI[n="${label}"]`);
-        },
-
-        teis: function(doc = _state.xml) {
-            return doc.querySelectorAll('TEI');
-        },
-
-        texts: function(element) {
-            const el = element ? element : _state.xml;
-            return el.querySelectorAll('text');
-        },
-    
-        serializedtexts: function(tree) {
-            const otus = [...tree.querySelectorAll('otu[label]')].map(el => el.getAttribute('label'));
-            const teis = [...find.teis()].filter(el => otus.indexOf(el.getAttribute('n')) !== -1);
-            return new Map(
-                teis.map(t => [
-                    tree.querySelector(`node[label="${t.getAttribute('n')}"]`).getAttribute('id'),
-                    [...t.querySelectorAll('w')].map(w => {
-                        return check.normalizedView() && w.hasAttribute('lemma') ?
-                            w.getAttribute('lemma') :
-                            w.textContent;
-                    })
-                ])
-            );
-        },
-    
-        serializedlevels: function(levels) {
-            return levels.map(arr => {
-                if(arr instanceof Map) {
-                    const newmap = new Map();
-                    for(const [key,value] of arr)  {
-                        newmap.set(key.getAttribute('id'),value.map(node => node.getAttribute('id')));
-                    }
-                    return newmap;
-                }
-                else {
-                    return arr.map(node => node.getAttribute('id'));
-                }
-            });
-        },
-
-        firsttext: function(id) {
-            return !id ? 
-                _state.xml.querySelector('text') :
-                _state.xml.querySelector(`[n="${id}"] text`);
-        },
-
-        words: function(num,text) {
-            const el = text ? text : _state.xml;
-            if(num === false)
-                return el.querySelectorAll('w[n]');
-            else
-                return el.querySelectorAll(`w[n="${num}"]`);
-        },
-
-        firstword: function(num,row) {
-            const el = row ? row : _state.xml;
-            return el.querySelector(`w[n="${num}"]`);
-        },
-
-        normal: function(el) {
-            const par = el ? el : document.getElementById('views');
-            //const par = el ? el : _state.matrix.boxdiv;
-            return par.querySelectorAll('.lemma[data-normal], .tree-lemma[data-normal]');
-        },
-    
-        htmlreading: function(el) {
-            return check.normalizedView() && el.dataset.normal ?
-                el.dataset.normal :
-                el.IAST.textContent;
-        },
-    
-        xmlreading: function(label,n) {
-            const el = _state.xml.querySelector(`TEI[n="${label}"] > text > w[n="${n}"]`);
-            return check.normalizedView() && el.hasAttribute('lemma') ?
-                el.getAttribute('lemma') :
-                el.textContent;
-        },
-    
-        xmlreadings: function(label) {
-            const els = [..._state.xml.querySelectorAll(`TEI[n="${label}"] > text > w`)];
-
-            return els.map(el => {
-                check.normalizedView() && el.hasAttribute('lemma') ?
-                    el.getAttribute('lemma') :
-                    el.textContent;
-            });
-        },
-
-        ths: function() {
-            return _state.matrix.boxdiv.querySelectorAll('th[data-ref]');
-        },
-
-        firstth: function(num) {
-            return _state.matrix.boxdiv.querySelector(`th[data-ref="${num}"]`);
-        },
-        checkbox: function(num,type) {
-            return _state.matrix.boxdiv.querySelector(`th[data-ref="${num}"] input.${type}`);
-        },
-
-        highlit: function() {
-            const firstrow = find.firsttr();
-            const lemmata = firstrow.querySelectorAll('.highlit');
-            //if(lemmata.length === 0) return false;
-            const nums = new Set();
-            for(const lemma of lemmata) {
-                nums.add(lemma.dataset.n);
-            }
-            return nums;
-        },
-
-        highlitcell: function() {
-            return _state.matrix.boxdiv.querySelector('td.highlitcell');
-        },
-
-        highlitrow: function() {
-            const highlitcell = find.highlitcell();
-            return highlitcell ? highlitcell.closest('tr') : false;
-        },
-
-        lowhigh: function(nums) {
-            const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
-            const low = parseInt(sortednums[0]);
-            const high = sortednums.length > 1 ?
-                parseInt(sortednums[sortednums.length-1]) :
-                undefined;
-            return [low,high];
-        },
-
-        readings: function(num, element) {
-            const el = element ? element : _state.matrix.boxdiv;
-            const tds = find.tds(num,el);
-            var count = 0;
-            const unique = new Set();
-            for(const td of tds) {
-                const txt = td.textContent;
-                if(txt !== '') {
-                    count++;
-                    unique.add(txt);
-                }
-            }
-            return [count,unique.size];
-        },
-
-        attr: function(type,nums) {
-            const firstrow = find.firsttr();
-            var states = [];
-            for(const num of nums) {
-                const cell = find.firsttd(num,firstrow);
-                if(cell.dataset[type] === 'true')
-                    states.push([num,true]);
-                else
-                    states.push([num,false]);
-            }
-            return new Map(states);
-        },
-    
-        whichattr: function(el) {
-            if(el.hasAttribute('n')) return 'n';
-            else if(el.hasAttribute('data-n')) return 'data-n';
-            else if(el.hasAttribute('data-ref')) return 'data-ref';
-            else return false;
-        },
-
-        clauses: function(nums,strict = false) {
-            const firstrow = find.firsttext();
-            var someungrouped = false;
-
-            // make a list of clauses
-            const cls = new Set();
-            for(const num of nums) {
-                const word = find.firstword(num,firstrow);
-                const cl = word.closest('cl');
-                if(cl) cls.add(cl);
-                else if(strict) someungrouped = true;
-            }
-        
-            if(cls.size === 0) return false;
-            else {
-            // get list of numbers in each clause
-                const clgroups = [...cls].map(cl => {
-                    const words = cl.querySelectorAll('w');
-                    return new Set([...words].map(w => w.getAttribute('n')));
-                });
-                if(someungrouped) {
-                    return [null].concat(clgroups);
-                }
-                else
-                    return clgroups;
-            }
-        },
-    
-        clausesToRemove: function(clgroups,nums,threshold = 0) {
-            const toremove = new Set();
-            for(const group of clgroups) {
-                const clone = new Set(group);
-                for(const num of nums)
-                    clone.delete(num);
-                if(clone.size <= threshold)
-                    toremove.add(group);
-            }
-            return [...toremove];
-        },
-    
-        empty: function() {
-            const emptyset = new Set();
-            const trs = [...find.trs()];
-            const trWalkers = trs.map(el => find.trWalker(el));
-            const max = trs[0].querySelector('td:last-of-type').dataset.n;
-            for(let n=0;n<=max;n++) {
-                var emptylemma = true;
-                for(const walker of trWalkers) {
-                    const word = walker.nextNode();
-                    if(emptylemma) {
-                        if(word.textContent !== '')
-                            emptylemma = false;
-                    }
-                }
-                if(emptylemma) emptyset.add(n);
-            }
-            return emptyset;
-        },
-
-        prevNonempty: function(index,arr) {
-            for(let n=index;n>=0;n--) {
-                const td = arr[n];
-                if(td.textContent !== '') return n;
-            }
-            return false;
-            /*         var n = num;
-        var td = find.firsttd(n,row);
-        while(td) {
-            if(td.textContent !== '') return n;
-            n--;
-            td = find.firsttd(n,row);
-        }
-        return num; */
-        },
-    
-        nextNonempty: function(index,arr) {
-            for(let n=index;n<arr.length;n++) {
-                const td = arr[n];
-                if(td.textContent !== '') return n;
-            }
-            return false;
-        },
-
-        setIntersection: function(...sets) {
-            const setA = sets[0];
-            return new Set(
-                [...setA].filter(el => {
-                    for(let n=1;n<sets.length;n++) {
-                        if(!sets[n].has(el))
-                            return false;
-                    }
-                    return true;
-                })
-            );
-        },
-
-        setUnion: function(...sets) {
-            return new Set(
-                sets.reduce((acc, cur) => {
-                    acc = [...acc,...cur];
-                    return acc;
-                },[])
-            );
-        },
-        cursorPos(el) {
-            const range = window.getSelection().getRangeAt(0);
-            const preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(el);
-            const fullLength = preCaretRange.toString().length;
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            const caretOffset = preCaretRange.toString().length;
-            return [caretOffset,fullLength];
-        },
-    };
 
     const check = {
         undo: function() {
@@ -3299,10 +2962,10 @@ const fullTreeClick = function(e) {
             if(!check.anyhighlit()) return false;
 
             const numss = nums === false ?
-                find.highlit() :
+                Find.highlit() :
                 nums;
 
-            const states = find.attr(type,numss);
+            const states = Find.attr(type,numss);
             for(const state of states.values())
                 if(state === false)
                     return false;
@@ -3310,11 +2973,11 @@ const fullTreeClick = function(e) {
         },
     
         grouped: function() {
-            const nums = find.highlit();
+            const nums = Find.highlit();
             if(!nums) return false;
-            const firstrow = find.firsttr();
+            const firstrow = Find.firsttr();
             for(const num of nums) {
-                const cell = find.firsttd(num,firstrow);
+                const cell = Find.firsttd(num,firstrow);
                 if(cell.classList.contains('group-start') ||
                cell.classList.contains('group-internal') ||
                cell.classList.contains('group-end'))
@@ -3323,11 +2986,11 @@ const fullTreeClick = function(e) {
             return false;
         },
         oneGrouped: function() {
-            const nums = find.highlit();
+            const nums = Find.highlit();
             if(nums.size === 0) return false;
             if(nums.size === 1) {
-                const firstrow = find.firsttr();
-                const cell = find.firsttd([...nums][0],firstrow);
+                const firstrow = Find.firsttr();
+                const cell = Find.firsttd([...nums][0],firstrow);
                 //const cell = firstrow.querySelector('td[data-n="'+[...nums][0]+'"]');
                 if(cell.classList.contains('group-start') ||
                cell.classList.contains('group-end') ||
@@ -3344,7 +3007,7 @@ const fullTreeClick = function(e) {
         },
 
         manyhighlit: function() {
-            return find.highlit().size > 1;
+            return Find.highlit().size > 1;
         },
 
         highlitcell: function() {
@@ -3373,9 +3036,9 @@ const fullTreeClick = function(e) {
             tei.appendChild(text);
             make.emptywords(text);
             */
-            const template = find.firsttext().cloneNode(true);
+            const template = Find.firsttext().cloneNode(true);
             tei.appendChild(template);
-            for(const w of find.words(false,template)) {
+            for(const w of Find.words(false,template)) {
                 w.removeAttribute('lemma');
                 while(w.firstChild)
                     w.firstChild.remove();
@@ -3415,7 +3078,7 @@ const fullTreeClick = function(e) {
             th.addEventListener('dragstart',events.thDragStart);
             tr.dataset.n = label;
             tr.appendChild(th);
-            const firstrow = find.firsttr();
+            const firstrow = Find.firsttr();
             for(const ftd of firstrow.querySelectorAll('td')) {
                 const td = document.createElement('td');
                 td.dataset.n = ftd.dataset.n;
@@ -3852,16 +3515,16 @@ const fullTreeClick = function(e) {
             for(const taxon of this.levels[0]) {
                 const label = taxon.getAttribute('label');
                 const treelemma = this.boxdiv.querySelector(`span.tree-lemma[data-id="${label}"]`);
-                const reading = treelemma ? [find.htmlreading(treelemma)] : [];
+                const reading = treelemma ? [Find.htmlreading(treelemma,check.normalizedView())] : [];
                 firstpass.set(taxon,new Set(reading));
             }
             for(let m=1;m<this.levels.length;m++) { // start at 1 (after taxa)
                 for(const [node,children] of this.levels[m]) {
                     const readings = children.map(node => firstpass.get(node));
-                    const intersection = find.setIntersection(...readings);
+                    const intersection = Find.setIntersection(...readings);
                     const result = intersection.size > 0 ?
                         intersection :
-                        find.setUnion(...readings);
+                        Find.setUnion(...readings);
                     firstpass.set(node,result);
 
                 }
@@ -3888,7 +3551,7 @@ const fullTreeClick = function(e) {
                         if(childreading.size === 1)
                             secondpass.set(child,childreading);
                         else {
-                            const intersection = find.setIntersection(ancestral,childreading);
+                            const intersection = Find.setIntersection(ancestral,childreading);
                             const result = intersection.size > 0 ?
                                 intersection :
                                 childreading;
@@ -3984,7 +3647,7 @@ const fullTreeClick = function(e) {
 
 
         makeLabels() {
-            const alltexts = [...find.texts()];
+            const alltexts = [...Find.texts()];
             const texts = new Set(alltexts.map(el => el.parentNode.getAttribute('n')));
             const reconstructed = new Map(
                 alltexts.filter(el =>
@@ -4037,16 +3700,16 @@ const fullTreeClick = function(e) {
             for(const el of this.boxdiv.getElementsByClassName(key)) {
                 el.innerHTML = '';
                 if(m)
-                    el.appendChild(xslt.transformString(
+                    el.appendChild(Xslt.transformString(
                         value.text.slice(n,parseInt(m)+1).join(' '),
                         proc));
                 else
-                    el.appendChild(xslt.transformString(
+                    el.appendChild(Xslt.transformString(
                         value.text[n],
                         proc));
                 el.IAST = el.cloneNode(true); // why was this commented out?
             } */
-            const texts = find.texts();
+            const texts = Find.texts();
             for(const text of texts) {
                 const key = text.parentNode.getAttribute('n');
                 const el = this.boxdiv.querySelector(`span.tree-lemma[data-id="${key}"]`) || this.boxdiv.querySelector(`span.tree-lemma[data-label="${key}"]`);
@@ -4058,13 +3721,13 @@ const fullTreeClick = function(e) {
                     const normarr = [];
                     var emended = false;
                     for(let x=n;x<=m;x++) {
-                        const word = find.firstword(x,text);
+                        const word = Find.firstword(x,text);
                         arr.push(word.innerHTML);
                         if(word.hasAttribute('lemma'))
                             normarr[x-n] = word.getAttribute('lemma');
                         if(word.hasAttribute('emended')) emended = true;
                     }
-                    el.IAST.appendChild(xslt.transformString(arr.join(' ').replace(/\s+/g,' ').trim(),xslt.sheets['tree']));
+                    el.IAST.appendChild(Xslt.transformString(arr.join(' ').replace(/\s+/g,' ').trim(),Xslt.sheets['tree']));
                     if(normarr.length !== 0) {
                         const newarr = arr.slice(0).map((e,i) =>
                             normarr.hasOwnProperty(i) ?
@@ -4072,15 +3735,15 @@ const fullTreeClick = function(e) {
                                 e
                         );
                         const temp = document.createElement('span');
-                        temp.appendChild(xslt.transformString(newarr.join(' ').replace(/\s+/g,' ').trim(),xslt.sheets['tree']));
+                        temp.appendChild(Xslt.transformString(newarr.join(' ').replace(/\s+/g,' ').trim(),Xslt.sheets['tree']));
                         el.dataset.normal = temp.innerHTML;
                     }
                     if(emended) el.dataset.emended = true;
                     else if(el.dataset.hasOwnProperty('emended')) delete el.dataset.emended;
                 }
                 else {
-                    const word = find.firstword(n,text);
-                    el.IAST.appendChild(xslt.transformString(word.innerHTML,xslt.sheets['tree']));
+                    const word = Find.firstword(n,text);
+                    el.IAST.appendChild(Xslt.transformString(word.innerHTML,Xslt.sheets['tree']));
                     if(word.hasAttribute('lemma'))
                         el.dataset.normal = word.getAttribute('lemma');
                     else
@@ -4164,7 +3827,7 @@ const fullTreeClick = function(e) {
             const makeLgLemma = function(str) {
                 if(!str.startsWith('<lg')) return str;
 
-                return xslt.transformString(str,xslt.sheets['lg']).firstChild.data.slice(1);
+                return Xslt.transformString(str,Xslt.sheets['lg']).firstChild.data.slice(1);
             };
 
             const multiLemmaConcat = function(arr) {
@@ -4177,16 +3840,16 @@ const fullTreeClick = function(e) {
 
             const getReading = check.normalizedView() ?
                 function(n,text) {
-                    const word = find.firstword(n,text);
+                    const word = Find.firstword(n,text);
                     return word.hasAttribute('lemma') ?
                         word.getAttribute('lemma') :
                         word.textContent;
                 } :
                 function(n,text) {
-                    return find.firstword(n,text).textContent;
+                    return Find.firstword(n,text).textContent;
                 };
 
-            for(const text of find.texts()) {
+            for(const text of Find.texts()) {
                 const key = text.parentNode.getAttribute('n');
             
                 // ignore reconstructions and texts not in current tree
@@ -4196,7 +3859,7 @@ const fullTreeClick = function(e) {
                 const lemma = m ?
                     multiLemmaConcat(
                     //Array.from(Array(parseInt(m)-n+1).keys(), p => p+n)
-                        find.range(n,m).map(x => getReading(x,text))
+                        Find.range(n,m).map(x => getReading(x,text))
                     ) :
                     makeLgLemma(getReading(n,text));
                 if(lemma === '')
@@ -4309,7 +3972,7 @@ const fullTreeClick = function(e) {
             //        this.textmap = arr;
             //this.desc = arr.get(name).desc;
             this.desc = name;
-            this.text = find.firsttext(name);
+            this.text = Find.firsttext(name);
         //this.text = arr.get(name).text;
         //this.name = name;
         }
@@ -4323,12 +3986,12 @@ const fullTreeClick = function(e) {
     
         refresh() {
         //this.text = _texts.get(this.name).text;
-        //this.text = find.firsttext(this.name);
+        //this.text = Find.firsttext(this.name);
             this.boxdiv.innerHTML = '';
-            this.boxdiv.appendChild(xslt.sheets['lemma'].transformToFragment(this.text,document));
+            this.boxdiv.appendChild(Xslt.sheets['lemma'].transformToFragment(this.text,document));
             //this.boxdiv.appendChild(XSLTransformElement(this.text,xslt_proc));
             touchUpNode(this.boxdiv);
-            for(const lemma of find.lemmata(false,this.boxdiv)) {
+            for(const lemma of Find.lemmata(false,this.boxdiv)) {
                 lemma.IAST = lemma.cloneNode(true);
             }
             //this.boxdiv.appendChild(csvToFrag(this.text));
@@ -4339,10 +4002,10 @@ const fullTreeClick = function(e) {
             const textbox = document.createElement('div');
             textbox.dataset.id = this.name; 
             textbox.classList.add('text-box');
-            textbox.appendChild(xslt.sheets['lemma'].transformToFragment(this.text,document));
+            textbox.appendChild(Xslt.sheets['lemma'].transformToFragment(this.text,document));
             //textbox.appendChild(XSLTransformElement(this.text,xslt_proc));
             touchUpNode(textbox);
-            for(const lemma of find.lemmata(false,textbox))
+            for(const lemma of Find.lemmata(false,textbox))
                 lemma.IAST = lemma.cloneNode(true);
             //textbox.appendChild(csvToFrag(this.text));
             //touchUp(textbox);
@@ -4383,7 +4046,7 @@ const fullTreeClick = function(e) {
             const scroller = document.createElement('div');
             scroller.classList.add('scroller');
 
-            scroller.append(xslt.sheets['matrix'].transformToFragment(_state.xml,document));
+            scroller.append(Xslt.sheets['matrix'].transformToFragment(_state.xml,document));
             //scroller.append(XSLTransformElement(_state.xml.documentElement,xslt_proc));
             for(const th of scroller.getElementsByTagName('th'))
                 th.addEventListener('dragstart',events.thDragStart);
@@ -4400,9 +4063,9 @@ const fullTreeClick = function(e) {
             const firsttd = document.createElement('td');
             firsttd.classList.add('anchor');
             head.appendChild(firsttd);
-            const trs = [...find.trs(scroller)];
-            const trwalkers = trs.map(tr => find.trWalker(tr));
-            const tds = find.tds(false,trs[0]);
+            const trs = [...Find.trs(scroller)];
+            const trwalkers = trs.map(tr => Find.trWalker(tr));
+            const tds = Find.tds(false,trs[0]);
 
             for(const td of tds) {
                 const th = document.createElement('th');
