@@ -1,4 +1,4 @@
-const HypherSa = {
+const hyphenation_sa = {
     id : 'sa',
     leftmin : 2,
     rightmin : 2,
@@ -9,4 +9,4 @@ const HypherSa = {
     },
 };
 
-export { HypherSa };
+export { hyphenation_sa };
