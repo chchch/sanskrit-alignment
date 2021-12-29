@@ -8,7 +8,8 @@
   "license": "BSD-3-Clause-Attribution",
   "devDependencies": {
     "@snowpack/plugin-webpack": "^3.0.0",
-    "snowpack": "^3.8.8"
+    "snowpack": "^3.8.8",
+    "snowpack-plugin-unicode": "^1.0.0"
   },
   "scripts": {
     "start": "snowpack dev",

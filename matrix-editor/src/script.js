@@ -2,14 +2,15 @@ import { Sanscript } from './lib/sanscript.mjs';
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
-import { lemmaXSLT, prettyXSLT, csvXSLT, matrixXSLT } from './lib/xsltsheet.mjs';
-import { treeXSLT, lgXSLT } from './lib/xsltsheet-tree.mjs';
+//import { lemmaXSLT, prettyXSLT, csvXSLT, matrixXSLT } from './lib/xsltsheet.mjs';
+//import { treeXSLT, lgXSLT } from './lib/xsltsheet-tree.mjs';
 
 import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js';
 //import { showSaveFilePicker } from 'native-file-system-adapter';
 
 import { Normalizer } from './lib/normalize.mjs';
 import { to, changeScript } from './lib/transliterate.mjs';
+import { xslt as _xslt } from './lib/xslt.mjs';
 
 import Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
@@ -41,23 +42,9 @@ window.comboView = (function() {
     };
 
     const Hyphenator = new Hypher(hyphenation_sa);
+    const xslt = new _xslt(_state, _const);
 
     /*** Pure functions ***/
-
-    const makeLgLemma = function(str) {
-        if(!str.startsWith('<lg')) return str;
-
-        const xslt_proc = makeXSLTProc(lgXSLT);
-        return XSLTransformString(str,xslt_proc).firstChild.data.slice(1);
-    };
-
-    const multiLemmaConcat = function(arr) {
-        return arr.map(lemma => {
-            return makeLgLemma(lemma);
-        }).join(' ')
-            .replace(/\s+/g,' ')
-            .trim();
-    };
 
     const pickColour = function(fadeFraction, rgbColor1, rgbColor2, rgbColor3) {
     // from https://gist.github.com/gskema/2f56dc2e087894ffc756c11e6de1b5ed
@@ -105,21 +92,6 @@ window.comboView = (function() {
             nums.add(lemma.dataset.n);
         }
         return nums;
-    };
-
-    const makeXSLTProc = function(sheet) {
-        var parser = new DOMParser();
-        const xslsheet = parser.parseFromString(sheet,'text/xml');
-        const xslt_proc = new XSLTProcessor();
-        xslt_proc.importStylesheet(xslsheet);
-        return xslt_proc;
-    };
-
-    const XSLTransformString = function(s,proc) {
-        const temp = _state.xml.createElementNS(_const.teins,'ab');
-        temp.innerHTML = s;
-        //temp.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
-        return proc.transformToFragment(temp,document);
     };
 
     const removeBox = function() {
@@ -855,10 +827,9 @@ window.comboView = (function() {
         },
 
         xml: async function(doc) {
-            const xslt_proc = makeXSLTProc(prettyXSLT);
             const str = new XMLSerializer().serializeToString(
                 //  XSLTransformElement(_state.xml,xslt_proc)
-                xslt_proc.transformToDocument(doc)
+                xslt.sheets['xml'].transformToDocument(doc)
             );
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = find.basename() + '.xml';
@@ -871,11 +842,10 @@ window.comboView = (function() {
         },
 
         csv: async function(doc) {
-            const xslt_proc = makeXSLTProc(csvXSLT);
             //const str = new XMLSerializer().serializeToString(XSLTransformElement(doc,xslt_proc));
             //const str = new XMLSerializer().serializeToString(xslt_proc.transformToDocument(_state.xml));
             //const str = xslt_proc.transformToDocument(_state.xml).documentElement.textContent;
-            const str = xslt_proc.transformToDocument(doc).documentElement.textContent;
+            const str = xslt.sheets['csv'].transformToDocument(doc).documentElement.textContent;
             const file = new Blob([str], {type: 'text/csv;charset=utf-8'});
             const fileURL = find.basename() + '.csv';
             const fileHandle = await showSaveFilePicker({
@@ -4063,16 +4033,15 @@ const fullTreeClick = function(e) {
         }
     
         populate(n,m) {
-            const proc = makeXSLTProc(treeXSLT);
             /*        for(const [key,value] of _texts)
             for(const el of this.boxdiv.getElementsByClassName(key)) {
                 el.innerHTML = '';
                 if(m)
-                    el.appendChild(XSLTransformString(
+                    el.appendChild(xslt.transformString(
                         value.text.slice(n,parseInt(m)+1).join(' '),
                         proc));
                 else
-                    el.appendChild(XSLTransformString(
+                    el.appendChild(xslt.transformString(
                         value.text[n],
                         proc));
                 el.IAST = el.cloneNode(true); // why was this commented out?
@@ -4095,7 +4064,7 @@ const fullTreeClick = function(e) {
                             normarr[x-n] = word.getAttribute('lemma');
                         if(word.hasAttribute('emended')) emended = true;
                     }
-                    el.IAST.appendChild(XSLTransformString(arr.join(' ').replace(/\s+/g,' ').trim(),proc));
+                    el.IAST.appendChild(xslt.transformString(arr.join(' ').replace(/\s+/g,' ').trim(),xslt.sheets['tree']));
                     if(normarr.length !== 0) {
                         const newarr = arr.slice(0).map((e,i) =>
                             normarr.hasOwnProperty(i) ?
@@ -4103,7 +4072,7 @@ const fullTreeClick = function(e) {
                                 e
                         );
                         const temp = document.createElement('span');
-                        temp.appendChild(XSLTransformString(newarr.join(' ').replace(/\s+/g,' ').trim(),proc));
+                        temp.appendChild(xslt.transformString(newarr.join(' ').replace(/\s+/g,' ').trim(),xslt.sheets['tree']));
                         el.dataset.normal = temp.innerHTML;
                     }
                     if(emended) el.dataset.emended = true;
@@ -4111,7 +4080,7 @@ const fullTreeClick = function(e) {
                 }
                 else {
                     const word = find.firstword(n,text);
-                    el.IAST.appendChild(XSLTransformString(word.innerHTML,proc));
+                    el.IAST.appendChild(xslt.transformString(word.innerHTML,xslt.sheets['tree']));
                     if(word.hasAttribute('lemma'))
                         el.dataset.normal = word.getAttribute('lemma');
                     else
@@ -4192,28 +4161,20 @@ const fullTreeClick = function(e) {
             const lemmata = [];
             const aliases = [];
 
-            /*        for(const [key,value] of _texts) {
-            const lemma = m ?
-                multiLemmaConcat(value.text.slice(n,parseInt(m)+1)) :
-                makeLgLemma(value.text[n]);
-            if(lemma === '')
-                if(lemmata.hasOwnProperty(''))
-                    lemmata[''].push(key);
-                else
-                    lemmata[''] = [key];
-            else {
-                const next_lemma = m ?
-                    findNextLemma2(value.text,m) :
-                    findNextLemma2(value.text,n);
-                const clean = normalize(lemma,next_lemma);
-                if(lemmata.hasOwnProperty(clean))
-                    lemmata[clean].push(key)
-                else lemmata[clean] = [key];
+            const makeLgLemma = function(str) {
+                if(!str.startsWith('<lg')) return str;
 
-                if(clean !== lemma)
-                    aliases[key] = clean;
-            }
-        } */
+                return xslt.transformString(str,xslt.sheets['lg']).firstChild.data.slice(1);
+            };
+
+            const multiLemmaConcat = function(arr) {
+                return arr.map(lemma => {
+                    return makeLgLemma(lemma);
+                }).join(' ')
+                    .replace(/\s+/g,' ')
+                    .trim();
+            };
+
             const getReading = check.normalizedView() ?
                 function(n,text) {
                     const word = find.firstword(n,text);
@@ -4224,6 +4185,7 @@ const fullTreeClick = function(e) {
                 function(n,text) {
                     return find.firstword(n,text).textContent;
                 };
+
             for(const text of find.texts()) {
                 const key = text.parentNode.getAttribute('n');
             
@@ -4363,8 +4325,7 @@ const fullTreeClick = function(e) {
         //this.text = _texts.get(this.name).text;
         //this.text = find.firsttext(this.name);
             this.boxdiv.innerHTML = '';
-            const xslt_proc = makeXSLTProc(lemmaXSLT);
-            this.boxdiv.appendChild(xslt_proc.transformToFragment(this.text,document));
+            this.boxdiv.appendChild(xslt.sheets['lemma'].transformToFragment(this.text,document));
             //this.boxdiv.appendChild(XSLTransformElement(this.text,xslt_proc));
             touchUpNode(this.boxdiv);
             for(const lemma of find.lemmata(false,this.boxdiv)) {
@@ -4378,8 +4339,7 @@ const fullTreeClick = function(e) {
             const textbox = document.createElement('div');
             textbox.dataset.id = this.name; 
             textbox.classList.add('text-box');
-            const xslt_proc = makeXSLTProc(lemmaXSLT);
-            textbox.appendChild(xslt_proc.transformToFragment(this.text,document));
+            textbox.appendChild(xslt.sheets['lemma'].transformToFragment(this.text,document));
             //textbox.appendChild(XSLTransformElement(this.text,xslt_proc));
             touchUpNode(textbox);
             for(const lemma of find.lemmata(false,textbox))
@@ -4423,8 +4383,7 @@ const fullTreeClick = function(e) {
             const scroller = document.createElement('div');
             scroller.classList.add('scroller');
 
-            const xslt_proc = makeXSLTProc(matrixXSLT);
-            scroller.append(xslt_proc.transformToFragment(_state.xml,document));
+            scroller.append(xslt.sheets['matrix'].transformToFragment(_state.xml,document));
             //scroller.append(XSLTransformElement(_state.xml.documentElement,xslt_proc));
             for(const th of scroller.getElementsByTagName('th'))
                 th.addEventListener('dragstart',events.thDragStart);

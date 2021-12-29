@@ -1,9 +1,35 @@
-const treeXSLT = 
-`<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-                xmlns:x="http://www.w3.org/1999/xhtml"
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+                xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
-<xsl:output method="html" omit-xml-declaration="yes"/>
-
+<xsl:output method="html"/>
+<xsl:template match="x:w">
+    <xsl:element name="span">
+        <xsl:attribute name="data-n"><xsl:value-of select="@n"/></xsl:attribute>
+        <xsl:if test="@lemma">
+            <xsl:attribute name="data-normal"><xsl:value-of select="@lemma"/></xsl:attribute>
+        </xsl:if>
+        <xsl:if test="@emended">
+            <xsl:attribute name="data-emended"><xsl:value-of select="@emended"/></xsl:attribute>
+        </xsl:if>
+       <xsl:choose>
+           <xsl:when test="not(normalize-space(.))">
+                <xsl:attribute name="class">lemma invisible</xsl:attribute>
+                <xsl:text>&#x00A0;</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:attribute name="class">lemma</xsl:attribute>
+            </xsl:otherwise>
+        </xsl:choose>
+        <xsl:apply-templates/>
+    </xsl:element>
+    <xsl:text>&#173;</xsl:text>
+</xsl:template>
+<xsl:template match="x:cl">
+    <xsl:element name="span">
+        <xsl:attribute name="class">group</xsl:attribute>
+        <xsl:apply-templates/>
+    </xsl:element>
+</xsl:template>
 <xsl:template match="x:pb">
     <xsl:element name="hr">
         <xsl:attribute name="data-n"><xsl:value-of select="@n"/></xsl:attribute>
@@ -83,11 +109,8 @@ const treeXSLT =
 
 <xsl:template match="x:lg">
   <xsl:element name="span">
-    <xsl:attribute name="class">tree-verse</xsl:attribute>
-    <xsl:attribute name="lang">en</xsl:attribute>
-    <xsl:text>[verse </xsl:text>
-    <xsl:value-of select="@n"/>
-    <xsl:text>]</xsl:text>
+    <xsl:attribute name="class">lg</xsl:attribute>
+    <xsl:apply-templates/>
   </xsl:element>
 </xsl:template>
 
@@ -97,17 +120,4 @@ const treeXSLT =
     <xsl:apply-templates/>
   </xsl:element>
 </xsl:template>
-</xsl:stylesheet>`;
-
-const lgXSLT =
-`<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
-                xmlns:x="http://www.w3.org/1999/xhtml"
-                exclude-result-prefixes="x">
-<xsl:output method="text" omit-xml-declaration="yes"/>
-<xsl:template match="x:lg">
-<xsl:value-of select="@n"/>
-</xsl:template>
 </xsl:stylesheet>
-`;
-
-export { treeXSLT, lgXSLT };

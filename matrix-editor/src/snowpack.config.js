@@ -7,11 +7,13 @@ module.exports = {
     /* ... */
   },
   plugins: [
+    ['snowpack-plugin-unicode', {
+        inputExtensions: ['.xsl'],
+        inputEncoding: 'utf-8'
+    }],
 /*    [
         '@snowpack/plugin-webpack',
-        {
-            },
-        },
+        {},
     ], */
   ],
   packageOptions: {
@@ -28,6 +30,7 @@ module.exports = {
       bundle: true,
       minify: true,
       target: 'es2018',
+      treeshake: true
   },
   
   exclude: [
