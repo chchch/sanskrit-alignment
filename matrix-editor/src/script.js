@@ -47,56 +47,6 @@ window.comboView = (function() {
     const Xslt = new _Xslt(_state, _const);
     const Find = new _Find(_state);
 
-    /*** Pure functions ***/
-
-    const pickColour = function(fadeFraction, rgbColor1, rgbColor2, rgbColor3) {
-    // from https://gist.github.com/gskema/2f56dc2e087894ffc756c11e6de1b5ed
-        var color1 = rgbColor1;
-        var color2 = rgbColor2;
-        var fade = fadeFraction;
-
-        // Do we have 3 colors for the gradient? Need to adjust the params.
-        if (rgbColor3) {
-            fade = fade * 2;
-
-            // Find which interval to use and adjust the fade percentage
-            if (fade >= 1) {
-                fade -= 1;
-                color1 = rgbColor2;
-                color2 = rgbColor3;
-            }
-        }
-
-        const diffRed = color2.red - color1.red;
-        const diffGreen = color2.green - color1.green;
-        const diffBlue = color2.blue - color1.blue;
-
-        const gradient = {
-            red: parseInt(Math.floor(color1.red + (diffRed * fade)), 10),
-            green: parseInt(Math.floor(color1.green + (diffGreen * fade)), 10),
-            blue: parseInt(Math.floor(color1.blue + (diffBlue * fade)), 10),
-        };
-
-        return 'rgb(' + gradient.red + ',' + gradient.green + ',' + gradient.blue + ')';
-    };
-
-    const findSelection = function() {    
-        const sel = window.getSelection();
-        if(sel.isCollapsed) return false;
-    
-        const range = (sel.rangeCount > 1) ? // firefox returns multiple ranges, chrome doesn't
-            sel.getRangeAt(1).cloneContents() :
-            sel.getRangeAt(0).cloneContents();
-        if(!range) return false;
-
-        const nums = new Set();
-        const lemmata = range.querySelectorAll('.lemma');
-        for(const lemma of lemmata) {
-            nums.add(lemma.dataset.n);
-        }
-        return nums;
-    };
-
     const removeBox = function() {
         const box = document.getElementById('tooltip');
         if(box) box.remove();
@@ -1446,7 +1396,7 @@ const fullTreeClick = function(e) {
         },
 
         textMouseup() {
-            const nums = findSelection();
+            const nums = Find.selection();
             multi.highlightRange(nums);
             clearSelection();
         },
@@ -3936,6 +3886,37 @@ const fullTreeClick = function(e) {
                 .reduce((acc,cur) => parseFloat(acc)+parseFloat(cur));
         }
     
+        pickColour(fadeFraction, rgbColor1, rgbColor2, rgbColor3) {
+        // from https://gist.github.com/gskema/2f56dc2e087894ffc756c11e6de1b5ed
+            var color1 = rgbColor1;
+            var color2 = rgbColor2;
+            var fade = fadeFraction;
+
+            // Do we have 3 colors for the gradient? Need to adjust the params.
+            if (rgbColor3) {
+                fade = fade * 2;
+
+                // Find which interval to use and adjust the fade percentage
+                if (fade >= 1) {
+                    fade -= 1;
+                    color1 = rgbColor2;
+                    color2 = rgbColor3;
+                }
+            }
+
+            const diffRed = color2.red - color1.red;
+            const diffGreen = color2.green - color1.green;
+            const diffBlue = color2.blue - color1.blue;
+
+            const gradient = {
+                red: parseInt(Math.floor(color1.red + (diffRed * fade)), 10),
+                green: parseInt(Math.floor(color1.green + (diffGreen * fade)), 10),
+                blue: parseInt(Math.floor(color1.blue + (diffBlue * fade)), 10),
+            };
+
+            return 'rgb(' + gradient.red + ',' + gradient.green + ',' + gradient.blue + ')';
+        }
+
         colourizeVariants(n,m) {
             const paths = this.analyzeVariants(n,m);
             for(const el of this.boxdiv.querySelectorAll('span.tree-lemma')) {
@@ -3945,13 +3926,13 @@ const fullTreeClick = function(e) {
                 const red = {red: 252, green: 70, blue: 107};
                 const blue = {red: 63, green: 94, blue: 251};
                 if(path) {
-                    el.style.color = pickColour(path.length/this.longest.path.length,blue,red);
+                    el.style.color = this.pickColour(path.length/this.longest.path.length,blue,red);
                     el.dataset.length = path.length;
                     el.dataset.branch_length = path.branch_length;
                     el.dataset.nodes = path.paths[0].nodes.join(';');
                 }
                 else {
-                    el.style.color = pickColour(1/this.longest.path.length,blue,red);
+                    el.style.color = this.pickColour(1/this.longest.path.length,blue,red);
                     el.dataset.length = 0;
                     el.dataset.branch_length = 0;
                     el.dataset.nodes = '';

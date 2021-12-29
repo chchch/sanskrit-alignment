@@ -328,6 +328,7 @@ const find = function(_state) {
             },[])
         );
     };
+
     this.cursorPos = function(el) {
         const range = window.getSelection().getRangeAt(0);
         const preCaretRange = range.cloneRange();
@@ -336,6 +337,23 @@ const find = function(_state) {
         preCaretRange.setEnd(range.endContainer, range.endOffset);
         const caretOffset = preCaretRange.toString().length;
         return [caretOffset,fullLength];
+    };
+
+    this.selection = function() {    
+        const sel = window.getSelection();
+        if(sel.isCollapsed) return false;
+    
+        const range = (sel.rangeCount > 1) ? // firefox returns multiple ranges, chrome doesn't
+            sel.getRangeAt(1).cloneContents() :
+            sel.getRangeAt(0).cloneContents();
+        if(!range) return false;
+
+        const nums = new Set();
+        const lemmata = range.querySelectorAll('.lemma');
+        for(const lemma of lemmata) {
+            nums.add(lemma.dataset.n);
+        }
+        return nums;
     };
 };
 
