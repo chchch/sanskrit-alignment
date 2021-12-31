@@ -2,9 +2,6 @@ import { Sanscript } from './lib/sanscript.mjs';
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
-//import { lemmaXSLT, prettyXSLT, csvXSLT, matrixXSLT } from './lib/xsltsheet.mjs';
-//import { treeXSLT, lgXSLT } from './lib/xsltsheet-tree.mjs';
-
 import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js';
 //import { showSaveFilePicker } from 'native-file-system-adapter';
 
@@ -12,6 +9,7 @@ import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { find as _Find } from './lib/find.mjs';
+import { check as _Check } from './lib/check.mjs';
 import { workerFunc } from './lib/worker.mjs';
 
 import _Hypher from 'hypher';
@@ -46,6 +44,7 @@ window.comboView = (function() {
     const Hypher = new _Hypher(hyphenation_sa);
     const Xslt = new _Xslt(_state, _const);
     const Find = new _Find(_state);
+    const Check = new _Check(_state, Find);
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -213,7 +212,7 @@ window.comboView = (function() {
         },
 
         highlightAll: function() {
-            if(check.anyhighlit()) multi.unHighlightAll();
+            if(Check.anyhighlit()) multi.unHighlightAll();
             else multi.highlightRange(new Set([0,Find.maxlemma()]));
         },
 
@@ -384,161 +383,7 @@ window.comboView = (function() {
             if(show) newBox.tree(stemmaid,id);
         }
     };
-    /*
-    const csvLoad = function(f,fs,e) {
-        _state.filename = f.name;
-        const ext = _state.filename.split('.').pop();
-        var csvarr = [];
-        if(ext === 'csv') {
-            _state.xml = document.implementation.createDocument(_const.teins,'',null);
-            const teicorpus = _state.xml.createElementNS(_const.teins,'teiCorpus');
-            const teiheader = _state.xml.createElementNS(_const.teins,'teiHeader');
-            teicorpus.appendChild(teiheader);
-            _state.xml.appendChild(teicorpus);
-            const csvstr = e.target.result;
-            csvarr = csvstr.trim().split(/\n+/)
-                .map(s => s.replace(/""/g,'').split(','))
-                .map(a => {
-                    const name = a.shift();
-                    const tei = _state.xml.createElementNS(_const.teins,'TEI');
-                    //tei.setAttribute('xmlns','http://www.tei-c.org/ns/1.0');
-                    tei.setAttribute('n',name);
-                    const text = _state.xml.createElementNS(_const.teins,'text');
-                    //text.setAttribute('xmlns','http://www.tei-c.org/ns/1.0');
-                    //const root = document.createElementNS('http://www.w3.org/1999/xhtml','text');
-                    //root.setAttribute('n',name);
-                    for(let n=0;n<a.length;n++) {
-                        const word = a[n];
-                        //const newEl = document.createElementNS('http://www.tei-c.org/ns/1.0','w');
-                        //newEl.setAttribute('xmlns','http://www.tei-c.org/ns/1.0');
-                        const newEl = _state.xml.createElementNS(_const.teins,'w');
-                        //newEl.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
-                        if(word !== '')
-                            newEl.appendChild(document.createTextNode(word));
-                        newEl.setAttribute('n',n);
-                        text.appendChild(newEl);
-                    //root.appendChild(newEl);
-                    }
-                    tei.appendChild(text);
-                    //_state.xml.appendChild(text);
-                    teicorpus.appendChild(tei);
-                    //_state.xml.appendChild(root);
-                    return [name, {desc: name, text: a}];
-                });
-            _state.xml.normalize();
-        }
-        else if(ext === 'xml') {
-            const xParser = new DOMParser();
-            _state.xml = xParser.parseFromString(e.target.result,'text/xml');
-            const teis = _state.xml.querySelectorAll('TEI');
-            for(const tei of teis) {
-                const name = tei.getAttribute('n');
-                const words = tei.querySelectorAll('w');
-                const wordarr = [...words].map(el => el.textContent);
-                csvarr.push([name,{desc: name, text: wordarr}]);
-            }
-            const trees = _state.xml.querySelectorAll('teiHeader xenoData stemma nexml');
-            for(const tree of trees) {
-                const nexml = document.implementation.createDocument('http://www.nexml.org/2009','',null);
-                nexml.appendChild(tree.cloneNode(true));
-                treeXMLLoad(nexml,tree.closest('stemma').id,false);
-            }
-        }
-        //_texts = new Map(csvarr);
-        //_state.maxlemma = _texts.get(_texts.keys().next().value).text.length;
-        //_state.maxlemma = Find.firsttext().lastElementChild.getAttribute('n');
-        _state.maxlemma = Find.maxlemma();
 
-        //var mss = Array.from(_texts.keys());
-        //mss.sort();
-        var msshtml = '';
-        const mss = [...Find.teis()].map(el => el.getAttribute('n'));
-        for(const ms of mss)
-        //    msshtml += `<li data-name="${ms}">${_texts.get(ms).desc}</li>`;
-            msshtml += `<li data-name="${ms}">${ms}</li>`;
-        document.getElementById('menu').querySelector('.ms').innerHTML = msshtml;
-        const expbox = new menuBox('Export');
-        expbox.populate([
-            {text: 'TEI XML', func: exp.xml},
-            {text: 'CSV', func: exp.showOptions.bind(null,exp.csv)},
-            {text: 'NEXUS', func: exp.showOptions.bind(null,exp.nexus)}
-        ]);
-        const editbox = new menuBox('Edit');
-        editbox.populate([
-            {text: 'Undo', greyout: check.undo, func: edit.undo},
-            {text: 'Redo', greyout: check.redo, func: edit.redo},
-            {text: 'Delete',
-                greyout: check.anyhighlit,
-                func: edit.startRemoveCol.bind(null,false)
-            },
-            {text: 'Delete empty lemmata',
-                func: edit.startRemoveEmptyewBox.matrix);
-        matrixmenu.removeChild(matrixmenu.querySelector('ul'));
-        document.getElementById('mssmenu').style.display = 'block';
-        document.getElementById('treemenu').style.display = 'block';
-
-    };
-*
-            },
-            {text: 'Merge',
-                greyout: check.manyhighlit,
-                func: edit.startMerge.bind(null,false)
-            },
-            {text: 'Group',
-                alt: 'Ungroup',
-                greyout: check.oneGrouped,
-                toggle: check.grouped,
-                func: edit.startGroup.bind(null,false),
-            },
-            {text: 'Edit reading',
-                greyout: check.highlitcell,
-                func: edit.startEditCell.bind(null,false),
-            },
-            {text: 'Insert row',
-                func: edit.startNewRow,
-            },
-            {text: 'Insignificant',
-                checkbox: check.checkbox.bind(null,'insignificant',false),
-                greyout: check.anyhighlit,
-                func: edit.startMarkAs.bind(null,'insignificant',false)
-            },
-            {text: 'Binary',
-                checkbox: check.checkbox.bind(null,'binary',false),
-                greyout: check.anyhighlit,
-                func: edit.startMarkAs.bind(null,'binary',false)
-            },
-        ]);
-
-        const viewbox = new menuBox('View');
-        viewbox.populate([
-            {text: 'Header',
-                checkbox: check.headerView,
-                func: view.toggleHeader,
-            },
-            {text: 'Normalize',
-                checkbox: check.normalizedView,
-                func: view.toggleNormalize,
-            },
-        ]);
-
-        const left_menu = document.getElementById('left_menu');
-        left_menu.appendChild(viewbox.box);
-        left_menu.appendChild(editbox.box);
-        left_menu.appendChild(expbox.box);
-   
-        const views = document.getElementById('views');
-        views.style.justifyContent = 'flex-start';
-        views.removeChild(views.querySelector('#splash'));
-
-        newBox.matrix();
-        const matrixmenu = document.getElementById('matrixmenu');
-        matrixmenu.addEventListener('click',newBox.matrix);
-        matrixmenu.removeChild(matrixmenu.querySelector('ul'));
-        document.getElementById('mssmenu').style.display = 'block';
-        document.getElementById('treemenu').style.display = 'block';
-
-    };
-*/
     const csvLoad = function(f,fs,e) {
         const csvarr = CSV.parse(e.target.result,{delimiter: ','});
         _state.xml = document.implementation.createDocument(_const.teins,'',null);
@@ -687,56 +532,56 @@ window.comboView = (function() {
         ]);
         const editbox = new menuBox('Edit');
         editbox.populate([
-            {text: 'Undo', greyout: check.undo, func: edit.undo},
-            {text: 'Redo', greyout: check.redo, func: edit.redo},
+            {text: 'Undo', greyout: Check.undo, func: edit.undo},
+            {text: 'Redo', greyout: Check.redo, func: edit.redo},
             {text: 'Select all',
                 alt: 'Deselect all',
-                toggle: check.anyhighlit,
+                toggle: Check.anyhighlit,
                 func: multi.highlightAll
             },
             {text: '(Re)normalize columns',
-                greyout: check.anyhighlit,
+                greyout: Check.anyhighlit,
                 func: edit.startRenormalize.bind(null,false)
             },
             {text: 'Delete column',
-                greyout: check.anyhighlit,
+                greyout: Check.anyhighlit,
                 func: edit.startRemoveCol.bind(null,false)
             },
             {text: 'Delete empty columns',
                 func: edit.startRemoveEmpty
             },
             {text: 'Merge columns',
-                greyout: check.manyhighlit,
+                greyout: Check.manyhighlit,
                 func: edit.startMerge.bind(null,false)
             },
             {text: 'Group columns',
                 alt: 'Ungroup columns',
-                greyout: check.oneGrouped,
-                toggle: check.grouped,
+                greyout: Check.oneGrouped,
+                toggle: Check.grouped,
                 func: edit.startGroup.bind(null,false),
             },
             {text: 'Group words',
                 func: edit.doGroupWords
             },
             {text: 'Edit cell',
-                greyout: check.highlitcell,
+                greyout: Check.highlitcell,
                 func: edit.startEditCell.bind(null,false),
             },
             {text: 'Insert row',
                 func: edit.startNewRow,
             },
             {text: 'Insert column',
-                greyout: check.anyhighlit,
+                greyout: Check.anyhighlit,
                 func: edit.startInsertCol
             },
             {text: 'Mark insignificant',
-                checkbox: check.checkbox.bind(null,'insignificant',false),
-                greyout: check.anyhighlit,
+                checkbox: Check.checkbox.bind(null,'insignificant',false),
+                greyout: Check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'insignificant',false)
             },
             {text: 'Mark binary',
-                checkbox: check.checkbox.bind(null,'binary',false),
-                greyout: check.anyhighlit,
+                checkbox: Check.checkbox.bind(null,'binary',false),
+                greyout: Check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'binary',false)
             },
         ]);
@@ -744,12 +589,12 @@ window.comboView = (function() {
         const viewbox = new menuBox('View');
         viewbox.populate([
             {text: 'Header',
-                checkbox: check.headerView,
+                checkbox: Check.headerView,
                 func: view.toggleHeader,
             },
             {text: 'Normalized',
-                checkbox: check.normalizedView,
-                greyout: check.anyNormalized,
+                checkbox: Check.normalizedView,
+                greyout: Check.anyNormalized,
                 func: view.toggleNormalize,
             },
         ]);
@@ -1588,18 +1433,18 @@ const fullTreeClick = function(e) {
                         },
                         {text: 'ungroup columns',
                             alt: 'group columns',
-                            toggle: check.grouped,
+                            toggle: Check.grouped,
                             func: edit.startGroup.bind(null,false)
                         },
                         {text: 'delete columns',
                             func: edit.startRemoveCol.bind(null,nums)
                         },
                         /*                {text: 'insignificant',
-                     cond: check.checkbox.bind(null,'insignificant',nums),
+                     cond: Check.checkbox.bind(null,'insignificant',nums),
                      func: edit.startMarkAs.bind(null,'insignificant',nums),
                     },
                     {text: 'binary',
-                     cond: check.checkbox.bind(null,'binary',nums),
+                     cond: Check.checkbox.bind(null,'binary',nums),
                      func: edit.startMarkAs.bind(null,'binary',nums),
                     }, */
                     ] : 
@@ -1614,11 +1459,11 @@ const fullTreeClick = function(e) {
                             func: edit.startInsertCol
                         },
                         /*                {text: 'insignificant',
-                     cond: check.checkbox.bind(null,'insignificant',nums),
+                     cond: Check.checkbox.bind(null,'insignificant',nums),
                      func: edit.startMarkAs.bind(null,'insignificant',nums),
                     },
                     {text: 'binary',
-                     cond: check.checkbox.bind(null,'binary',nums),
+                     cond: Check.checkbox.bind(null,'binary',nums),
                      func: edit.startMarkAs.bind(null,'binary',nums),
                     }, */
                     ];
@@ -1709,7 +1554,7 @@ const fullTreeClick = function(e) {
             const numss = nums === false ?
                 Find.highlit() :
                 nums;
-            if(check.grouped())
+            if(Check.grouped())
                 edit.startUngroup(numss);
             else
                 edit.doGroup(numss,'do');
@@ -2015,7 +1860,7 @@ const fullTreeClick = function(e) {
 
             const workerblob = new Blob(['('+workerFunc.toString()+')()'],{type: 'application/javascript'});
             const fitchWorker = new Worker(window.URL.createObjectURL(workerblob));
-            const normalized = check.normalizedView();
+            const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
             const seriallevels = Find.serializedlevels(tree.levels,normalized);
 
@@ -2577,7 +2422,7 @@ const fullTreeClick = function(e) {
             for(const textbox of _state.textboxes)
                 textbox.refresh();
             multi.rehighlight();
-            if(!check.anyhighlit())
+            if(!Check.anyhighlit())
                 multi.clearTrees();
             else
                 multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
@@ -2665,7 +2510,7 @@ const fullTreeClick = function(e) {
         },
 
         doRenormalize: function(startnum, endnum, rownum=false, doing='do') {
-            const showNormalized = check.normalizedView();
+            const showNormalized = Check.normalizedView();
             
             const changedrows = new Map();
 
@@ -2725,7 +2570,7 @@ const fullTreeClick = function(e) {
         },
         
         doUnrenormalize: function(rowsmap,doing = 'undo') {
-            const showNormalized = check.normalizedView();
+            const showNormalized = Check.normalizedView();
             const undomap = new Map();
             const htmlrows = [...Find.trs()];
             const xmlrows = [...Find.texts()];
@@ -2773,7 +2618,7 @@ const fullTreeClick = function(e) {
 
     const view = {
         toggleNormalize: function() {
-            if(check.normalizedView())
+            if(Check.normalizedView())
                 view.showUnnormalized();
             else
                 view.showNormalized();
@@ -2787,7 +2632,7 @@ const fullTreeClick = function(e) {
                 for(const textbox of _state.textboxes)
                     textbox.updatescript();
                 _state.matrix.updatescript();
-                if(!check.anyhighlit())
+                if(!Check.anyhighlit())
                     multi.clearTrees();
                 else
                     multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
@@ -2803,7 +2648,7 @@ const fullTreeClick = function(e) {
             for(const textbox of _state.textboxes)
                 textbox.updatescript();
             
-            if(!check.anyhighlit())
+            if(!Check.anyhighlit())
                 multi.clearTrees();
             else
                 multi.repopulateTrees(...Find.lowhigh(Find.highlit()));
@@ -2897,84 +2742,6 @@ const fullTreeClick = function(e) {
                 el.scrollIntoView({inline: 'start', block: 'nearest'});
                 matrix.scroll({left: matrix.scrollLeft - anchorrect.width});
             }
-        },
-    };
-
-
-    const check = {
-        undo: function() {
-            return _state.undo.length > 0 ? true : false;
-        },
-        redo: function() {
-            return _state.redo.length > 0 ? true : false;
-        },
-
-        checkbox: function(type,nums) {
-            if(!check.anyhighlit()) return false;
-
-            const numss = nums === false ?
-                Find.highlit() :
-                nums;
-
-            const states = Find.attr(type,numss);
-            for(const state of states.values())
-                if(state === false)
-                    return false;
-            return true;
-        },
-    
-        grouped: function() {
-            const nums = Find.highlit();
-            if(!nums) return false;
-            const firstrow = Find.firsttr();
-            for(const num of nums) {
-                const cell = Find.firsttd(num,firstrow);
-                if(cell.classList.contains('group-start') ||
-               cell.classList.contains('group-internal') ||
-               cell.classList.contains('group-end'))
-                    return true;
-            }
-            return false;
-        },
-        oneGrouped: function() {
-            const nums = Find.highlit();
-            if(nums.size === 0) return false;
-            if(nums.size === 1) {
-                const firstrow = Find.firsttr();
-                const cell = Find.firsttd([...nums][0],firstrow);
-                //const cell = firstrow.querySelector('td[data-n="'+[...nums][0]+'"]');
-                if(cell.classList.contains('group-start') ||
-               cell.classList.contains('group-end') ||
-               cell.classList.contains('group-internal'))
-                    return true;
-                else
-                    return false;
-            }
-            return true;
-        },
-
-        anyhighlit: function() {
-            return _state.matrix.boxdiv.querySelector('td.highlit') ? true : false;
-        },
-
-        manyhighlit: function() {
-            return Find.highlit().size > 1;
-        },
-
-        highlitcell: function() {
-            return _state.matrix.boxdiv.querySelector('td.highlitcell') ? true : false;
-        },
-
-        normalizedView: function() {
-            return document.getElementById('views').classList.contains('normalized');
-        },
-
-        anyNormalized: function() {
-            return _state.matrix.boxdiv.querySelector('.lemma[data-normal]');
-        },
-
-        headerView: function() {
-            return _state.matrix.boxdiv.querySelector('tr.header').style.display === 'none' ? false : true;
         },
     };
 
@@ -3192,7 +2959,7 @@ const fullTreeClick = function(e) {
    
         show() {
             _state.descs.appendChild(this.descbox);
-            if(check.normalizedView())
+            if(Check.normalizedView())
                 view.showNormalized(this);
             _state.viewdiv.appendChild(this.boxdiv);
             this.closed = false;
@@ -3289,7 +3056,7 @@ const fullTreeClick = function(e) {
                 /*if(!node.hasOwnProperty('IAST'))
                 node.IAST = node.cloneNode(true); */
                 const tochange = (function() {
-                    if(check.normalizedView() && hasNormalized) {
+                    if(Check.normalizedView() && hasNormalized) {
                         const temp = document.createElement('span');
                         temp.appendChild(document.createTextNode(node.dataset.normal));
                         return temp;
@@ -3466,7 +3233,7 @@ const fullTreeClick = function(e) {
             for(const taxon of this.levels[0]) {
                 const label = taxon.getAttribute('label');
                 const treelemma = this.boxdiv.querySelector(`span.tree-lemma[data-id="${label}"]`);
-                const reading = treelemma ? [Find.htmlreading(treelemma,check.normalizedView())] : [];
+                const reading = treelemma ? [Find.htmlreading(treelemma,Check.normalizedView())] : [];
                 firstpass.set(taxon,new Set(reading));
             }
             for(let m=1;m<this.levels.length;m++) { // start at 1 (after taxa)
@@ -3702,7 +3469,7 @@ const fullTreeClick = function(e) {
                     if(word.hasAttribute('emended')) el.dataset.emended = true;
                     else if(el.dataset.hasOwnProperty('emended')) delete el.dataset.emended;
                 }
-                if(check.normalizedView() && el.dataset.hasOwnProperty('normal'))
+                if(Check.normalizedView() && el.dataset.hasOwnProperty('normal'))
                     el.innerHTML = el.dataset.normal;
                 else
                     el.innerHTML = el.IAST.innerHTML;
@@ -3789,7 +3556,7 @@ const fullTreeClick = function(e) {
                     .trim();
             };
 
-            const getReading = check.normalizedView() ?
+            const getReading = Check.normalizedView() ?
                 function(n,text) {
                     const word = Find.firstword(n,text);
                     return word.hasAttribute('lemma') ?
