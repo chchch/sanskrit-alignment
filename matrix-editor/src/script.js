@@ -9,8 +9,6 @@ import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
-//import { find as _Find } from './lib/find.mjs';
-//import { check as _Check } from './lib/check.mjs';
 import { workerFunc } from './lib/worker.mjs';
 
 import _Hypher from 'hypher';
@@ -47,8 +45,7 @@ window.comboView = (function() {
     const Utils = new _Utils(_state);
     const Find = Utils.find;
     const Check = Utils.check;
-    //const Find = new _Find(_state);
-    //const Check = new _Check(_state, Find);
+    const workerBlob = new Blob(['('+workerFunc.toString()+')()'],{type: 'application/javascript'});
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -1862,8 +1859,7 @@ const fullTreeClick = function(e) {
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
-            const workerblob = new Blob(['('+workerFunc.toString()+')()'],{type: 'application/javascript'});
-            const fitchWorker = new Worker(window.URL.createObjectURL(workerblob));
+            const fitchWorker = new Worker(window.URL.createObjectURL(workerBlob));
             const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
             const seriallevels = Find.serializedlevels(tree.levels,normalized);
@@ -3366,7 +3362,6 @@ const fullTreeClick = function(e) {
                 txt.parentElement.removeChild(txt);
             }
         }
-
 
         makeLabels() {
             const alltexts = [...Find.texts()];
