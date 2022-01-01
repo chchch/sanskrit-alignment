@@ -8,8 +8,9 @@ import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-sys
 import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
-import { find as _Find } from './lib/find.mjs';
-import { check as _Check } from './lib/check.mjs';
+import { Utils as _Utils } from './lib/utils.mjs';
+//import { find as _Find } from './lib/find.mjs';
+//import { check as _Check } from './lib/check.mjs';
 import { workerFunc } from './lib/worker.mjs';
 
 import _Hypher from 'hypher';
@@ -43,8 +44,11 @@ window.comboView = (function() {
 
     const Hypher = new _Hypher(hyphenation_sa);
     const Xslt = new _Xslt(_state, _const);
-    const Find = new _Find(_state);
-    const Check = new _Check(_state, Find);
+    const Utils = new _Utils(_state);
+    const Find = Utils.find;
+    const Check = Utils.check;
+    //const Find = new _Find(_state);
+    //const Check = new _Check(_state, Find);
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -575,12 +579,12 @@ window.comboView = (function() {
                 func: edit.startInsertCol
             },
             {text: 'Mark insignificant',
-                checkbox: Check.checkbox.bind(null,'insignificant',false),
+                checkbox: Check.checkbox.bind(null,'insignificant'),
                 greyout: Check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'insignificant',false)
             },
             {text: 'Mark binary',
-                checkbox: Check.checkbox.bind(null,'binary',false),
+                checkbox: Check.checkbox.bind(null,'binary'),
                 greyout: Check.anyhighlit,
                 func: edit.startMarkAs.bind(null,'binary',false)
             },
