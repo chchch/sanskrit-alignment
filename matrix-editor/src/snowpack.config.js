@@ -27,6 +27,7 @@ module.exports = {
   },
   
   optimize: {
+      entrypoints: ['worker.js','script.js'],
       bundle: true,
       minify: true,
       target: 'es2018',
