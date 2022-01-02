@@ -14,7 +14,7 @@ import { Fitch as _Fitch } from './lib/fitch.mjs';
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
 
-'use strict';
+//'use strict';
 
 window.comboView = (function() {
     
@@ -1220,6 +1220,9 @@ const fullTreeClick = function(e) {
                     events.rightClick(e);
                     return;
                 }
+                if(targ.classList.contains('highlit'))
+                    return;
+
                 const n = targ.dataset.n;
                 const matrixrow = Find.highlitrow();
                 multi.unHighlightAll();
