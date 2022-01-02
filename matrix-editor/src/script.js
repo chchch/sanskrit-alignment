@@ -1176,7 +1176,8 @@ const fullTreeClick = function(e) {
                                 return;
                             }
                         }
-                        prev--;                        if(highlitcell) {
+                        prev--;
+                        if(highlitcell) {
                             events.textClick({target: highlitcell.previousElementSibling});
                             return;
                         }
@@ -1220,8 +1221,6 @@ const fullTreeClick = function(e) {
                     events.rightClick(e);
                     return;
                 }
-                if(targ.classList.contains('highlit'))
-                    return;
 
                 const n = targ.dataset.n;
                 const matrixrow = Find.highlitrow();
@@ -1229,6 +1228,7 @@ const fullTreeClick = function(e) {
                 multi.highlightLemma(n);
                 multi.repopulateTrees(n);
                 view.xScroll(n,matrixrow);
+                
                 if(targ.tagName === 'TD')
                     targ.classList.add('highlitcell');
                 else {
@@ -1239,12 +1239,12 @@ const fullTreeClick = function(e) {
                         td.classList.add('highlitcell');
                     }
                 }
-
             }
         },
 
         textMouseup() {
             const nums = Find.selection();
+            if(!nums) return;
             multi.highlightRange(nums);
             clearSelection();
         },
@@ -1364,9 +1364,12 @@ const fullTreeClick = function(e) {
                 tabl.addEventListener('mouseup',events.matrixMouseup);
             }
         },
-        matrixMouseup(/*e*/) {
+        matrixMouseup(e) {
             const nums = Find.highlit();
-            multi.highlightRange(nums);
+            if(nums.size === 1)
+                events.textClick(e);
+            else
+                multi.highlightRange(nums);
             const tabl = _state.matrix.boxdiv.querySelector('table');
             tabl.removeEventListener('mouseover',events.matrixMouseover);
             tabl.removeEventListener('mouseup',events.matrixMouseup);
