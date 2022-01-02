@@ -9,7 +9,6 @@ import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
-import { workerFunc } from './lib/worker.mjs';
 
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
@@ -45,7 +44,6 @@ window.comboView = (function() {
     const Utils = new _Utils(_state);
     const Find = Utils.find;
     const Check = Utils.check;
-    const workerBlob = new Blob(['('+workerFunc.toString()+')()'],{type: 'application/javascript'});
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -1859,12 +1857,13 @@ const fullTreeClick = function(e) {
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
-            const fitchWorker = new Worker(window.URL.createObjectURL(workerBlob));
+            const fitchWorker = new Worker('./worker.js');
             const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
             const seriallevels = Find.serializedlevels(tree.levels,normalized);
+            const readings0 = new Map(serialreadings.map(arr => [arr[0],arr[1][0]]));
 
-            fitchWorker.postMessage({readings:serialreadings,levels:seriallevels,num:0,id:key});
+            fitchWorker.postMessage({readings:readings0,levels:seriallevels,num:0,id:key});
             fitchWorker.onmessage = function(e) {
                 const n = e.data.n;
                 const reading = e.data.result;
@@ -1872,8 +1871,10 @@ const fullTreeClick = function(e) {
                 tds[n].IAST = tds[n].cloneNode(true);
                 tds[n].classList.remove('pending');
                 words[n].textContent = reading;
-                if(n < _state.maxlemma)
-                    fitchWorker.postMessage({readings:serialreadings,levels:seriallevels,num:n+1,id:key});
+                if(n < _state.maxlemma) {
+                    const readingsn = new Map(serialreadings.map(arr => [arr[0],arr[1][n+1]]));
+                    fitchWorker.postMessage({readings:readingsn,levels:seriallevels,num:n+1,id:key});
+                }
                 else {
                     th.removeChild(spinner);
                     _state.xml.documentElement.appendChild(tei);
