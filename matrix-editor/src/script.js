@@ -1858,7 +1858,7 @@ const fullTreeClick = function(e) {
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
-            const fitchWorker = new Worker('./worker.js', {type: 'module' });
+            const fitchWorker = new Worker('./worker.js');
             const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
             const readings0 = new Map(serialreadings.map(arr => [arr[0],arr[1][0]]));
