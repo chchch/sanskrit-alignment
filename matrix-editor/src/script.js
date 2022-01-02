@@ -9,6 +9,7 @@ import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
+import { Fitch as _Fitch } from './lib/fitch.mjs';
 
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
@@ -1857,13 +1858,12 @@ const fullTreeClick = function(e) {
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
-            const fitchWorker = new Worker('./worker.js');
+            const fitchWorker = new Worker('./worker.js', {type: 'module' });
             const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
-            const seriallevels = Find.serializedlevels(tree.levels,normalized);
             const readings0 = new Map(serialreadings.map(arr => [arr[0],arr[1][0]]));
 
-            fitchWorker.postMessage({readings:readings0,levels:seriallevels,num:0,id:key});
+            fitchWorker.postMessage({readings:readings0,levels:tree.levels,num:0,id:key});
             fitchWorker.onmessage = function(e) {
                 const n = e.data.n;
                 const reading = e.data.result;
@@ -1873,7 +1873,7 @@ const fullTreeClick = function(e) {
                 words[n].textContent = reading;
                 if(n < _state.maxlemma) {
                     const readingsn = new Map(serialreadings.map(arr => [arr[0],arr[1][n+1]]));
-                    fitchWorker.postMessage({readings:readingsn,levels:seriallevels,num:n+1,id:key});
+                    fitchWorker.postMessage({readings:readingsn,levels:tree.levels,num:n+1,id:key});
                 }
                 else {
                     th.removeChild(spinner);
@@ -3160,7 +3160,7 @@ const fullTreeClick = function(e) {
             const alledges = this.nexml.querySelectorAll('edge');
             const taxa = [...this.nexml.querySelectorAll('node[otu]')];
             const tree = this.nexml;
-            this.levels = [taxa];
+            const levels = [taxa];
 
             const getNextLevel = function(curlevel,edges) {
                 const ids = curlevel.map(t => t.id);
@@ -3218,81 +3218,32 @@ const fullTreeClick = function(e) {
             var curedges = alledges;
             do {
                 const nextlevel = getNextLevel(curnodes,curedges);
-                this.levels.push(nextlevel.match);
+                levels.push(nextlevel.match);
                 curnodes = [...nextlevel.match.keys(),...nextlevel.remainder];
                 curedges = nextlevel.edges;
             } while (curedges.length > 0);
+
+            this.levels = Find.serializedlevels(levels);
         }
 
         labelInternal() {
             for(const node of this.nexml.querySelectorAll('node:not([label])'))
                 node.setAttribute('label',node.id);
         }
-
-        fitch1() {
-            const firstpass = new Map();
-            for(const taxon of this.levels[0]) {
-                const label = taxon.getAttribute('label');
-                const treelemma = this.boxdiv.querySelector(`span.tree-lemma[data-id="${label}"]`);
-                const reading = treelemma ? [Find.htmlreading(treelemma,Check.normalizedView())] : [];
-                firstpass.set(taxon,new Set(reading));
-            }
-            for(let m=1;m<this.levels.length;m++) { // start at 1 (after taxa)
-                for(const [node,children] of this.levels[m]) {
-                    const readings = children.map(node => firstpass.get(node));
-                    const intersection = Find.setIntersection(...readings);
-                    const result = intersection.size > 0 ?
-                        intersection :
-                        Find.setUnion(...readings);
-                    firstpass.set(node,result);
-
-                }
-            }
-            return firstpass;
-
-        }
-
-        fitch2(firstpass) {
-            const taxa = [...this.nexml.querySelectorAll('node[otu]')];
-            const secondpass = new Map();
-
-            for(const [node] of this.levels[this.levels.length-1]) {
-                secondpass.set(node,firstpass.get(node));
-            }
-
-            for(let n=this.levels.length-1;n>1;n--) {
-                for(const [node,children] of this.levels[n]) {
-                    const ancestral = secondpass.get(node);
-                    for(const child of children) {
-                        if(taxa.indexOf(child) !== -1)
-                            continue;
-                        const childreading = firstpass.get(child);
-                        if(childreading.size === 1)
-                            secondpass.set(child,childreading);
-                        else {
-                            const intersection = Find.setIntersection(ancestral,childreading);
-                            const result = intersection.size > 0 ?
-                                intersection :
-                                childreading;
-                            secondpass.set(child,result);
-                        }
-                    }
-                }
-            }
-            return secondpass;
-        }
-
         fitch() {
-            const firstpass = this.fitch1();
-            const formatOutput = function(m) {
-                const output = [...m].map(str => str.trim() === '' ? '_' : str);
-                return output.length === 1 ? output[0] : '{' + output.join(', ') + '}';
-            };
+            const texts = new Map(this.levels[0].map(id => {
+                const normalized = Check.normalizedView();
+                const label = this.nexml.querySelector(`node[id="${id}"]`).getAttribute('label');
+                const treelemma = this.boxdiv.querySelector(`span.tree-lemma[data-id="${label}"]`);
+                const reading = treelemma ? Find.htmlreading(treelemma,normalized) : undefined;
+                return [id,reading];
+            }));
 
-            const secondpass = this.fitch2(firstpass);
-            for(const [node,reading] of secondpass) {
-                const htmlnode = this.boxdiv.querySelector(`span.internal[data-key="${node.id}"]`);
-                htmlnode.dataset.reconstructed = formatOutput(reading);
+            const results = (new _Fitch(texts,this.levels)).run();
+            
+            for(const [node,reading] of results) {
+                const htmlnode = this.boxdiv.querySelector(`span.internal[data-key="${node}"]`);
+                htmlnode.dataset.reconstructed = reading;
             }
         }
 

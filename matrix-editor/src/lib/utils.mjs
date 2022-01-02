@@ -75,16 +75,14 @@ const Utils = function(_state) {
         serializedtexts(tree, normalized) {
             const otus = [...tree.querySelectorAll('otu[label]')].map(el => el.getAttribute('label'));
             const teis = [...find.teis()].filter(el => otus.indexOf(el.getAttribute('n')) !== -1);
-            return new Map(
-                teis.map(t => [
+            return teis.map(t => [
                     tree.querySelector(`node[label="${t.getAttribute('n')}"]`).getAttribute('id'),
                     [...t.querySelectorAll('w')].map(w => {
                         return normalized && w.hasAttribute('lemma') ?
                             w.getAttribute('lemma') :
                             w.textContent;
                     })
-                ])
-            );
+                ]);
         },
 
         serializedlevels(levels) {
@@ -307,7 +305,7 @@ const Utils = function(_state) {
             }
             return false;
         },
-
+        /*
         setIntersection(...sets) {
             const setA = sets[0];
             return new Set(
@@ -329,7 +327,7 @@ const Utils = function(_state) {
                 },[])
             );
         },
-
+        */
         cursorPos(el) {
             const range = window.getSelection().getRangeAt(0);
             const preCaretRange = range.cloneRange();

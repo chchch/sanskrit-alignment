@@ -1,5 +1,4 @@
-//import { Fitch as _Fitch } from './lib.fitch.mjs';
-var mss,levels,num,id;
+// Tree labeling via the Fitch algorithm
 
 const Fitch = function(mss,levels) {
 
@@ -113,11 +112,5 @@ const Fitch = function(mss,levels) {
     }
 };
 
-onmessage = function(e) {
-    mss = e.data.readings;
-    levels = e.data.levels;
-    num = e.data.num;
-    id = e.data.id;
-    const result = (new Fitch(mss,levels)).run(id);
-    postMessage({n: num, result: result});
-};
+export { Fitch };
+
