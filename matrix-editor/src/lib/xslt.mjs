@@ -13,10 +13,10 @@ const makeProc = function(sheet) {
     return xslt_proc;
 };
 
-const xslt = function(_state,_const) {
+const xslt = function(_state) {
     
     this.transformString = function(s,proc) {
-        const temp = _state.xml.createElementNS(_const.teins,'ab');
+        const temp = _state.xml.createElementNS(_state.teins,'ab');
         temp.innerHTML = s;
         //temp.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
         return proc.transformToFragment(temp,document);

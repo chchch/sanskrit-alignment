@@ -2,14 +2,12 @@ import { Sanscript } from './lib/sanscript.mjs';
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
-import { showSaveFilePicker } from 'https://cdn.jsdelivr.net/npm/native-file-system-adapter/mod.js';
-//import { showSaveFilePicker } from 'native-file-system-adapter';
-
 import { Normalizer } from './lib/normalize.mjs';
 import { changeScript } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
 import { Fitch as _Fitch } from './lib/fitch.mjs';
+import { Exporter as _Exporter } from './lib/export.mjs';
 
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
@@ -18,12 +16,9 @@ import { hyphenation_sa } from './lib/hypher-sa.mjs';
 
 window.comboView = (function() {
     
-    const _const = {
-        teins: 'http://www.tei-c.org/ns/1.0',
-        scripts: ['iast','devanagari','telugu','grantha','malayalam']
-    };
-
     const _state = {
+        teins: 'http://www.tei-c.org/ns/1.0',
+        scripts: ['iast','devanagari','telugu','grantha','malayalam'],
         filename: null,
         xml: null,
         treelist: new Map(),
@@ -41,10 +36,12 @@ window.comboView = (function() {
     };
 
     const Hypher = new _Hypher(hyphenation_sa);
-    const Xslt = new _Xslt(_state, _const);
+    const Xslt = new _Xslt(_state);
     const Utils = new _Utils(_state);
     const Find = Utils.find;
     const Check = Utils.check;
+    const Make = Utils.make;
+    const Exporter = new _Exporter(Utils, Xslt); // change to dynamic import?
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -336,14 +333,14 @@ window.comboView = (function() {
         const nexml = parser.parseFromString(treestr,'text/xml');
         const xenoData = _state.xml.querySelector('teiHeader > xenoData') || (function() {
             const header = _state.xml.querySelector('teiHeader') || (function() {
-                const h = _state.xml.createElementNS(_const.teins,'teiHeader');
+                const h = _state.xml.createElementNS(_state.teins,'teiHeader');
                 _state.xml.documentElement.appendChild(h);
                 return h;})();
-            const newel = _state.xml.createElementNS(_const.teins,'xenoData');
+            const newel = _state.xml.createElementNS(_state.teins,'xenoData');
             header.appendChild(newel);
             return newel;
         })();
-        const stemmael = _state.xml.createElementNS(_const.teins,'stemma');
+        const stemmael = _state.xml.createElementNS(_state.teins,'stemma');
         stemmael.setAttribute('format','nexml');
         stemmael.id = 'stemma' + [...xenoData.querySelectorAll('stemma')].length;
         stemmael.appendChild(nexml.firstChild.cloneNode(true));
@@ -386,21 +383,21 @@ window.comboView = (function() {
 
     const csvLoad = function(f,fs,e) {
         const csvarr = CSV.parse(e.target.result,{delimiter: ','});
-        _state.xml = document.implementation.createDocument(_const.teins,'',null);
-        const teicorpus = _state.xml.createElementNS(_const.teins,'teiCorpus');
-        const teiheader = _state.xml.createElementNS(_const.teins,'teiHeader');
+        _state.xml = document.implementation.createDocument(_state.teins,'',null);
+        const teicorpus = _state.xml.createElementNS(_state.teins,'teiCorpus');
+        const teiheader = _state.xml.createElementNS(_state.teins,'teiHeader');
         teicorpus.appendChild(teiheader);
         _state.xml.appendChild(teicorpus);
 
         for(const c of csvarr) {
             const name = c[0];
             const arr = c.slice(1);
-            const tei = _state.xml.createElementNS(_const.teins,'TEI');
+            const tei = _state.xml.createElementNS(_state.teins,'TEI');
             tei.setAttribute('n',name);
-            const text = _state.xml.createElementNS(_const.teins,'text');
+            const text = _state.xml.createElementNS(_state.teins,'text');
             for(let n=0;n<arr.length;n++) {
                 const word = arr[n];
-                const newEl = _state.xml.createElementNS(_const.teins,'w');
+                const newEl = _state.xml.createElementNS(_state.teins,'w');
                 if(word)
                     newEl.appendChild(document.createTextNode(word));
                 newEl.setAttribute('n',n);
@@ -468,16 +465,16 @@ window.comboView = (function() {
             const toadd  = setDiff(newsigla,oldsigla);
 
             
-            for(const el of toadd) make.tei(el);
+            for(const el of toadd) Make.tei(el);
 
             const addlemma = [...newxml.querySelector('text').querySelectorAll('w[n]')].length;
             const lastlemma = _state.maxlemma + addlemma;
             for(const [key,val] of newteis) {
                 if(!oldteis.has(key)) {
-                    const newtei = _state.xml.createElementNS(_const.teins,'TEI');
+                    const newtei = _state.xml.createElementNS(_state.teins,'TEI');
                     newtei.setAttribute('n',key);
-                    const newtext = _state.xml.createElementNS(_const.teins,'text');
-                    make.emptywords(newtext,lastlemma,0);
+                    const newtext = _state.xml.createElementNS(_state.teins,'text');
+                    Make.emptywords(newtext,lastlemma,0);
                     newtei.appendChild(newtext);
                     _state.xml.documentElement.appendChild(newtei);
                 }
@@ -497,7 +494,7 @@ window.comboView = (function() {
             for(const el of tofill) {
                 //const oldtext = oldteis.get(el).querySelector('text');
                 const text = oldteis.get(el).querySelector('text');
-                make.emptywords(text,lastlemma,_state.maxlemma + 1);
+                Make.emptywords(text,lastlemma,_state.maxlemma + 1);
             }
 
             _state.maxlemma = Find.maxlemma(); // can probably change this
@@ -525,10 +522,10 @@ window.comboView = (function() {
         mssMenuPopulate();
         const expbox = new menuBox('Export');
         expbox.populate([
-            {text: 'TEI corpus', func: exp.showOptions.bind(null,exp.xml,exp.options)},
-            {text: 'TEI apparatus', func: exp.showOptions.bind(null,exp.xml,exp.appOptions)},
-            {text: 'CSV', func: exp.showOptions.bind(null,exp.csv,exp.options)},
-            {text: 'NEXUS', func: exp.showOptions.bind(null,exp.nexus,exp.options)}
+            {text: 'TEI corpus', func: Exporter.showOptions.bind(null,Exporter.xml,Exporter.options)},
+            {text: 'TEI apparatus', func: Exporter.showOptions.bind(null,Exporter.xml,Exporter.appOptions)},
+            {text: 'CSV', func: Exporter.showOptions.bind(null,Exporter.csv,Exporter.options)},
+            {text: 'NEXUS', func: Exporter.showOptions.bind(null,Exporter.nexus,Exporter.options)}
         ]);
         const editbox = new menuBox('Edit');
         editbox.populate([
@@ -617,382 +614,6 @@ window.comboView = (function() {
 
     };
 
-    const exp = {
-        write: async function(file,handle) {
-            const writer = await handle.createWritable();
-            writer.write(file);
-            writer.close();
-        },
-
-        xml: async function(doc) {
-            const str = new XMLSerializer().serializeToString(
-                //  XSLTransformElement(_state.xml,xslt_proc)
-                Xslt.sheets['xml'].transformToDocument(doc)
-            );
-            const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
-            const fileURL = Find.basename() + '.xml';
-            const fileHandle = await showSaveFilePicker({
-                _preferPolyfill: false,
-                suggestedName: fileURL,
-                types: [ {description: 'TEI XML', accept: {'text/xml': ['.xml']} } ],
-            });
-            exp.write(file,fileHandle);
-        },
-
-        csv: async function(doc) {
-            //const str = new XMLSerializer().serializeToString(XSLTransformElement(doc,xslt_proc));
-            //const str = new XMLSerializer().serializeToString(xslt_proc.transformToDocument(_state.xml));
-            //const str = xslt_proc.transformToDocument(_state.xml).documentElement.textContent;
-            const str = Xslt.sheets['csv'].transformToDocument(doc).documentElement.textContent;
-            const file = new Blob([str], {type: 'text/csv;charset=utf-8'});
-            const fileURL = Find.basename() + '.csv';
-            const fileHandle = await showSaveFilePicker({
-                _preferPolyfill: false,
-                suggestedName: fileURL,
-                types: [ {description: 'CSV file', accept: {'text/csv': ['.csv']} } ],
-            });
-            exp.write(file,fileHandle);
-        },
-  
-        nexus: async function(doc) {
-            const texts = [...Find.texts(doc)];
-            const ntax = texts.length;
-            const symbols = '0 1 2 3 4 5 6 7 8 9 A B C D E F G H K L M N P Q R S T U V W X Y Z a b c d e f g h k l m n p q r s t u v w x y z';
-            const [siggap,...symbolarr] = symbols.split(' ');
-            const gap = '-';
-            const taxlabels = texts.map(el => '\''+el.parentElement.getAttribute('n')+'\'');
-            const textWalkers = texts.map(el => Find.textWalker(el));
-            const nchar = texts[0].querySelectorAll('w').length;
-            const charstatelabels = [];
-            const matrix = taxlabels.map(s => [s + ' ']);
-            for(let n=0;n<nchar;n++) {
-                const statelabels = new Set();
-                const readings = [];
-                for(let m=0;m<textWalkers.length;m++) {
-                    const walker = textWalkers[m];
-                    const node = walker.nextNode();
-                    const reading = Sanscript.t(node.textContent.trim().toLowerCase(),'iast','hk')
-                        .replace(/'/g,'()');
-                    readings.push(reading);
-                    if(reading !== '' && reading !== '[]')
-                        statelabels.add(reading);
-                }
-                charstatelabels.push(['[]',...statelabels]);
-                const statesymbols = new Map([...statelabels].map((x,i) => [x,symbolarr[i]]));
-                for(let p=0;p<readings.length;p++) {
-                    const r = ((p) => {
-                        switch (readings[p]) {
-                        case '':
-                            return gap;
-                        case '[]':
-                            return siggap;
-                        default:
-                            return statesymbols.get(readings[p]);
-                        }
-                    })(p);
-
-                    matrix[p].push(r);
-                }
-            }
-            const charstatestr = charstatelabels.map((x,i) => (i+1) +' / '+ [...x].map(s => `'${s}'`).join(' ')).join(',\n');
-            const flatmatrix = matrix.map(arr => arr.join(''))
-                // ignore long gaps, even if "gaps are significant" is selected
-                .map(str => str.replace(/0{8,}/g, match => match.replace(/0/g,'-')))
-                .reduce((acc,cur) => acc + '\n'+cur);
-            const str =
-`#NEXUS
-
-BEGIN TAXA;
-  DIMENSIONS NTAX=${ntax};
-  TAXLABELS ${taxlabels.join(' ')};
-END;
-
-BEGIN CHARACTERS;
-  DIMENSIONS
-    NCHAR=${nchar};
-  FORMAT 
-    DATATYPE=STANDARD 
-    RESPECTCASE 
-    GAP=${gap} 
-    MISSING=? 
-    SYMBOLS="${symbols}";
-  CHARSTATELABELS
-${charstatestr}
-;
-MATRIX
-${flatmatrix}
-;
-END;
-`;
-            const file = new Blob([str], {type: 'text/nexus;charset=iso8859-1'});
-            const fileURL = Find.basename() + '.nex';
-            const fileHandle = await showSaveFilePicker({
-                _preferPolyfill: false,
-                suggestedName: fileURL,
-                types: [ {description: 'NEXUS file', accept: {'text/nexus': ['.nex']} } ],
-            });
-            exp.write(file,fileHandle);
-        },
-
-        processOptions: function(opts) {
-            const doc = _state.xml.cloneNode(true);
-
-            if(opts.get('option_normalize')) {
-                const els = doc.querySelectorAll('w[lemma]');
-                for(const el of els)
-                    el.textContent = el.getAttribute('lemma');
-            }
-
-            if(opts.get('option_mergegroups')) {
-                const els = doc.querySelectorAll('cl');
-                for(const el of els) {
-                    const firstw = el.removeChild(el.firstChild);
-                    while(el.firstChild) {
-                        const norm1 = firstw.getAttribute('lemma') || firstw.textContent;
-                        const norm2 = el.firstChild.getAttribute('lemma') || el.firstChild.textContent;
-                        firstw.setAttribute('lemma',norm1 + norm2);
-                        while(el.firstChild.firstChild)
-                            firstw.appendChild(el.firstChild.firstChild);
-                        el.firstChild.remove();
-                    }
-                    if(firstw.getAttribute('lemma') === firstw.textContent)
-                        firstw.removeAttribute('lemma');
-                    el.parentNode.insertBefore(firstw,el);
-                    el.parentNode.removeChild(el);
-                }
-            }
-
-            if(opts.get('option_insignificant')) {
-                const els = doc.querySelectorAll('w[insignificant="true"]');
-                for(const el of els)
-                    el.parentNode.removeChild(el);
-            }
-            if(opts.get('option_binary')) {
-                /*
-                const els = doc.querySelectorAll('w[binary="true"]');
-                const nonempty = [...els].filter(el => el.textContent !== '');
-                if(!nonempty) return;
-                
-                const placeholder = '['+nonempty[0].textContent+']';
-                for(const el of nonempty)
-                    el.textContent = placeholder;
-                */
-                const firstrow = Find.firsttext().querySelectorAll('w[binary="true"]');
-                //const allels = [...doc.querySelectorAll('w[binary="true"]')];
-                const nums = [...firstrow].map(el => el.getAttribute('n'));
-                for(const num of nums) {
-                    const nonempty = doc.querySelectorAll(`w[n="${num}"]:not(:empty)`);
-                    //const nonempty = [...els].filter(el => el.childNodes.length !== 0);
-                    /*
-                    const nonempty = allels.filter(el => {
-                        return (el.getAttribute('n') === num &&
-                                el.childNodes.length === 0);
-                    });
-                    */
-                    if(nonempty.length === 0) continue;
-                    // Element nodes have no nodeValue
-                    const placeholder = `[${nonempty[0].textContent}]`;
-                    for(const el of nonempty)
-                        el.textContent = placeholder;
-                }
-            }
-            if(opts.get('option_noempty')) {
-                const els = doc.querySelectorAll('w:empty');
-                for(const el of els)
-                    el.textContent = '[]';
-            }
-
-            // early return for no apparatus
-            if(!opts.get('option_basetext')) 
-                return doc;
-            else
-                return exp.makeApp(opts,doc);
-        },
-        makeHeader(newdoc,doc) {
-            const teiheader = newdoc.createElementNS(_const.teins,'teiHeader');
-            const filedesc = newdoc.createElementNS(_const.teins,'fileDesc');
-            const sourcedesc = newdoc.createElementNS(_const.teins,'sourceDesc');
-            const listwit = newdoc.createElementNS(_const.teins,'listWit');
-            for(const text of Find.teis(doc)) {
-                const n = text.getAttribute('n');
-                const wit = newdoc.createElementNS(_const.teins,'witness');
-                wit.setAttribute('xml:id',n);
-                const idno = newdoc.createElementNS(_const.teins,'idno');
-                idno.setAttribute('type','siglum');
-                idno.append(n);
-                wit.appendChild(idno);
-                listwit.appendChild(wit);
-            }
-            sourcedesc.appendChild(listwit);
-            filedesc.appendChild(sourcedesc);
-            teiheader.appendChild(filedesc);
-            return teiheader;
-        },
-        makeApp(opts,doc) {
-            const baselabel = opts.get('option_basetext');
-            const basetext = Find.tei(baselabel,doc);
-            const normlem = opts.get('option_app_normalize');
-
-            const newdoc = document.implementation.createDocument(_const.teins,'',null);
-            newdoc.appendChild(basetext);
-            const teiheader = exp.makeHeader(newdoc,doc);
-            basetext.insertBefore(teiheader,basetext.firstChild);
-            const words = Find.words(false,basetext);
-            for(const word of words) {
-                const dataN = word.getAttribute('n');
-                const lemma = normlem ? 
-                    (word.getAttribute('lemma') || word.textContent) :
-                    word.textContent;
-                const posapp = [];
-                const negapp = new Map();
-                const otherwords = Find.words(dataN,doc);
-                for(const otherword of otherwords) {
-                    const id = otherword.closest('TEI').getAttribute('n');
-                    if(normlem && otherword.getAttribute('lemma') === lemma)
-                        posapp.push(id);
-                    else if(otherword.textContent === lemma)
-                        posapp.push(id);
-                    else {
-                        const newstr = otherword.textContent === '' ? 
-                            '[om.]' : 
-                            otherword.textContent;
-                        const negwits = negapp.get(newstr) || [];
-                        negwits.push(id);
-                        negapp.set(newstr,negwits);
-                    }
-                }
-                
-                if(negapp.size === 0) {
-                    while(word.firstChild)
-                        word.parentElement.insertBefore(word.firstChild,word);
-                }
-                else {
-                    const app = newdoc.createElementNS(_const.teins,'app');
-                    app.setAttribute('n',dataN);
-                    const lem = newdoc.createElementNS(_const.teins,'lem');
-                    const poswits = posapp.map(s => `#${s}`).join(' ');
-                    if(poswits !== '') lem.setAttribute('wit',poswits);
-                    while(word.firstChild)
-                        lem.appendChild(word.firstChild);
-                    app.appendChild(lem);
-                    for(const [str,wits] of negapp) {
-                        const rdg = newdoc.createElementNS(_const.teins,'rdg');
-                        const negwits = wits.map(s => `#${s}`).join(' ');
-                        rdg.setAttribute('wit',negwits);
-                        rdg.append(str);
-                        app.appendChild(rdg);
-                    }
-                    word.parentElement.insertBefore(app,word);
-                    if(lem.textContent.match(/\s$/)) {
-                        word.parentElement.insertBefore(
-                            newdoc.createTextNode(' '),
-                            word);
-                    }
-                }
-
-                word.remove();
-            }
-            return newdoc;
-        },
-
-        options() {
-            return document.createRange().createContextualFragment(
-                `<div id="exportoptions" class="popup">
-    <form id="exportform">
-      <div style="font-weight: bold">Export</div>
-      <div>
-        <input type="checkbox" id="option_insignificant" name="option_insignificant"><label for="option_insignificant">Remove insignifiant lemmata</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_binary" name="option_binary"><label for="option_binary">Binarize marked lemmata</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_noempty" name="option_noempty"><label for="option_noempty">Gaps are significant</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_mergegroups" name="option_mergegroups"><label for="option_mergegroups">Merge groups</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_normalize" name="option_normalize"><label for="option_normalize">Normalize spellings</label>
-      </div>
-      <div>
-        <button type="submit">Export</button>
-      </div>
-    </form>
-</div>`);
-        },
-        appOptions() {
-            const frag = document.createRange().createContextualFragment(
-                `<div id="exportoptions" class="popup">
-    <form id="exportform">
-      <div style="font-weight: bold">Export</div>
-      <div>
-        <label for="option__basetext">Base text</label>
-        <select id="option__basetext" name="option_basetext"></select>
-      </div>
-      <div>
-        <input type="checkbox" id="option__app_insignificant" name="option_app_insignificant"><label for="option_app_insignificant">Ignore insignifiant lemmata</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_mergegroups" name="option_mergegroups" checked><label for="option_mergegroups">Merge groups</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_app_normalize" name="option_app_normalize" checked><label for="option_app_normalize">Normalized spellings in positive apparatus</label>
-      </div>
-      <div>
-        <input type="checkbox" id="option_normalize" name="option_normalize"><label for="option_normalize">Normalize spellings in negative apparatus</label>
-      </div>
-      <div>
-        <button type="submit">Export</button>
-      </div>
-    </form>
-</div>`);
-            const select = frag.getElementById('option__basetext');
-            const sigla = [...Find.trs()].map(el => el.dataset.n);
-            for(const siglum of sigla) {
-                const el = document.createElement('option');
-                el.value = siglum;
-                el.append(siglum);
-                select.appendChild(el);
-            }
-            return frag;
-        },
-
-        showOptions: function(func,optfunc) {
-            const htmlfrag = optfunc();
-            const blackout = document.createElement('div');
-            blackout.id = 'blackout';
-            blackout.appendChild(htmlfrag);
-            document.body.appendChild(blackout);
-            const submitfunction = function(e) {
-                e.preventDefault();
-                var opts = [];
-                const inputs = document.getElementById('exportform').elements;
-                for(const i of inputs) {
-                    if(i.type === 'checkbox')
-                        opts.push([i.name,i.checked]);
-                    else
-                        opts.push([i.name,i.value]);
-                }
-                const doc = exp.processOptions(new Map(opts));
-                func(doc);
-                document.body.removeChild(blackout);
-            };
-            const submit = blackout.querySelector('button');
-            submit.addEventListener('click',submitfunction);
-            blackout.addEventListener('click',exp.blackoutClick);
-            return blackout;
-        },
-
-        blackoutClick: function(e) {
-            const targ = e.target.closest('.popup');
-            if(!targ) {
-                const blackout = document.querySelector('#blackout');
-                blackout.parentNode.removeChild(blackout);
-            }
-        }
-    };
-    
     /*
     const fullTreeMouseover = function(e) {
         const targ = e.target.classList.contains('littletree') ?
@@ -1077,7 +698,7 @@ const fullTreeClick = function(e) {
             const textbox = document.createElement('div');
             textbox.appendChild(document.createTextNode(title));
             this.script !== 0 ? // this is bound to the TreeBox 
-                box.appendChild(changeScript(textbox,_const.scripts[this.script])) :
+                box.appendChild(changeScript(textbox,_state.scripts[this.script])) :
                 box.appendChild(textbox);
 
             if(e.target.classList.contains('reconstructed')) {
@@ -1087,7 +708,7 @@ const fullTreeClick = function(e) {
                     emendbox.classList.add('emphasis');
                     emendbox.appendChild(document.createTextNode(treelemma.textContent));
                     this.script !== 0 ?
-                        box.prepend(changeScript(emendbox,_const.scripts[this.script])) :
+                        box.prepend(changeScript(emendbox,_state.scripts[this.script])) :
                         box.prepend(emendbox);
                 }
             }
@@ -1313,6 +934,9 @@ const fullTreeClick = function(e) {
         },
 
         thDragStart(e) {
+            const th = e.target.closest('th[scope="row"]');
+            if(!th) return;
+
             e.dataTransfer.setData('text/plain',e.target.textContent);
             //    _state.dragged.parentNode.classList.add('dragging');
             edit.startMoveRow(e.target.parentNode,e);
@@ -1701,7 +1325,7 @@ const fullTreeClick = function(e) {
         },
     
         startNewRow: function() {
-            const tr = make.row('new row');
+            const tr = Make.row('new row');
             const th = tr.querySelector('th');
             th.contentEditable = true;
             th.addEventListener('blur',edit.finishNewRow);
@@ -1722,8 +1346,8 @@ const fullTreeClick = function(e) {
             const key = e.target.dataset.key;
             const tree = e.target.closest('.tree-box').myTree;
             const treename = tree.desc;
-            const blackout = document.createElement('div');
-            blackout.id = 'blackout';
+            //const blackout = document.createElement('div');
+            //blackout.id = 'blackout';
             const frag = document.createRange().createContextualFragment(
                 `<div id="reconstructionoptions" class="popup">
     <form id="reconstructionform">
@@ -1736,18 +1360,20 @@ const fullTreeClick = function(e) {
       </div>
     </form>
 </div>`);
-            blackout.appendChild(frag);
-            document.body.appendChild(blackout);
+            //blackout.appendChild(frag);
+            //document.body.appendChild(blackout);
             const submitfunction = function(e) {
                 e.preventDefault();
                 const input = blackout.querySelector('input');
                 const label = input.value ? input.value : input.placeholder;
                 edit.doReconstruction(tree,key,label);
-                document.body.removeChild(blackout);
+                //document.body.removeChild(blackout);
             };
-            const submit = blackout.querySelector('button');
-            submit.addEventListener('click',submitfunction);
-            blackout.addEventListener('click',exp.blackoutClick);
+            //const submit = blackout.querySelector('button');
+            //submit.addEventListener('click',submitfunction);
+            //blackout.addEventListener('click',Exporter.blackoutClick);
+
+            Make.blackout(frag,submitfunction);
         },
 
         thKeyDown: function(e) {
@@ -1760,7 +1386,7 @@ const fullTreeClick = function(e) {
             const label = th.textContent;
             th.closest('tr').dataset.n = label;
         
-            const tei = make.tei(label);
+            const tei = Make.tei(label);
 
             _state.xml.documentElement.appendChild(tei);
         
@@ -1845,7 +1471,7 @@ const fullTreeClick = function(e) {
     
         doReconstruction: function(tree,key,label) {
  
-            const tr = make.row(label,'pending');
+            const tr = Make.row(label,'pending');
             tr.dataset.treename = tree.name;
             tr.dataset.nodename = key;
             const th = tr.querySelector('th');
@@ -1853,7 +1479,7 @@ const fullTreeClick = function(e) {
             spinner.id = 'spinner';
             th.prepend(spinner);
 
-            const tei = make.tei(label);
+            const tei = Make.tei(label);
             tei.setAttribute('type','reconstructed');
             tei.setAttribute('corresp',tree.name);
             tei.setAttribute('select',`#${key}`);
@@ -2298,8 +1924,8 @@ const fullTreeClick = function(e) {
                     cell.insertAdjacentElement('afterend',newcell);
                 }
             };
-            insert(Find.trs,Find.firsttd,make.emptycell,aftern);
-            insert(Find.texts,Find.firstword,make.emptyword,aftern);
+            insert(Find.trs,Find.firsttd,Make.emptycell,aftern);
+            insert(Find.texts,Find.firstword,Make.emptyword,aftern);
             edit.renumber(aftern);
             //view.renormalize(aftern,aftern+2);
             edit.refresh();
@@ -2752,78 +2378,6 @@ const fullTreeClick = function(e) {
         },
     };
 
-    const make = {
-        tei: function(label) {
-            const tei = _state.xml.createElementNS(_const.teins,'TEI');
-            tei.setAttribute('n',label);
-            /*
-            const text = _state.xml.createElementNS(_const.teins,'text');
-            tei.appendChild(text);
-            make.emptywords(text);
-            */
-            const template = Find.firsttext().cloneNode(true);
-            tei.appendChild(template);
-            for(const w of Find.words(false,template)) {
-                w.removeAttribute('lemma');
-                while(w.firstChild)
-                    w.firstChild.remove();
-            }
-            return tei;
-        },
-        
-        emptycell: function(n) {
-            const td = document.createElement('td');
-            td.className = 'lemma';
-            td.dataset.n = n;
-            return td;
-        },
-
-        emptyword: function(n,doc = _state.xml) {
-            const w = doc.createElementNS(_const.teins,'w');
-            w.setAttribute('n',n);
-            return w;
-        },
-
-        emptywords: function(text,max,start) {
-            const m = max || _state.maxlemma;
-            const n_start = start || 0;
-            for(let n = n_start; n <= m; n++) {
-                const word = make.emptyword(n);
-                text.appendChild(word);
-            }
-            
-
-        },
-        row: function(label,type) {
-            const tr = document.createElement('tr');
-            const th = document.createElement('th');
-            th.scope = 'row';
-            th.draggable = true;
-            th.appendChild(document.createTextNode(label));
-            th.addEventListener('dragstart',events.thDragStart);
-            tr.dataset.n = label;
-            tr.appendChild(th);
-            const firstrow = Find.firsttr();
-            for(const ftd of firstrow.querySelectorAll('td')) {
-                const td = document.createElement('td');
-                td.dataset.n = ftd.dataset.n;
-                td.className = ftd.className;
-                if(type) td.classList.add(type);
-                tr.appendChild(td);
-            }
-            /*
-            for(let n=0;n<=_state.maxlemma;n++) {
-                const td = document.createElement('td');
-                td.dataset.n = n;
-                td.className = 'lemma';
-                if(type) td.classList.add(type);
-                tr.appendChild(td);
-            }
-            */
-            return tr;
-        },
-    };
-
     const contextMenu = {
 
         create: function(e) {
@@ -3042,14 +2596,14 @@ const fullTreeClick = function(e) {
 
         cyclescript() {
             this.script = this.script + 1;
-            if(this.script === _const.scripts.length)
+            if(this.script === _state.scripts.length)
                 this.script = 0;
             const scripter = this.descbox.querySelector('.scripter');
             if(this.script === 0)
                 scripter.innerHTML = 'A';
             else
-                scripter.innerHTML = to[_const.scripts[this.script]]('a');
-            if(_const.scripts[this.script] === 'grantha')
+                scripter.innerHTML = to[_state.scripts[this.script]]('a');
+            if(_state.scripts[this.script] === 'grantha')
                 scripter.classList.add('grantha');
             else scripter.classList.remove('grantha');
             this.updatescript();
@@ -3073,12 +2627,12 @@ const fullTreeClick = function(e) {
                 }());
                 const newnode = this.script === 0 ?
                     tochange :
-                    changeScript(tochange,_const.scripts[this.script]);
+                    changeScript(tochange,_state.scripts[this.script]);
                 node.innerHTML = '';
                 while(newnode.firstChild)
                     node.appendChild(newnode.firstChild);
             }
-            if(_const.scripts[this.script] === 'grantha') 
+            if(_state.scripts[this.script] === 'grantha') 
                 this.boxdiv.classList.add('grantha');
             else this.boxdiv.classList.remove('grantha');
             if(this.boxdiv.classList.contains('matrix'))
@@ -3754,9 +3308,10 @@ const fullTreeClick = function(e) {
 
             scroller.append(Xslt.sheets['matrix'].transformToFragment(_state.xml,document));
             //scroller.append(XSLTransformElement(_state.xml.documentElement,xslt_proc));
-            for(const th of scroller.getElementsByTagName('th'))
-                th.addEventListener('dragstart',events.thDragStart);
+            //for(const th of scroller.getElementsByTagName('th'))
+            //    th.addEventListener('dragstart',events.thDragStart);
 
+            scroller.addEventListener('dragstart',events.thDragStart);
             scroller.addEventListener('dragenter',events.trDragEnter);
             scroller.addEventListener('dragleave',events.trDragLeave);
             scroller.addEventListener('dragover',e => e.preventDefault());

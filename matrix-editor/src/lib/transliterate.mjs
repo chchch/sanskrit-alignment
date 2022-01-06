@@ -296,4 +296,4 @@ const replaceTextInNode = function(text, replace, node) {
     }
 };
 
-export { to, changeScript };
+export { changeScript };

@@ -1,5 +1,11 @@
 const Utils = function(_state) {
     const find = {
+        curxml() {
+            return _state.xml;
+        },
+        teins() {
+            return _state.teins;
+        },
         basename() {
             return _state.filename.split(/\.[^.]+$/)[0];
         },
@@ -435,9 +441,107 @@ const Utils = function(_state) {
         },
     }; // end check
 
+    const make = {
+        tei: function(label) {
+            const tei = _state.xml.createElementNS(_state.teins,'TEI');
+            tei.setAttribute('n',label);
+            /*
+            const text = _state.xml.createElementNS(_state.teins,'text');
+            tei.appendChild(text);
+            make.emptywords(text);
+            */
+            const template = find.firsttext().cloneNode(true);
+            tei.appendChild(template);
+            for(const w of find.words(false,template)) {
+                w.removeAttribute('lemma');
+                while(w.firstChild)
+                    w.firstChild.remove();
+            }
+            return tei;
+        },
+        
+        emptycell: function(n) {
+            const td = document.createElement('td');
+            td.className = 'lemma';
+            td.dataset.n = n;
+            return td;
+        },
+
+        emptyword: function(n,doc = _state.xml) {
+            const w = doc.createElementNS(_state.teins,'w');
+            w.setAttribute('n',n);
+            return w;
+        },
+
+        emptywords: function(text,max,start) {
+            const m = max || _state.maxlemma;
+            const n_start = start || 0;
+            for(let n = n_start; n <= m; n++) {
+                const word = make.emptyword(n);
+                text.appendChild(word);
+            }
+            
+
+        },
+        row: function(label,type) {
+            const tr = document.createElement('tr');
+            const th = document.createElement('th');
+            th.scope = 'row';
+            th.draggable = true;
+            th.appendChild(document.createTextNode(label));
+            //th.addEventListener('dragstart',events.thDragStart);
+            tr.dataset.n = label;
+            tr.appendChild(th);
+            const firstrow = find.firsttr();
+            for(const ftd of firstrow.querySelectorAll('td')) {
+                const td = document.createElement('td');
+                td.dataset.n = ftd.dataset.n;
+                td.className = ftd.className;
+                if(type) td.classList.add(type);
+                tr.appendChild(td);
+            }
+            /*
+            for(let n=0;n<=_state.maxlemma;n++) {
+                const td = document.createElement('td');
+                td.dataset.n = n;
+                td.className = 'lemma';
+                if(type) td.classList.add(type);
+                tr.appendChild(td);
+            }
+            */
+            return tr;
+        },
+        blackout(frag,func) {
+            const blackout = document.createElement('div');
+            blackout.id = 'blackout';
+            blackout.appendChild(frag);
+            document.body.appendChild(blackout);
+            
+            const submitFunc = function(e) {
+                func(e);
+                blackout.parentNode.removeChild(blackout);
+            };
+
+            const blackoutClick = function(e) {
+                const targ = e.target.closest('.popup');
+                if(!targ) {
+                    const blackout = document.querySelector('#blackout');
+                    blackout.parentNode.removeChild(blackout);
+                }
+            }
+
+            const submit = blackout.querySelector('button');
+            submit.addEventListener('click',submitFunc);
+            blackout.addEventListener('click',blackoutClick);
+            //return blackout;
+        },
+
+    }; // end make
+
     return {
         find: find,
-        check: check
+        check: check,
+        make: make
     };
 };
 
