@@ -1,4 +1,3 @@
-import { Sanscript } from './lib/sanscript.mjs';
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
@@ -46,44 +45,6 @@ window.comboView = (function() {
     const removeBox = function() {
         const box = document.getElementById('tooltip');
         if(box) box.remove();
-    };
-
-    const fillSelector = function() {
-        const menudiv = document.getElementById('left_menu'); 
-        menudiv.innerHTML =
- `<div id="matrixmenu" class="menubox">
-    <div class="heading">Matrix</div>
-      <ul>
-        <li>select CSV/XML file(s): <input type="file" id="file" name="file" accept=".xml,.csv" multiple/></li>
-      </ul>
-</div>
-<div style="display: none" id="mssmenu" class="menubox">
-    <div class="heading">Texts</div>
-    <ul class="ms">
-    </ul>
-</div>
-<div style="display: none" id="treemenu" class="menubox">
-    <div class="heading">Trees</div>
-        <ul class="tree">
-            <li>select NeXML file: <input type="file" id="treefile" name="treefile" accept=".xml"/></li>
-        </ul>
-    </div>
-`;
-        /*
-    var mss = Array.from(_texts.keys());
-    mss.sort();
-    var msshtml = '';
-    for(const ms of mss)
-        msshtml += `<li data-name="${ms}">${_texts.get(ms).desc}</li>`;
-    menudiv.querySelector('.ms').innerHTML = msshtml;
-*/
-        const menu = document.getElementById('menu');
-        menu.addEventListener('mouseover', events.menuMouseover);
-        menu.addEventListener('mouseout', events.menuMouseout);
-        menu.addEventListener('click',events.menuClick);
-        // }
-        menu.querySelector('#file').addEventListener('change',fileSelect.bind(null,csvOrXml),false);
-        menu.querySelector('#treefile').addEventListener('change',fileSelect.bind(null,treeFileLoad),false);
     };
 
     const newBox = {
@@ -333,14 +294,14 @@ window.comboView = (function() {
         const nexml = parser.parseFromString(treestr,'text/xml');
         const xenoData = _state.xml.querySelector('teiHeader > xenoData') || (function() {
             const header = _state.xml.querySelector('teiHeader') || (function() {
-                const h = _state.xml.createElementNS(_state.teins,'teiHeader');
+                const h = Make.xmlel('teiHeader');
                 _state.xml.documentElement.appendChild(h);
                 return h;})();
-            const newel = _state.xml.createElementNS(_state.teins,'xenoData');
+            const newel = Make.xmlel('xenoData');
             header.appendChild(newel);
             return newel;
         })();
-        const stemmael = _state.xml.createElementNS(_state.teins,'stemma');
+        const stemmael = Make.xmlel('stemma');
         stemmael.setAttribute('format','nexml');
         stemmael.id = 'stemma' + [...xenoData.querySelectorAll('stemma')].length;
         stemmael.appendChild(nexml.firstChild.cloneNode(true));
@@ -384,20 +345,20 @@ window.comboView = (function() {
     const csvLoad = function(f,fs,e) {
         const csvarr = CSV.parse(e.target.result,{delimiter: ','});
         _state.xml = document.implementation.createDocument(_state.teins,'',null);
-        const teicorpus = _state.xml.createElementNS(_state.teins,'teiCorpus');
-        const teiheader = _state.xml.createElementNS(_state.teins,'teiHeader');
+        const teicorpus = Make.xmlel('teiCorpus');
+        const teiheader = Make.xmlel('teiHeader');
         teicorpus.appendChild(teiheader);
         _state.xml.appendChild(teicorpus);
 
         for(const c of csvarr) {
             const name = c[0];
             const arr = c.slice(1);
-            const tei = _state.xml.createElementNS(_state.teins,'TEI');
+            const tei = Make.xmlel('TEI');
             tei.setAttribute('n',name);
-            const text = _state.xml.createElementNS(_state.teins,'text');
+            const text = Make.xmlel('text');
             for(let n=0;n<arr.length;n++) {
                 const word = arr[n];
-                const newEl = _state.xml.createElementNS(_state.teins,'w');
+                const newEl = Make.xmlel('w');
                 if(word)
                     newEl.appendChild(document.createTextNode(word));
                 newEl.setAttribute('n',n);
@@ -471,9 +432,9 @@ window.comboView = (function() {
             const lastlemma = _state.maxlemma + addlemma;
             for(const [key,val] of newteis) {
                 if(!oldteis.has(key)) {
-                    const newtei = _state.xml.createElementNS(_state.teins,'TEI');
+                    const newtei = Make.xmlel('TEI');
                     newtei.setAttribute('n',key);
-                    const newtext = _state.xml.createElementNS(_state.teins,'text');
+                    const newtext = Make.xmlel('text');
                     Make.emptywords(newtext,lastlemma,0);
                     newtei.appendChild(newtext);
                     _state.xml.documentElement.appendChild(newtei);
@@ -555,7 +516,7 @@ window.comboView = (function() {
                 alt: 'Ungroup columns',
                 greyout: Check.oneGrouped,
                 toggle: Check.grouped,
-                func: edit.startGroup.bind(null,false),
+                func: edit.group.start.bind(null,false),
             },
             {text: 'Group words',
                 func: edit.doGroupWords
@@ -1064,7 +1025,7 @@ const fullTreeClick = function(e) {
                         {text: 'ungroup columns',
                             alt: 'group columns',
                             toggle: Check.grouped,
-                            func: edit.startGroup.bind(null,false)
+                            func: edit.group.start.bind(null,false)
                         },
                         {text: 'delete columns',
                             func: edit.startRemoveCol.bind(null,nums)
@@ -1163,7 +1124,7 @@ const fullTreeClick = function(e) {
             }
             else if(clgroups[0] === null) {
                 const args = clgroups.filter(s => s!== null)
-                    .map(s => [edit.doUngroup,[s]])
+                    .map(s => [edit.ungroup.go,[s]])
                     .concat([[edit.doMerge,[numss]]]);
                 edit.doMulti(args,'do');
             }
@@ -1172,7 +1133,7 @@ const fullTreeClick = function(e) {
                 if(!toremove)
                     edit.doMerge(numss,'do');
                 else {
-                    const args = toremove.map(s => [edit.doUngroup,[s]])
+                    const args = toremove.map(s => [edit.ungroup.go,[s]])
                         .concat([[edit.doMerge,[numss]]]);
                     edit.doMulti(args,'do');
                 }
@@ -1180,35 +1141,89 @@ const fullTreeClick = function(e) {
             }
         },
 
-        startGroup: function(nums,/*e*/) {
-            const numss = nums === false ?
-                Find.highlit() :
-                nums;
-            if(Check.grouped())
-                edit.startUngroup(numss);
-            else
-                edit.doGroup(numss,'do');
+        group: {
+            start: function(nums,/*e*/) {
+                const numss = nums === false ?
+                    Find.highlit() :
+                    nums;
+                if(Check.grouped())
+                    edit.ungroup.start(numss);
+                else
+                    edit.group.go(numss,'do');
+            },
+            go: function(nums,doing = 'do') {
+                const numarr = [...nums];
+                const firstnum = numarr.shift();
+            
+                const texts = Find.texts();
+                for(const text of texts) {
+                    const cl = Make.xmlel('cl');
+                    const firstw = Find.firstword(firstnum,text);
+                    firstw.parentNode.insertBefore(cl,firstw);
+                    cl.appendChild(firstw);
+                    for(const num of nums)
+                        cl.appendChild(Find.firstword(num,text));
+                }
+
+                const lastnum = numarr.pop();
+            
+                for(const td of Find.tds(firstnum)) {
+                    td.classList.add('group-start');
+                }
+                for(const td of Find.tds(lastnum)) {
+                    td.classList.add('group-end');
+                }
+                for(const num of numarr) {
+                    for(const td of Find.tds(num)) {
+                        td.classList.add('group-internal');
+                    }
+                }
+                
+                for(const textbox of _state.textboxes)
+                    textbox.refresh();
+
+                if(doing === 'multido')
+                    return [edit.ungroup.go,[nums]];
+                else edit.doStack([edit.ungroup.go,[nums]],doing);
+            },
+   
         },
+        
+        ungroup: {
 
-        startUngroup: function(nums) {
-            /*        const firstrow = _state.xml.querySelector('text');
+            start: function(nums) {
+                const clgroups = Find.clauses(nums);
+                const args = [...clgroups].map(s => [edit.ungroup.go,[s]]);
+                edit.doMulti(args,'do');
+            },
+            go: function(nums,doing = 'do') {
+                const texts = Find.texts();
 
-        // make a list of clauses
-        const cls = new Set();
-        for(const num of nums) {
-            const word = firstrow.querySelector('w[n="'+num+'"]');
-            const cl = word.closest('cl');
-            if(cl) cls.add(cl);
-        }
-        const args = [...cls].map(function(cl) {
-            const words = cl.querySelectorAll('w');
-            return [edit.doUngroup,
-                    [new Set([...words].map(w => w.getAttribute('n')))]
-                   ];
-        }); */
-            const clgroups = Find.clauses(nums);
-            const args = [...clgroups].map(s => [edit.doUngroup,[s]]);
-            edit.doMulti(args,'do');
+                // ungroup xml
+                for(const text of texts) {
+                    let cl;
+                    for(const num of nums) {
+                        const word = Find.firstword(num,text);
+                        if(!cl) cl = word.closest('cl');
+                        cl.parentNode.insertBefore(word,cl);
+                    }
+                    cl.parentNode.removeChild(cl);
+                }
+            
+                // ungroup html
+                const tds = [...nums].flatMap(n => [...Find.tds(n)]);
+                for(const td of tds)
+                    td.classList.remove('group-start','group-internal','group-end');
+            
+                for(const textbox of _state.textboxes)
+                    textbox.refresh();
+
+                if(doing === 'multido')
+                    return [edit.group.go,[nums]];
+                else
+                    edit.doStack([edit.group.go,[nums]],doing);
+            },
+        
         },
         
         startInsertCol: function() {
@@ -1230,7 +1245,7 @@ const fullTreeClick = function(e) {
                 if(!toremove)
                     edit.doRemoveCol(numss,'do');
                 else {
-                    const args = toremove.map(s => [edit.doUngroup,[s]])
+                    const args = toremove.map(s => [edit.ungroup.go,[s]])
                         .concat([[edit.doRemoveCol,[numss]]]);
                     edit.doMulti(args,'do');
                 }
@@ -1248,7 +1263,7 @@ const fullTreeClick = function(e) {
                 if(!toremove)
                     edit.doRemoveCol(nums,'do');
                 else {
-                    const args = toremove.map(s => [edit.doUngroup,[s]])
+                    const args = toremove.map(s => [edit.ungroup.go,[s]])
                         .concat([[edit.doRemoveCol,[nums]]]);
                     edit.doMulti(args,'do');
                 }
@@ -1726,77 +1741,6 @@ const fullTreeClick = function(e) {
                 edit.doStack([edit.doMerge,[nums]],doing);
         },
    
-        doGroup: function(nums,doing = 'do') {
-            const numarr = [...nums];
-            const firstnum = numarr.shift();
-        
-            const texts = Find.texts();
-            for(const text of texts) {
-                //const cl = document.createElementNS('http://www.w3.org/1999/xhtml','cl');
-                const cl = document.createElementNS('http://www.tei-c.org/ns/1.0','cl');
-                const firstw = Find.firstword(firstnum,text);
-                //const firstw = text.querySelector('w[n="'+firstnum+'"]');
-                firstw.parentNode.insertBefore(cl,firstw);
-                cl.appendChild(firstw);
-                for(const num of nums)
-                    cl.appendChild(Find.firstword(num,text));
-                //cl.appendChild(text.querySelector('w[n="'+num+'"]'));
-            }
-
-            const lastnum = numarr.pop();
-        
-            for(const td of Find.tds(firstnum)) {
-                td.classList.add('group-start');
-            }
-            for(const td of Find.tds(lastnum)) {
-                td.classList.add('group-end');
-            }
-            for(const num of numarr) {
-                for(const td of Find.tds(num)) {
-                    td.classList.add('group-internal');
-                }
-            }
-            
-            for(const textbox of _state.textboxes)
-                textbox.refresh();
-
-            if(doing === 'multido')
-                return [edit.doUngroup,[nums]];
-            else edit.doStack([edit.doUngroup,[nums]],doing);
-        },
-   
-        doUngroup: function(nums,doing = 'do') {
-        //const texts = _state.xml.querySelectorAll('text');
-            const texts = Find.texts();
-
-            // ungroup xml
-            for(const text of texts) {
-                let cl;
-                for(const num of nums) {
-                    const word = Find.firstword(num,text);
-                    //const word = text.querySelector('w[n="'+num+'"]');
-                    if(!cl) cl = word.closest('cl');
-                    cl.parentNode.insertBefore(word,cl);
-                }
-                cl.parentNode.removeChild(cl);
-            }
-        
-            // ungroup html
-            const tds = [...nums].map(
-                n => [...Find.tds(n)]
-            ).reduce((a,b) => a.concat(b),[]);
-            for(const td of tds)
-                td.classList.remove('group-start','group-internal','group-end');
-        
-            for(const textbox of _state.textboxes)
-                textbox.refresh();
-
-            if(doing === 'multido')
-                return [edit.doGroup,[nums]];
-            else
-                edit.doStack([edit.doGroup,[nums]],doing);
-        },
-        
         doGroupWords: function() {
             let groupstart = 0;
             const todo = [];
@@ -1833,7 +1777,7 @@ const fullTreeClick = function(e) {
                     }
                     else {
                         const range = Find.range(groupstart,n);
-                        todo.push([edit.doGroup,[range]]);
+                        todo.push([edit.group.go,[range]]);
                         groupstart = n+1;
                     }
                 }
@@ -2556,10 +2500,10 @@ const fullTreeClick = function(e) {
         pullout() {
             this.destroy();
             const features = 'menubar=no,location=no,status=no,height=620,width=620,scrollbars=yes,centerscreen=yes';
-            const slavenum = window.mainWindow ?
+            const branchnum = window.mainWindow ?
                 window.mainWindow.comboView.getWindows().length :
                 _state.windows.length;
-            const newWindow = window.open('slave.html','slave'+slavenum,features);
+            const newWindow = window.open('branch.html','branch'+branchnum,features);
             newWindow.mainWindow = window.mainWindow ?
                 window.mainWindow :
                 window;
@@ -3365,7 +3309,7 @@ const fullTreeClick = function(e) {
     }
 
     return {
-        slaveinit: function() {
+        branchinit: function() {
             comboView.init();
             if(window.startbox !== undefined) {
                 if(window.startbox.tree)
@@ -3375,18 +3319,18 @@ const fullTreeClick = function(e) {
             }
         },
         maininit: function() {
-            document.getElementById('comboview').style.display = 'block';
+            const menu = document.getElementById('menu');
+            menu.addEventListener('mouseover', events.menuMouseover);
+            menu.addEventListener('mouseout', events.menuMouseout);
+            menu.addEventListener('click',events.menuClick);
+            // }
+            menu.querySelector('#file').addEventListener('change',fileSelect.bind(null,csvOrXml),false);
+            menu.querySelector('#treefile').addEventListener('change',fileSelect.bind(null,treeFileLoad),false);
+            menu.style.display = 'block';
+
             comboView.init();
-            fillSelector();
         },
         init: function() {
-        /*
-        _texts = new Map(
-            VPTexts.map(o => {
-            o[1].text = o[1].text.split(';');
-            return o;
-            })
-        );*/
             _state.viewdiv = document.getElementById('views');
             _state.descs = document.getElementById('descs');
             _state.viewdiv.addEventListener('click',events.textClick);
