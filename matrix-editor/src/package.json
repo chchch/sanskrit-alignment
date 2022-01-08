@@ -17,7 +17,7 @@
   "scripts": {
     "start": "snowpack dev",
     "build": "snowpack build",
-    "test": "nodejs tests/actions.mjs"
+    "test": "node tests/actions.mjs"
   },
   "dependencies": {
     "hypher": "^0.2.5",
