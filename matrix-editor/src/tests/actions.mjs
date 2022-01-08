@@ -5,14 +5,18 @@ import {actions as _Actions } from '../lib/actions.mjs';
 const Utils = new _Utils(_state);
 const Actions = new _Actions(Utils);
 
+const getRand = (min,max) => {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
 const test = {
     
     groups() {
         const oldxml = _state.xml.documentElement.innerHTML;
         const oldhtml = _state.matrix.boxdiv.documentElement.innerHTML;
 
-        const max = Math.floor(Math.random() * Utils.find.maxlemma());
-        const min = max - Math.floor(Math.random() * (max-1));
+        const max = getRand(2,Utils.find.maxlemma());
+        const min = getRand(0,max-1);
         const range = new Set([...Array(max-min).keys()].map(n => n+min));
 
         console.log(`Grouping/ungrouping columns ${min} to ${max}:`);
