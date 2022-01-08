@@ -4,7 +4,7 @@ on:
     paths:
       - matrix-editor/src/**
 jobs:
-  make-index:
+  run-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '16'
           cache: 'yarn'
+          cache-dependency-path: matrix-editor/src/yarn.lock
 
       - run: |
           cd matrix-editor/src
