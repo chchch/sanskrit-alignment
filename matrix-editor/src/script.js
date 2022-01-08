@@ -7,6 +7,7 @@ import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
 import { Fitch as _Fitch } from './lib/fitch.mjs';
 import { Exporter as _Exporter } from './lib/export.mjs';
+import { actions as _Actions } from './lib/actions.mjs';
 
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
@@ -37,10 +38,9 @@ window.comboView = (function() {
     const Hypher = new _Hypher(hyphenation_sa);
     const Xslt = new _Xslt(_state);
     const Utils = new _Utils(_state);
-    const Find = Utils.find;
-    const Check = Utils.check;
-    const Make = Utils.make;
+    const Actions = new _Actions(Utils);
     const Exporter = new _Exporter(Utils, Xslt); // change to dynamic import?
+    const { find: Find, check: Check, make: Make } = Utils;
 
     const removeBox = function() {
         const box = document.getElementById('tooltip');
@@ -1152,33 +1152,8 @@ const fullTreeClick = function(e) {
                     edit.group.go(numss,'do');
             },
             go: function(nums,doing = 'do') {
-                const numarr = [...nums];
-                const firstnum = numarr.shift();
-            
-                const texts = Find.texts();
-                for(const text of texts) {
-                    const cl = Make.xmlel('cl');
-                    const firstw = Find.firstword(firstnum,text);
-                    firstw.parentNode.insertBefore(cl,firstw);
-                    cl.appendChild(firstw);
-                    for(const num of nums)
-                        cl.appendChild(Find.firstword(num,text));
-                }
+                Actions.group(nums);
 
-                const lastnum = numarr.pop();
-            
-                for(const td of Find.tds(firstnum)) {
-                    td.classList.add('group-start');
-                }
-                for(const td of Find.tds(lastnum)) {
-                    td.classList.add('group-end');
-                }
-                for(const num of numarr) {
-                    for(const td of Find.tds(num)) {
-                        td.classList.add('group-internal');
-                    }
-                }
-                
                 for(const textbox of _state.textboxes)
                     textbox.refresh();
 
@@ -1197,24 +1172,8 @@ const fullTreeClick = function(e) {
                 edit.doMulti(args,'do');
             },
             go: function(nums,doing = 'do') {
-                const texts = Find.texts();
+                Actions.ungroup(nums);
 
-                // ungroup xml
-                for(const text of texts) {
-                    let cl;
-                    for(const num of nums) {
-                        const word = Find.firstword(num,text);
-                        if(!cl) cl = word.closest('cl');
-                        cl.parentNode.insertBefore(word,cl);
-                    }
-                    cl.parentNode.removeChild(cl);
-                }
-            
-                // ungroup html
-                const tds = [...nums].flatMap(n => [...Find.tds(n)]);
-                for(const td of tds)
-                    td.classList.remove('group-start','group-internal','group-end');
-            
                 for(const textbox of _state.textboxes)
                     textbox.refresh();
 
