@@ -460,6 +460,10 @@ const Utils = function(_state) {
             return tei;
         },
         
+        xmlel: function(name,doc = _state.xml) {
+            return doc.createElementNS(_state.teins,name);
+        },
+
         emptycell: function(n) {
             const td = document.createElement('td');
             td.className = 'lemma';
