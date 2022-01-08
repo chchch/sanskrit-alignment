@@ -1,6 +1,7 @@
 # Tools for aligning Sanskrit texts
 
 ![helayo build & test](https://github.com/chchch/sanskrit-alignment/actions/workflows/build.yml/badge.svg)
+![matrix-editor test](https://github.com/chchch/sanskrit-alignment/actions/workflows/jstest.yml/badge.svg)
 
 This repository contains _helayo_, a program for aligning/collating Sanskrit texts, and _matrix-editor_, a web-based interface for editing those alignments and producing tree-based textual reconstructions.
 
