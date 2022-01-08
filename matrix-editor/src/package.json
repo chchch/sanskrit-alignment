@@ -8,12 +8,16 @@
   "license": "BSD-3-Clause-Attribution",
   "devDependencies": {
     "@snowpack/plugin-webpack": "^3.0.0",
+    "fs": "^0.0.1-security",
+    "jsdom": "^19.0.0",
+    "saxon-js": "^2.3.0",
     "snowpack": "^3.8.8",
     "snowpack-plugin-unicode": "^1.0.0"
   },
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build"
+    "build": "snowpack build",
+    "test": "nodejs tests/actions.mjs"
   },
   "dependencies": {
     "hypher": "^0.2.5",
