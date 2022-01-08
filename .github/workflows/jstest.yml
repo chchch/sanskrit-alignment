@@ -1,0 +1,23 @@
+name: matrix-editor tests
+on:
+  push:
+    paths:
+      - matrix-editor/src/**
+jobs:
+  make-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+
+      - run: |
+          cd matrix-editor/src
+          yarn
+          yarn test
