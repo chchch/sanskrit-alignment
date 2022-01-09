@@ -17,7 +17,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 30 November 2021.</p>
+        <p>Last updated: 9 January 2022.</p>
         <section>
             <blockquote>
                 <p>
@@ -327,10 +327,10 @@ To see how the alignment tool has normalized the text, use the <code>View</code>
                 <img src="img/matrix-editor-2.png" alt="image of the matrix editor"/>
             </figure>
             <p>
-There may be some minor mis-alignments; you can edit an individual cell by clicking it and pressing <code>Enter</code> or using the menu option <code>Edit -&gt; Edit cell</code>. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect. The <cite>Dravyasamuddeśa</cite> with commentary, split up as akṣaras, amounts to 7486 lemmata.
+There may be some minor mis-alignments; you can edit an individual cell by clicking it and pressing <code>Enter</code> or using the menu option <code>Cell -&gt; Edit cell</code>. In practice, the alignments are generally good enough <em>as-is</em> in order to produce a viable tree. Especially when the text is long, I have found the small mis-alignments have no effect. The <cite>Dravyasamuddeśa</cite> with commentary, split up as akṣaras, amounts to 7486 lemmata.
             </p>
             <p>
-It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data. You can, however, re-normalize the texts at any time by selecting columns and using the menu option <code>Edit -&gt; (Re)normalize</code>.
+It is possible to export the alignment as a CSV file and edit it in any spreadsheet software, but, in doing so, you will lose the normalization data. You can, however, re-normalize the texts at any time by selecting columns and using the menu option <code>Column -&gt; (Re)normalize columns</code>.
             </p>
             <p>
 If you have done a character- or akṣara-based alignment, you can also ask the editor to try to group the columns into words, using the whitespace between characters as cues. This can be done by using the <code>Group words</code> command in the <code>Edit</code> menu.
@@ -517,7 +517,7 @@ After reconstructing a passage, the text can be exported in TEI XML format, as a
             </figure>
             <p>
 <label class="margin-toggle" for="n-export-apparatus">⊕</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
-If you want to change the groups, you can select columns and use the <code>Edit -&gt; Ungroup columns</code> and <code>Edit -&gt; Group columns</code> commands to reform them. Once you are satisfied, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
+If you want to change the groups, you can select columns and use the <code>Column -&gt; Ungroup columns</code> and <code>Column -&gt; Group columns</code> commands to reform them. Once you are satisfied, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
             </p>
             <p>
 The resulting TEI XML file can then be edited — for example, you may wish to prune the apparatus so that only the most important variants are shown. Since all of the manuscript witnesses have been transcribed already and can be compared using tools like <a href="https://saktumiva.org/">saktumiva.org</a>, this <q>curated</q> apparatus can be a useful way to focus on certain textual issues, while still having a fully positive apparatus available to the reader.
