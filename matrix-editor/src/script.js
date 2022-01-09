@@ -502,7 +502,9 @@ window.comboView = (function() {
                 func: edit.startRenormalize.bind(null,false)
             },
             {text: 'Delete column',
+                alt: 'Delete columns',
                 greyout: Check.anyhighlit,
+                toggle: Check.manyhighlit,
                 func: edit.removeCol.start.bind(null,false)
             },
             {text: 'Delete empty columns',
@@ -1187,31 +1189,68 @@ const fullTreeClick = function(e) {
         insertCol: {
             start: function() {
                 const insertafter = Math.max([...Find.highlit()]) || _state.maxlemma;
-                edit.insertCol.go(insertafter);
+                edit.insertCol.go({mode: 'append', start: insertafter});
             },
-            go: function(aftern,doing = 'do') {
-                const insert = function(rowfunc,cellfunc,newfunc,aftern) {
+            go: function(opts,doing = 'do') {
+                // opts = { mode: 'append' || 'insert', start, xml, html }
+                const insert = function(rowfunc,cellfunc,els,newfunc) {
                     const rows = rowfunc();
-                    for(const row of rows) {
-                        const cell = cellfunc(aftern,row);
-                        const newcell = newfunc(aftern + 1);
-                        cell.insertAdjacentElement('afterend',newcell);
+                    for(var n=0;n<rows.length;n++) {
+                        const anchor = cellfunc(opts.start,rows[n]);
+                        if(opts.mode === 'append') {
+                            if(!els) {
+                                const newcell = newfunc(opts.start + 1);
+                                anchor.insertAdjacentElement('afterend',newcell);
+                            }
+                            else {
+                                for(const cell of els[n].reverse())
+                                    anchor.insertAdjacentElement('afterend',cell);
+                            }
+                        }
+                        else {
+                            if(!els) {
+                                const newcell = newfunc(opts.start);
+                                anchor.insertAdjacentElement('beforebegin',newcell);
+                            }
+                            else {
+                                for(const cell of els[n])
+                                    anchor.insertAdjacentElement('beforebegin',cell);
+                            }
+                        }
                     }
+                    return els ? els[0].length : 1;
                 };
-                insert(Find.trs,Find.firsttd,Make.emptycell,aftern);
-                insert(Find.texts,Find.firstword,Make.emptyword,aftern);
-                edit.renumber(aftern);
 
-                //view.renormalize(aftern,aftern+2);
+                multi.unHighlightAll();
+
+                var len;
+                if(opts.hasOwnProperty('xml')) {
+                    insert(...opts.xml);
+                    len = insert(...opts.html);
+                }
+                else {
+                    insert(Find.trs,Find.firsttd,null,Make.emptycell);
+                    insert(Find.texts,Find.firstword,null,Make.emptyword);
+                    len = 1;
+                }
+
+                const nums = opts.mode === 'append' ? 
+                    [...Array(len).keys()].map(n => opts.start + n + 1) : 
+                    [...Array(len).keys()].map(n => opts.start + n);
+
+                edit.renumber(opts.start);
+
+                multi.highlightRange(new Set(nums));
+
                 edit.refresh();
-                edit.restyleGroups([aftern,aftern+1],true);
+                edit.reIAST(nums);
+                edit.restyleGroups(nums,true);
                 view.updateAllHeaders();
-                
-                const arg = [aftern+1];
+
                 if(doing === 'multido')
-                    return [edit.removeCol.go,[arg]];
+                    return [edit.removeCol.go,[nums]];
                 else
-                    edit.doStack([edit.removeCol.go,[arg]],doing);
+                    edit.doStack([edit.removeCol.go,[nums]],doing);
             }
         },
         
@@ -1256,23 +1295,38 @@ const fullTreeClick = function(e) {
                 };
                 //const oldhtml = remove(document,'.matrix tr','td','data-n',nums);
                 //const oldxml = remove(_state.xml,'text','w','n',nums);
+                const oldmax = Find.maxlemma();
                 const oldhtml = remove(Find.trs,Find.firsttd);
                 const oldxml = remove(Find.texts,Find.firstword);
-                const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
-                const start = parseInt([...sortednums][0])-1;
-                edit.renumber(start);
+                
+                const parsednums = [...nums].map(n => parseInt(n));
+                const start = Math.min(...nums);
+                const end = Math.max(...nums);
+                //const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
+                //const start = parseInt([...sortednums][0])-1;
+                edit.renumber(start-1);
                 //edit.renumber(document,'.matrix tr','td','data-n',start);
                 //edit.renumber(_state.xml,'text','w','n',start);
                 //view.renormalize(start-1,start);
                 edit.refresh();
                 edit.restyleGroups(nums,true);
                 view.updateAllHeaders();
-
+                
+                const opts = {
+                    html: oldhtml,
+                    xml: oldxml
+                };
+                if(end === oldmax) {
+                    opts.mode = 'append';
+                    opts.start = start-1;
+                }
+                else {
+                    opts.start = start;
+                }
                 if(doing === 'multido')
-                    return [edit.doUnremoveCol,[start+1,oldhtml,oldxml]];
+                    return [edit.insertCol.go,[opts]];
                 else
-                    edit.doStack([edit.doUnremoveCol,[start+1,oldhtml,oldxml]],doing);
-
+                    edit.doStack([edit.insertCol.go,[opts]],doing);
             },
 
         },
@@ -1809,46 +1863,6 @@ const fullTreeClick = function(e) {
             }
 
             edit.doMulti(todo);
-        },
-
-        doUnremoveCol: function(start,oldhtml,oldxml,doing) {
-            const unremove = function(rowfunc,cellfunc,oldels) {
-                const attr = Find.whichattr(oldels[0][0]);
-                //const nums = oldels[0].map(el => el.getAttribute(attr));
-                //const firstn = nums[0];
-                const rows = rowfunc();
-                for(var n=0;n<rows.length;n++) {
-                    const anchor = cellfunc(start,rows[n]);
-                    //const anchor = cellfunc(firstn,rows[n]);
-                    for(const cell of oldels[n])
-                        anchor.parentNode.insertBefore(cell,anchor);
-                }
-                //edit.renumber(doc,parents,childs,attribute,firstn);
-                //return nums;
-                return oldels[0].length;
-            };
-            unremove(...oldhtml);
-            const len = unremove(...oldxml);
-            //const nums = unremove(...oldxml);
-            //const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
-            //const start = parseInt(sortednums[0])-1;
-            edit.renumber(start);
-            const highlitcells = document.querySelectorAll('.highlitcell');
-            for(const cell of highlitcells)
-                cell.classList.remove('highlitcell');
-            //edit.reIAST(nums);
-            const nums = [...Array(len).keys()].map(n => n + start);
-            edit.reIAST(nums);
-            //const end = parseInt(sortednums[sortednums.length-1])+1;
-            //view.renormalize(start,end);
-            edit.refresh();
-            edit.restyleGroups(nums,true);
-            view.updateAllHeaders();
-
-            if(doing === 'multido')
-                return [edit.removeCol.go,[nums]];
-            else
-                edit.doStack([edit.removeCol.go,[nums]],doing);
         },
 
         doEmend: function(cellnum,rownum,doing = 'do') {
