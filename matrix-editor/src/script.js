@@ -503,7 +503,7 @@ window.comboView = (function() {
             },
             {text: 'Delete column',
                 greyout: Check.anyhighlit,
-                func: edit.startRemoveCol.bind(null,false)
+                func: edit.removeCol.start.bind(null,false)
             },
             {text: 'Delete empty columns',
                 func: edit.startRemoveEmpty
@@ -530,7 +530,7 @@ window.comboView = (function() {
             },
             {text: 'Insert column',
                 greyout: Check.anyhighlit,
-                func: edit.startInsertCol
+                func: edit.insertCol.start
             },
             {text: 'Mark insignificant',
                 checkbox: Check.checkbox.bind(null,'insignificant'),
@@ -1028,7 +1028,7 @@ const fullTreeClick = function(e) {
                             func: edit.group.start.bind(null,false)
                         },
                         {text: 'delete columns',
-                            func: edit.startRemoveCol.bind(null,nums)
+                            func: edit.removeCol.start.bind(null,nums)
                         },
                         /*                {text: 'insignificant',
                      cond: Check.checkbox.bind(null,'insignificant',nums),
@@ -1044,10 +1044,10 @@ const fullTreeClick = function(e) {
                             func: edit.startEditCell.bind(null,td)
                         },
                         {text: 'delete column',
-                            func: edit.startRemoveCol.bind(null,nums)
+                            func: edit.removeCol.start.bind(null,nums)
                         },
                         {text: 'insert column',
-                            func: edit.startInsertCol
+                            func: edit.insertCol.start
                         },
                         /*                {text: 'insignificant',
                      cond: Check.checkbox.bind(null,'insignificant',nums),
@@ -1165,7 +1165,6 @@ const fullTreeClick = function(e) {
         },
         
         ungroup: {
-
             start: function(nums) {
                 const clgroups = Find.clauses(nums);
                 const args = [...clgroups].map(s => [edit.ungroup.go,[s]]);
@@ -1185,45 +1184,112 @@ const fullTreeClick = function(e) {
         
         },
         
-        startInsertCol: function() {
-            const insertafter = Math.max([...Find.highlit()]) || _state.maxlemma;
-            edit.doInsertCol(insertafter);
+        insertCol: {
+            start: function() {
+                const insertafter = Math.max([...Find.highlit()]) || _state.maxlemma;
+                edit.insertCol.go(insertafter);
+            },
+            go: function(aftern,doing = 'do') {
+                const insert = function(rowfunc,cellfunc,newfunc,aftern) {
+                    const rows = rowfunc();
+                    for(const row of rows) {
+                        const cell = cellfunc(aftern,row);
+                        const newcell = newfunc(aftern + 1);
+                        cell.insertAdjacentElement('afterend',newcell);
+                    }
+                };
+                insert(Find.trs,Find.firsttd,Make.emptycell,aftern);
+                insert(Find.texts,Find.firstword,Make.emptyword,aftern);
+                edit.renumber(aftern);
+
+                //view.renormalize(aftern,aftern+2);
+                edit.refresh();
+                edit.restyleGroups([aftern,aftern+1],true);
+                view.updateAllHeaders();
+                
+                const arg = [aftern+1];
+                if(doing === 'multido')
+                    return [edit.removeCol.go,[arg]];
+                else
+                    edit.doStack([edit.removeCol.go,[arg]],doing);
+            }
         },
+        
+        removeCol: {
+            start: function(nums,/*e*/) {
+                const numss = nums === false ?
+                    Find.highlit() :
+                    nums;
 
-        startRemoveCol: function(nums,/*e*/) {
-            const numss = nums === false ?
-                Find.highlit() :
-                nums;
-
-            const clgroups = Find.clauses(numss);
-            if(!clgroups) {
-                edit.doRemoveCol(numss,'do');
-            }
-            else {
-                const toremove = Find.clausesToRemove(clgroups,numss,1);
-                if(!toremove)
-                    edit.doRemoveCol(numss,'do');
-                else {
-                    const args = toremove.map(s => [edit.ungroup.go,[s]])
-                        .concat([[edit.doRemoveCol,[numss]]]);
-                    edit.doMulti(args,'do');
+                const clgroups = Find.clauses(numss);
+                if(!clgroups) {
+                    edit.removeCol.go(numss,'do');
                 }
-            }
+                else {
+                    //const toremove = Find.clausesToRemove(clgroups,numss,1);
+                    //if(!toremove)
+                    //    edit.removeCol.go(numss,'do');
+                    //else {
+                    //    const args = toremove.map(s => [edit.ungroup.go,[s]])
+                        const args = clgroups.map(s => [edit.ungroup.go,[s]])
+                            .concat([[edit.removeCol.go,[numss]]]);
+                        edit.doMulti(args,'do');
+                    //}
+                }
+            },
+            go: function(nums,doing = 'do') {
+                const remove = function(rowfunc,cellfunc) {
+                    const rows = rowfunc();
+                    var rowsclone = [];
+                    for(const row of rows) {
+                        const arr = [...nums].map(n => {
+                            const cell = cellfunc(n,row);
+                            edit.unnormalize(cell);
+                            return cell;
+                        });
+                        const arrclone = arr.map(el => el.cloneNode(true));
+                        rowsclone.push(arrclone);
+                        for(const td of arr)
+                            td.parentNode.removeChild(td);
+                    }
+                    return [rowfunc,cellfunc,rowsclone];
+                };
+                //const oldhtml = remove(document,'.matrix tr','td','data-n',nums);
+                //const oldxml = remove(_state.xml,'text','w','n',nums);
+                const oldhtml = remove(Find.trs,Find.firsttd);
+                const oldxml = remove(Find.texts,Find.firstword);
+                const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
+                const start = parseInt([...sortednums][0])-1;
+                edit.renumber(start);
+                //edit.renumber(document,'.matrix tr','td','data-n',start);
+                //edit.renumber(_state.xml,'text','w','n',start);
+                //view.renormalize(start-1,start);
+                edit.refresh();
+                edit.restyleGroups(nums,true);
+                view.updateAllHeaders();
+
+                if(doing === 'multido')
+                    return [edit.doUnremoveCol,[start+1,oldhtml,oldxml]];
+                else
+                    edit.doStack([edit.doUnremoveCol,[start+1,oldhtml,oldxml]],doing);
+
+            },
+
         },
 
         startRemoveEmpty: function() {
             const nums = Find.empty();
             const clgroups = Find.clauses(nums);
             if(!clgroups) {
-                edit.doRemoveCol(nums,'do');
+                edit.removeCol.go(nums,'do');
             }
             else {
                 const toremove = Find.clausesToRemove(clgroups,nums,1);
                 if(!toremove)
-                    edit.doRemoveCol(nums,'do');
+                    edit.removeCol.go(nums,'do');
                 else {
                     const args = toremove.map(s => [edit.ungroup.go,[s]])
-                        .concat([[edit.doRemoveCol,[nums]]]);
+                        .concat([[edit.removeCol.go,[nums]]]);
                     edit.doMulti(args,'do');
                 }
             }
@@ -1745,66 +1811,33 @@ const fullTreeClick = function(e) {
             edit.doMulti(todo);
         },
 
-        doRemoveCol: function(nums,doing = 'do') {
-            const remove = function(rowfunc,cellfunc,nums) {
-                const rows = rowfunc();
-                var rowsclone = [];
-                for(const row of rows) {
-                    const arr = [...nums].map(n => {
-                        const cell = cellfunc(n,row);
-                        edit.unnormalize(cell);
-                        return cell;
-                    });
-                    const arrclone = arr.map(el => el.cloneNode(true));
-                    rowsclone.push(arrclone);
-                    for(const td of arr)
-                        td.parentNode.removeChild(td);
-                }
-                return [rowfunc,cellfunc,rowsclone];
-            };
-            //const oldhtml = remove(document,'.matrix tr','td','data-n',nums);
-            //const oldxml = remove(_state.xml,'text','w','n',nums);
-            const oldhtml = remove(Find.trs,Find.firsttd,nums);
-            const oldxml = remove(Find.texts,Find.firstword,nums);
-            const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
-            const start = parseInt([...sortednums][0])-1;
-            edit.renumber(start);
-            //edit.renumber(document,'.matrix tr','td','data-n',start);
-            //edit.renumber(_state.xml,'text','w','n',start);
-            //view.renormalize(start-1,start);
-            edit.refresh();
-            edit.restyleGroups(nums,true);
-            view.updateAllHeaders();
-
-            if(doing === 'multido')
-                return [edit.doUnremoveCol,[oldhtml,oldxml]];
-            else
-                edit.doStack([edit.doUnremoveCol,[oldhtml,oldxml]],doing);
-
-        },
-
-        doUnremoveCol: function(oldhtml,oldxml,doing) {
+        doUnremoveCol: function(start,oldhtml,oldxml,doing) {
             const unremove = function(rowfunc,cellfunc,oldels) {
                 const attr = Find.whichattr(oldels[0][0]);
-                const nums = oldels[0].map(el => el.getAttribute(attr));
-                const firstn = nums[0];
+                //const nums = oldels[0].map(el => el.getAttribute(attr));
+                //const firstn = nums[0];
                 const rows = rowfunc();
                 for(var n=0;n<rows.length;n++) {
-                    const anchor = cellfunc(firstn,rows[n]);
+                    const anchor = cellfunc(start,rows[n]);
+                    //const anchor = cellfunc(firstn,rows[n]);
                     for(const cell of oldels[n])
                         anchor.parentNode.insertBefore(cell,anchor);
                 }
                 //edit.renumber(doc,parents,childs,attribute,firstn);
-                return nums;
+                //return nums;
+                return oldels[0].length;
             };
             unremove(...oldhtml);
-            const nums = unremove(...oldxml);
-            const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
-            const start = parseInt(sortednums[0])-1;
+            const len = unremove(...oldxml);
+            //const nums = unremove(...oldxml);
+            //const sortednums = [...nums].sort((a,b) => parseInt(a)-parseInt(b));
+            //const start = parseInt(sortednums[0])-1;
             edit.renumber(start);
             const highlitcells = document.querySelectorAll('.highlitcell');
             for(const cell of highlitcells)
                 cell.classList.remove('highlitcell');
+            //edit.reIAST(nums);
+            const nums = [...Array(len).keys()].map(n => n + start);
             edit.reIAST(nums);
             //const end = parseInt(sortednums[sortednums.length-1])+1;
             //view.renormalize(start,end);
@@ -1813,33 +1846,9 @@ const fullTreeClick = function(e) {
             view.updateAllHeaders();
 
             if(doing === 'multido')
-                return [edit.doRemoveCol,[nums]];
+                return [edit.removeCol.go,[nums]];
             else
-                edit.doStack([edit.doRemoveCol,[nums]],doing);
-        },
-
-        doInsertCol: function(aftern,doing = 'do') {
-            const insert = function(rowfunc,cellfunc,newfunc,aftern) {
-                const rows = rowfunc();
-                for(const row of rows) {
-                    const cell = cellfunc(aftern,row);
-                    const newcell = newfunc(aftern + 1);
-                    cell.insertAdjacentElement('afterend',newcell);
-                }
-            };
-            insert(Find.trs,Find.firsttd,Make.emptycell,aftern);
-            insert(Find.texts,Find.firstword,Make.emptyword,aftern);
-            edit.renumber(aftern);
-            //view.renormalize(aftern,aftern+2);
-            edit.refresh();
-            edit.restyleGroups([aftern,aftern+1],true);
-            view.updateAllHeaders();
-            
-            const arg = [aftern+1];
-            if(doing === 'multido')
-                return [edit.doRemoveCol,[arg]];
-            else
-                edit.doStack([edit.doRemoveCol,[arg]],doing);
+                edit.doStack([edit.removeCol.go,[nums]],doing);
         },
 
         doEmend: function(cellnum,rownum,doing = 'do') {
