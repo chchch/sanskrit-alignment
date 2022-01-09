@@ -1,17 +1,37 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+<html>
+<head>
     <title>Matrix editor</title>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
     <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css" />
     <script type="module" src="script.js"></script>
 </head>
 
 <body>
 <div id="comboview">
-    <!--h4>Matrix editor</h4-->
     <div id="stickytop">
-    <div id="menu">
-        <div id="left_menu"></div>
+    <div id="menu" style="display: none">
+        <div id="left_menu">
+            <div id="matrixmenu" class="menubox">
+                <div class="heading">Matrix</div>
+                  <ul>
+                    <li>select CSV/XML file(s): <input type="file" id="file" name="file" accept=".xml,.csv" multiple/></li>
+                  </ul>
+            </div>
+            <div style="display: none" id="mssmenu" class="menubox">
+                <div class="heading">Texts</div>
+                <ul class="ms">
+                </ul>
+            </div>
+            <div style="display: none" id="treemenu" class="menubox">
+                <div class="heading">Trees</div>
+                    <ul class="tree">
+                        <li>select NeXML file: <input type="file" id="treefile" name="treefile" accept=".xml"/></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
         <!--div id="right_menu"></div-->
     </div>
     <div id="descs"></div>
@@ -29,6 +49,5 @@
         </div>
     </div>
 </div>
-
-
-</body></html>
+</body>
+</html>
