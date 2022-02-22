@@ -1481,6 +1481,7 @@ const fullTreeClick = function(e) {
             //blackout.addEventListener('click',Exporter.blackoutClick);
 
             Make.blackout(frag,submitfunction);
+            document.getElementById('reconstructed_node_name').focus();
         },
 
         thKeyDown: function(e) {
