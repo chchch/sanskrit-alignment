@@ -1,3 +1,9 @@
+0.85 (2022-03-06)
+
+* changed menu layout
+* minor bugfixes
+* code cleanup
+
 0.8 (2021-11-28)
 
 * added Edit -> (Re)normalize columns
