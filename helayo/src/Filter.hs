@@ -29,6 +29,7 @@ data Filter = Filter
      filterDesc :: String
     }
 
+filters:: [Filter]
 filters = [
     Filter {
         filterDesc = "valapalagilaka",
@@ -277,6 +278,7 @@ filters = [
     }
     ]
 
+spaceFilter':: Filter
 spaceFilter' = 
     Filter {
         filterDesc = "collapse spaces",
@@ -284,6 +286,7 @@ spaceFilter' =
         filterReplace = (const " ")
     }
 
+spaceFilter:: Filter
 spaceFilter =
     Filter {
         filterDesc = "remove spaces",
@@ -299,13 +302,13 @@ spaceFilter =
 -----
 
 replaceAll :: String -> ReplaceFn -> String -> String
-replaceAll re f s = start end
+replaceAll re f s = strstart strend
     where 
-    (_, end, start) = foldl' go (0, s, id) ((s =~ re) :: [MatchText String])
-    go (ind,read,write) mt =
+    (_, strend, strstart) = foldl' go (0, s, id) ((s =~ re) :: [MatchText String])
+    go (ind,strread,write) mt =
         let (off,len) = snd $ mt ! 0 -- MatchText is Array [(String,(Int,Int))]; 0 is full match, followed by submatches
-            (skip, start) = splitAt (off - ind) read 
-            (_, remaining) = splitAt len start 
+            (skip, newstart) = splitAt (off - ind) strread
+            (_, remaining) = splitAt len newstart
         in (off + len, remaining, write . (skip++) . (f mt ++))
 
 filterAll :: [Filter] -> String -> String
@@ -318,14 +321,14 @@ unfilterAll (x:xs) s = unfilterAll xs (unreplaceAll x s)
 
 unreplaceAll :: Filtered -> String -> String
 unreplaceAll (_,[]) s = s -- when there were no replacements made
-unreplaceAll (f,ms) s = start end
+unreplaceAll (f,ms) s = strstart strend
     where
-    (_, end, start) = foldl' go (0, s, id) ms
-    go (ind,read,write) m =
+    (_, strend, strstart) = foldl' go (0, s, id) ms
+    go (ind,strread,write) m =
         let (txt,(off,origlen)) = m ! 0 -- MatchText is Array [(String,(Int,Int))]; 0 is full match, followed by submatches
             len = length $ f m
-            (skip, start) = splitAt (off - ind) read 
-            (_, remaining) = splitAt len start 
+            (skip, newstart) = splitAt (off - ind) strread
+            (_, remaining) = splitAt len newstart
         in  (off + origlen, remaining, write . (skip++) . (txt++))
 
 -------
@@ -357,61 +360,67 @@ prepX fs splitfn ss = zip sigla unfiltered
         where go (fs',s) = let split = splitfn s in (unfilterAll' fs' split,split)
 
 replaceAll' :: String -> ReplaceFn -> String -> (Filtered,String)
-replaceAll' re f s = ((f,ms),start end)
+replaceAll' re f s = ((f,ms),strstart strend)
     where
     ms = ((s =~ re) :: [MatchText String])
-    (_, end, start) = foldl' go (0, s, id) ms
-    go (ind,read,write) m =
+    (_, strend, strstart) = foldl' go (0, s, id) ms
+    go (ind,strread,write) m =
         let (off,len) = snd $ m ! 0 -- MatchText is Array [(String,(Int,Int))]; 0 is full match, followed by submatches
-            (skip, start) = splitAt (off - ind) read 
-            (_, remaining) = splitAt len start 
+            (skip, newstart) = splitAt (off - ind) strread
+            (_, remaining) = splitAt len newstart
         in (off + len, remaining, write . (skip++) . (f m ++))
+
 
 unreplaceAll' :: Filtered -> [String] -> [String]
 unreplaceAll' (_,[]) ss = ss -- when there were no replacements made
-unreplaceAll' (f,ms) ss = start end
+unreplaceAll' (f,ms) ss = strstart strend
     where
-    (_, end, start) = foldl' go (0, ss, id) ms
-    go (ind,read,write) m =
+    (_, strend, strstart) = foldl' go (0, ss, id) ms
+    go (ind,strread,write) m =
         let (txt,(off,_)) = m ! 0 -- MatchText is Array [(String,(Int,Int))]; 0 is full match, followed by submatches
             replacelen = length $ f m
-            (skip,start,remlen) = splitAt' (off - ind) replacelen read
-            remaining = replaceAt' (remlen,replacelen) txt start
+            (skip,newstart,remlen) = splitAt' (off - ind) replacelen strread
+            remaining = replaceAt' (remlen,replacelen) txt newstart
         in  (off-remlen, remaining, write . (skip++)) -- start next search at beginning of last replacement rather than the end
-        where
-        splitAt' :: Int -> Int -> [String] -> ([String],[String],Int)
-        splitAt' n replacelen xs = go n (id,xs) 
-            where
-            go :: Int -> (([String]->[String]),[String]) -> ([String],[String],Int)
-            --go 0 (h,t) = (h [],t,0)
-            --go n (h,[]) = (h [],[],n)
-            go n (h,[x]) = (h [],[x],n)
-            go n (h,xxs@(x:xs))
-                | n > cell_len     = go (n - cell_len) (h . ([x]++),xs)
-                | n == cell_len    = case replacelen of 0          -> (h [],xxs,n) -- stick daṇḍas, etc. at the end of a cell
-                                                        replacelen -> (h [x],xs,0)
-                | otherwise    = (h [],xxs,n)
-                where cell_len = length x
-        ---
-        replaceAt' :: (Int,Int) -> String -> [String] -> [String]
-        replaceAt' (n,m) y [x] =
-            let (start,middle) = splitAt n x
-                (_,end) = splitAt m middle
-            in  [start ++ y ++ end]
-        replaceAt' (n,m) y (x:xs) -- (start,length) replacement (list of strings)
-            | m <= leftoverlen = 
-                let (start,middle) = splitAt n x
-                    (_,end) = splitAt m middle
-                in  (start ++ y ++ end):xs
-            | otherwise              =
-                let (start,_) = splitAt n x
-                    (replacewith,leftover) = splitAt leftoverlen y
-                    new_m = m - leftoverlen
-                in  (start ++ replacewith):(replaceAt' (0,new_m) leftover xs)
-            where leftoverlen = (length x) - n
+----
+splitAt' :: Int -> Int -> [String] -> ([String],[String],Int)
+splitAt' m replacelen ys = go m (id,ys) 
+    where
+    go :: Int -> (([String]->[String]),[String]) -> ([String],[String],Int)
+    --go 0 (h,t) = (h [],t,0)
+    --go n (h,[]) = (h [],[],n)
+    go _ (_,[]) = error "empty list"
+    go n (h,[x]) = (h [],[x],n)
+    go n (h,xxs@(x:xs))
+        | n > cell_len     = go (n - cell_len) (h . ([x]++),xs)
+        | n == cell_len    = case () of
+                                () | replacelen == 0 -> (h [],xxs,n) -- stick daṇḍas, etc. at the end of a cell
+                                   | otherwise       -> (h [x],xs,0)
+        | otherwise        = (h [],xxs,n)
+        where cell_len = length x
+---
+replaceAt' :: (Int,Int) -> String -> [String] -> [String]
+replaceAt' _ _ [] = error "empty list"
+replaceAt' (n,m) y [x] =
+    let (strstart,strmid) = splitAt n x
+        (_,strend) = splitAt m strmid
+    in  [strstart ++ y ++ strend]
+replaceAt' (n,m) y (x:xs) -- (start,length) replacement (list of strings)
+    | m <= leftoverlen = 
+        let (strstart,strmid) = splitAt n x
+            (_,strend) = splitAt m strmid
+        in  (strstart ++ y ++ strend):xs
+    | otherwise              =
+        let (strstart,_) = splitAt n x
+            (replacewith,leftover) = splitAt leftoverlen y
+            new_m = m - leftoverlen
+        in  (strstart ++ replacewith):(replaceAt' (0,new_m) leftover xs)
+    where leftoverlen = (length x) - n
+----
+
 
 filterAll' :: [Filter] -> String -> ([Filtered],String)
-filterAll' fs s = go fs [] s 
+filterAll' fs str = go fs [] str
         where
         go :: [Filter] -> [Filtered] -> String -> ([Filtered],String)
         go [] us s = (us,s)

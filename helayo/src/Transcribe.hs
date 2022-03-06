@@ -35,26 +35,31 @@ makeScriptScheme v c m =
 findLongest:: [String] -> Int
 findLongest ss = length $ maximumBy (comparing length) ss
 
+iast:: ScriptScheme
 iast = makeScriptScheme 
     ["a","ā","i","ī","u","ū","ṛ","ṝ","ḷ","ḹ","ẽ","e","ai","õ","o","au","ê","ô","aî","aû"]
     ["k","kh","g","gh","ṅ","c","ch","j","jh","ñ","ṭ","ṭh","ḍ","ḍh","ṇ","t","th","d","dh","n","p","ph","b","bh","m","y","r","l","v","ś","ṣ","s","h","ḻ","ḻh","ṙ"]
     ["ṃ","ḥ","m̐","oṁ","oḿ"]
 
-slp1 = makeScriptScheme
-    ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"]
-    ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"]
-    ["M","H","~","'","`"]
-
+slp1':: ScriptScheme
 slp1' = makeScriptScheme
     ["a","A","i","I","u","U","f","F","x","X","ẽ","e","E","õ","o","O","ê","ô","aî","aû"]
     ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","LL","ṙ"]
     ["M","H","m̐","oṁ","oḿ"]
 
+{-
 -- SLP1 with variations for use with bioinformatics software
+slp1:: ScriptScheme
+slp1 = makeScriptScheme
+    ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"]
+    ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","|"]
+    ["M","H","~","'","`"]
+fasta:: ScriptScheme
 fasta = makeScriptScheme
     ["a","A","i","I","u","U","f","F","x","X","3","e","E","0","o","O"]
     ["k","K","g","G","N","c","C","j","J","Y","w","W","q","Q","R","t","T","d","D","n","p","P","b","B","m","y","r","l","v","S","z","s","h","L","1"]
     ["M","H","2","4","6"]
+-}
 
 data TransScheme = TransScheme { fromScheme :: ScriptScheme
                                , toScheme :: ScriptScheme
@@ -72,13 +77,15 @@ makeTransScheme a b = TransScheme { fromScheme = a
                                   }
     where
     mapChars:: ScriptScheme -> ScriptScheme -> Map.Map String String
-    mapChars a b = Map.fromList $ zip (ssAll a) (ssAll b)
+    mapChars c d = Map.fromList $ zip (ssAll c) (ssAll d)
 
+iast2slp1':: TransScheme
 iast2slp1' = makeTransScheme iast slp1'
+slp1'2iast:: TransScheme
 slp1'2iast = makeTransScheme slp1' iast
 
 matchGlyph :: String -> TransScheme -> Int -> (String,String)
-matchGlyph s ts 0 = ([head s],tail s) -- if nothing matches, leave the first character as is
+matchGlyph s _ 0 = ([head s],tail s) -- if nothing matches, leave the first character as is
 matchGlyph s ts n
     | pre `elem` (charKeys ts) = (transliterate pre $ charMap ts,post)
     | otherwise = matchGlyph s ts (n-1)
@@ -93,9 +100,9 @@ splitGlyphs_ sc = reverse . splitLoop []
     where
     splitLoop :: [String] -> String -> [String]
     splitLoop ss ""  = ss
-    splitLoop ss rem = splitLoop (fst result:ss) (snd result)
+    splitLoop ss rm = splitLoop (fst result:ss) (snd result)
         where
-        result = findChar rem (ssAll sc) (ssLength sc)
+        result = findChar rm (ssAll sc) (ssLength sc)
 
 --- includes trailing spaces with each character
 splitGlyphs :: ScriptScheme -> String -> [String]
@@ -103,9 +110,9 @@ splitGlyphs sc = reverse . splitLoop []
     where
     splitLoop :: [String] -> String -> [String]
     splitLoop ss ""  = ss
-    splitLoop ss rem = splitLoop (fst result:ss) (snd result)
+    splitLoop ss rm = splitLoop (fst result:ss) (snd result)
         where
-        result = gobbleSpaces $ findChar rem (ssAll sc) (ssLength sc)
+        result = gobbleSpaces $ findChar rm (ssAll sc) (ssLength sc)
             where
             gobbleSpaces :: (String,String) -> (String,String)
             gobbleSpaces (pre,post)
@@ -114,7 +121,7 @@ splitGlyphs sc = reverse . splitLoop []
                     where (spaces,other) = span (== ' ') post
 
 findChar :: String -> [String] -> Int -> (String,String)
-findChar s2 cl 0 = ([head s2],tail s2)
+findChar s2 _ 0 = ([head s2],tail s2)
 findChar s2 cl n
     | pre `elem` cl = (pre,post)
     | otherwise = findChar s2 cl (n-1)

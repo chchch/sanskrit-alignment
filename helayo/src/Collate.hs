@@ -1,5 +1,6 @@
 module Collate (
-tr,mtr,
+--tr,
+mtr,
 makeArray,
 SubstMatrix,--SubstMatrix',
 --mSM,mSM',
@@ -15,7 +16,8 @@ alignLookup,recursiveLookup,simpleLookup
 
 import Data.Maybe (fromJust, fromMaybe)
 import qualified Data.Vector as V (fromList)
-import Data.Align.Affine (alignConfig, align, stepOfAll, trace, traceScore, centerStar, MultiStep)
+import Data.Align.Affine (alignConfig, align, stepOfAll, trace, traceScore, centerStar, MultiStep, MultiTrace)
+--import Affine
 import Data.List (transpose, foldl')
 import Data.List.Split (wordsBy)
 import qualified Data.Map as M (lookup, fromList, Map)
@@ -65,18 +67,23 @@ alignLookup' m o a b
         yindex = b `elemIndex` columns' m
 -}
 
+simpleLookup :: Penalties -> String -> String -> Double
 simpleLookup o a b = if a == b then pMatch o else pMismatch o
 
+{-
 tr m conf o ss = align
        (alignConfig (conf o) (pGapOpen o) (pGap o))
        (V.fromList $ head ss)
        (V.fromList $ last ss)
+-}
 
+mtr :: (Penalties -> String -> String -> Double) -> Penalties -> [(String,([String],[String]))] 
+                -> MultiTrace String String Double
 mtr conf o seqs = centerStar
     (alignConfig (conf o) (pGapOpen o) (pGap o))
     vecs
     where
-    vecs = map (\(i,(fs,s)) -> (i,V.fromList s)) seqs
+    vecs = map (\(i,(_,s)) -> (i,V.fromList s)) seqs
 
 makeArray :: [String] -> [[String]]
 makeArray = map (wordsBy (== ';'))
@@ -102,17 +109,19 @@ makeMatrix' (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scor
     where
     xaxis = M.fromList $ zip ss [1..]
     yaxis = M.fromList $ zip (map head sss) [1..]
-    size = length xaxis * length yaxis - 1
+    --size = length xaxis * length yaxis - 1
     scores = X.fromLists $ map (map (\s -> read s::Double)) $ map (drop 1) sss
 -}
 
 -- Matrix is 1-indexed
 makeMatrix :: [[String]] -> SubstMatrix
-makeMatrix (ss:sss) = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scores}
+makeMatrix sses = SubstMatrix {columns = xaxis, rows = yaxis, matrix = scores}
     where
+    ss = head sses
+    sss = tail sses
     xaxis = M.fromList $ zip (map (transliterateString iast2slp1') ss) [1..]
     yaxis = M.fromList $ zip (map (transliterateString iast2slp1' . head) sss) [1..]
-    size = length xaxis * length yaxis - 1
+    --size = length xaxis * length yaxis - 1
     scores = X.fromLists $ map (map (\s -> read s::Double)) $ map (drop 1) sss
 
 {-        
@@ -151,8 +160,8 @@ alignPrep :: [String] -> [MultiStep String] -> [(String,([String],[String]))] ->
 alignPrep is ms ss = reverse $ go (M.fromList (zip is (transpose $ map stepOfAll ms))) ss []
     where 
     go :: M.Map String [Maybe String] -> [(String,([String],[String]))] -> [(String,([String],[Maybe String]))] -> [(String,([String],[Maybe String]))]
-    go m [] acc = acc
-    go m ((i,(unfiltered,_)):rem) acc = go m rem ((i,(unfiltered,target)):acc)
+    go _ [] acc = acc
+    go m ((i,(unfiltered,_)):rm) acc = go m rm ((i,(unfiltered,target)):acc)
         where target = fromMaybe [] (M.lookup i m)
 {-    
 alignZip' :: [String] -> [Maybe String] -> [String]
