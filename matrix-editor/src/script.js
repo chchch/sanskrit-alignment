@@ -1147,15 +1147,16 @@ const fullTreeClick = function(e) {
                     .concat([[edit.doMerge,[numss]]]);
                 edit.doMulti(args,'do');
             }
-            else {
-                const toremove = Find.clausesToRemove(clgroups,numss);
-                if(!toremove)
-                    edit.doMerge(numss,'do');
-                else {
-                    const args = toremove.map(s => [edit.ungroup.go,[s]])
+            else { /* ungroups everything; otherwise undo doesn't regroup properly */
+                //const toremove = Find.clausesToRemove(clgroups,numss);
+                //if(!toremove)
+                //    edit.doMerge(numss,'do');
+                //else {
+                //    const args = toremove.map(s => [edit.ungroup.go,[s]])
+                    const args = clgroups.map(s => [edit.ungroup.go,[s]])
                         .concat([[edit.doMerge,[numss]]]);
                     edit.doMulti(args,'do');
-                }
+                //}
 
             }
         },
@@ -1278,10 +1279,11 @@ const fullTreeClick = function(e) {
                     nums;
 
                 const clgroups = Find.clauses(numss);
+                console.log(clgroups);
                 if(!clgroups) {
                     edit.removeCol.go(numss,'do');
                 }
-                else {
+                else { /* ungroups everything; otherwise undo doesn't regroup properly */
                     //const toremove = Find.clausesToRemove(clgroups,numss,1);
                     //if(!toremove)
                     //    edit.removeCol.go(numss,'do');

@@ -1,6 +1,6 @@
 {
   "name": "matrix-editor",
-  "version": "0.8",
+  "version": "0.85",
   "description": "Matrix editor for TEI XML collations",
   "main": "script.js",
   "repository": "https://github.com/chchch/sanskrit-alignment",
