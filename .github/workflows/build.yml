@@ -33,6 +33,12 @@ jobs:
         path: ~/.stack
         key: ${{ runner.os }}-${{ matrix.ghc }}-stack
 
+    # https://github.com/commercialhaskell/stack/issues/5405
+    - name: clear macOS cache
+      if: runner.os == 'macOS'
+      continue-on-error: true
+      run: rm -r ~/.stack-setup-exe-cache
+
     - name: Install dependencies
       run: |
         cd helayo
