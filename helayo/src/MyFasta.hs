@@ -4,13 +4,13 @@ fastaFile',
 parseFasta'
 ) where
 
-import Data.Char
+--import Data.Char
 import Text.Parsec
 import Control.Monad (void)
-import qualified Data.Map as Map
-import qualified System.IO as IO
+--import qualified Data.Map as Map
+--import qualified System.IO as IO
 import qualified Data.String.Utils as S
-import Data.Fasta.String.Types
+import Data.Fasta.String.Types (FastaSequence(..))
 
 eol :: Parsec String u String
 eol = choice . map (try . string) $ ["\n\r", "\r\n", "\n", "\r"]
@@ -22,7 +22,7 @@ eoe  = do
 fasta' :: Parsec String u FastaSequence
 fasta' = do
     spaces
-    char '>'
+    _ <- char '>'
     header <- manyTill (satisfy (/= '>')) eol
     fseq <- manyTill anyChar eoe
     return ( FastaSequence { fastaHeader = S.strip header

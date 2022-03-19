@@ -4,6 +4,7 @@ import System.Environment (getArgs)
 import System.Console.GetOpt (getOpt, OptDescr(Option), ArgOrder(Permute), ArgDescr(ReqArg))
 import Data.Maybe (fromJust)
 import Data.Align.Affine (allIndices, multiTrace)
+--import Affine
 import MyFasta (parseFasta')
 import Collate (alignPrep, multiXMLAlign, alignLookup, recursiveLookup, simpleLookup, mtr, makeMatrix, makeArray, makePenalties)
 import Filter (prepAksaras, prepSeqs, prepWords)

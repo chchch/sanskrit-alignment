@@ -17,7 +17,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 22 February 2022.</p>
+        <p>Last updated: 6 March 2022.</p>
         <section>
             <blockquote>
                 <p>
@@ -86,8 +86,8 @@
                 <li>Alignment
                     <ul>
                         <li>download the appropriate <code>helayo</code> binary from the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/helayo/dist"><code>helayo/dist/</code></a> directory, or build it from source using the <a href="https://www.haskell.org/platform/">Haskell Platform</a>.</li>
-                        <li>run <code>./helayo -x substitution_matrix.csv -l aksara [input.fas] &gt; [output.xml]</code> for each <code>.fas</code> file.</li>
-                        <li>open your <code>.xml</code> files in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> and fix any big alignment errors. Save each file individually.</li>
+                        <li>run <code>./helayo -x substitution_matrix.csv [input.fas] &gt; [output.xml]</code> for each <code>.fas</code> file.</li>
+                        <li>open your <code>.xml</code> files in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a> and fix any big alignment errors. You can also use <code>Edit -&gt; Group all words</code>. Save each file individually.</li>
                         <li>open all your <code>.xml</code> files in the matrix-editor at once (use Ctrl-Click or Shift-Click to select multiple files). Export to NEXUS.</li>
                     </ul>
                 </li>
@@ -244,21 +244,21 @@ Here is the same text aligned as characters, akṣaras, or words:
             <blockquote>
                 <pre style="font-size: 0.7em">
 v a s t u s v a r ū p - - - - - a m a r th a k r i y ā k ā r i d r a v y a ṃ<br/>
-v a s t a s v a l a k ṣ a - - n a - - - -  - k r i y ā k ā r i d r a v y a ṃ<br/>
+v a s t a s v a l a k ṣ a - - ṇ a - - - -  - k r i y ā k ā r i d r a v y a ṃ<br/>
 v a s t u s v a l a k ṣ a m ā n a m a r th a k r i y ā k ā r i d r a v y a ṃ
                 </pre>
             </blockquote>
             <blockquote>
                 <pre style="font-size: 0.7em">
 va stu sva rū pa  -  -  ma rtha kri yā kā ri dra vyaṃ<br/>
-va sta sva la kṣa -  na -  -    kri yā kā ri dra vyaṃ<br/>
+va sta sva la kṣa -  ṇa -  -    kri yā kā ri dra vyaṃ<br/>
 va stu sva la kṣa mā na ma rtha kri yā kā ri dra vyaṃ<br/>
                 </pre>
             </blockquote>
             <blockquote>
                 <pre style="font-size: 0.7em">
 vastu svarūpam            arthakriyākāri      dravyaṃ<br/>
-vasta svalakṣanakriyākāri -                   dravyaṃ<br/>
+vasta svalakṣaṇakriyākāri -                   dravyaṃ<br/>
 vastu svalakṣamānam       arthakriyākāri      dravyaṃ<br/>
                 </pre>
             </blockquote>
@@ -315,7 +315,7 @@ WARNING: Especially when you have a lot of files, this is very slow. For the pur
             </p>
             <h3 id="alignment-editor">Using the matrix-editor</h3>
             <p>
-Now that the texts are aligned, you can check them in the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/matrix-editor/">matrix-editor</a>. Simply open the <code>matrix-editor/index.html</code> file in a web browser (or use the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">online version</a>) and load one of the XML files.
+Now that the texts are aligned, you can check them in the <a href="https://chchch.github.io/sanskrit-alignment/matrix-editor/">matrix-editor</a>. Simply use the version hosted on GitHub or, in the <code>matrix-editor/</code> directory, start a simple web server. Load one of the XML files, and it will be displayed with each text as a row and each lemma as a column.
             </p>
             <figure>
                 <img src="img/matrix-editor-1.png" alt="image of the matrix editor"/>
@@ -347,7 +347,7 @@ pa dā rthā vi tyu ktaṃ
                 </pre>
             </blockquote>
             <p>
-has been grouped together as <q>padārthāvityuktaṃ</q>, even though, in the unnormalized text, there are spaces between <q>padārthāv</q>, <q>ity</q>, and <q>uktaṃ</q>. The sequence <code>v i</code> is a single akṣara and cannot be split; the same applies to <code>ty u</code>. However, if we had done a character-based alignment,
+has been grouped together as <q>padārthāvityuktaṃ</q>, even though, in the unnormalized text, there are spaces between <q>padārthāv</q>, <q>ity</q>, and <q>uktaṃ</q>. The sequence <code>vi</code> is a single akṣara and cannot be split; the same applies to <code>tyu</code>. However, if we had done a character-based alignment,
             </p>
             <blockquote>
                 <pre style="font-size: 0.7em">
@@ -362,7 +362,7 @@ the sequence would have been split as <q>padārthāv ity utakṃ</q>.
 When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
             </p>
             <p>
-At this point, if you have done a character- or akṣara-based alignment, and you have used the <code>Group words</code> function, you can also use the <code>Merge groups</code> option in order to try analyzing the alignment as words rather than characters or akṣaras.
+At this point, if you have done a character- or akṣara-based alignment, and you have used the <code>Group all words</code> function, you can also use the <code>Merge groups</code> option in order to try analyzing the alignment as words rather than characters or akṣaras.
             </p>
             <p>
 The resulting NEXUS file is available in the GitHub repository at <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/full-alignment.nex">example/full-alignment.nex</a>.
@@ -510,7 +510,7 @@ Where the algorithm is able to come up with a definitive reading, it will be dis
             </figure>
             <h3 id="export-apparatus">Exporting a critical apparatus</h3>
             <p>
-After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group words</code> command in the <code>Edit</code> menu, if you haven't already. 
+After reconstructing a passage, the text can be exported in TEI XML format, as a text with variant readings. If you have done the alignment as characters or akṣaras, you will probably want to group them into larger lemmata before exporting. You can do this by using the <code>Group all words</code> command in the <code>Edit</code> menu, if you haven't already. 
             </p>
             <figure>
                 <img src="img/matrix-editor-grouped-words.png">
@@ -537,7 +537,7 @@ Both the software described in this document, as well as this document itself, a
             <p class="biblio" id="b-fitch1971">Fitch, Walter M. 1971. <q>Defining the course of Evolution: Minimum change for a specific tree topology.</q> <cite>Systematic Zoology</cite> 20:406–416. <a href="https://www.jstor.org/stable/2412116">https://www.jstor.org/stable/2412116</a>.</p>
             <p class="biblio" id="b-gusfield1997">Gusfield, Dan. 1997. <cite>Algorithms on Strings, Trees, and Sequences.</cite> Cambridge: Cambridge University Press. <a href="https://doi.org/10.1017/CBO9780511574931">https://doi.org/10.1017/CBO9780511574931</a>.</p>
             <p class="biblio" id="b-huson2006">Huson, Daniel H. &amp; Bryant, David. 2006. <q>Application of Phylogenetic Networks in Evolutionary Studies.</q> <cite>Molecular Biology and Evolution</cite> 23(2): 254–267. <a href="https://academic.oup.com/mbe/article/23/2/254/1118872">https://academic.oup.com/mbe/article/23/2/254/1118872</a>.</p>
-            <p class="biblio" id="b-mafft2002">Katoh, Kazutaka, Kazuharu Misawa, Kei-ichi Kuma, &amp; Takashi Miyata. <q>MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform.</q> <cite>Nucleic Acids Research</cite> 30:14. 15 July. 3059–3066. <a href="https://doi.org/10.1093/nar/gkf436">https://doi.org/10.1093/nar/gkf436</a>.</p>
+            <p class="biblio" id="b-mafft2002">Katoh, Kazutaka, Kazuharu Misawa, Kei-ichi Kuma, &amp; Takashi Miyata. 2002. <q>MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform.</q> <cite>Nucleic Acids Research</cite> 30(14): 3059–3066. <a href="https://doi.org/10.1093/nar/gkf436">https://doi.org/10.1093/nar/gkf436</a>.</p>
             <p class="biblio" id="b-li2017">Li, Charles. 2017. <q>Critical diplomatic editing: Applying text-critical principles as algorithms.</q> In <cite>Advances in Digital Scholarly Editing,</cite> edited by P. Boot et al, 305-310. Leiden: Sidestone Press. <a href="https://hcommons.org/deposits/item/hc:18259/">https://hcommons.org/deposits/item/hc:18259/</a>.</p>
             <p class="biblio" id="b-li2018">Li, Charles. 2018. <q>Limits of the real: A hypertext critical edition and translation of Bhartṛhari’s Dravyasamuddeśa, with the commentary of Helārāja.</q> PhD thesis, University of Cambridge. <a href="https://www.repository.cam.ac.uk/handle/1810/284085">https://www.repository.cam.ac.uk/handle/1810/284085</a>.</p>
             <p class="biblio" id="b-maas1958">Maas, Paul. 1958. <cite>Textual Criticism</cite>. Translated by B. Flower. Oxford: Clarendon Press.</p>

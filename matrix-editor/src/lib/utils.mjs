@@ -243,18 +243,17 @@ const Utils = function(_state) {
             }
         
             if(cls.size === 0) return false;
-            else {
+            
             // get list of numbers in each clause
-                const clgroups = [...cls].map(cl => {
-                    const words = cl.querySelectorAll('w');
-                    return new Set([...words].map(w => w.getAttribute('n')));
-                });
-                if(someungrouped) {
-                    return [null].concat(clgroups);
-                }
-                else
-                    return clgroups;
+            const clgroups = [...cls].map(cl => {
+                const words = cl.querySelectorAll('w');
+                return new Set([...words].map(w => w.getAttribute('n')));
+            });
+            if(someungrouped) {
+                return [null].concat(clgroups);
             }
+            else
+                return clgroups;
         },
 
         clausesToRemove(clgroups,nums,threshold = 0) {

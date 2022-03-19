@@ -1,5 +1,8 @@
 # Changelog for helayo
 
+## v0.65
+- code cleanup
+
 ## v0.6
 - removed -i (initial gap) option
 - improved filtering
