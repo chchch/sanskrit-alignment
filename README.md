@@ -1,5 +1,6 @@
 # Tools for aligning Sanskrit texts
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04022/status.svg)](https://doi.org/10.21105/joss.04022)
 ![helayo build & test](https://github.com/chchch/sanskrit-alignment/actions/workflows/build.yml/badge.svg)
 ![matrix-editor test](https://github.com/chchch/sanskrit-alignment/actions/workflows/jstest.yml/badge.svg)
 
@@ -18,3 +19,8 @@ See the docs at https://chchch.github.io/sanskrit-alignment/docs/ for more infor
 * helayo/ — the alignment program
     * helayo/dist/ ― binaries for MacOS, Ubuntu Linux, and Windows
 * matrix-editor/ — an interface to view/edit alignments, export them to be used with phylogenetic tree-building software, and reconstruct texts based on those trees; this can accessed [online](https://chchch.github.io/sanskrit-alignment/matrix-editor)
+
+This repository has been published in the Journal for Open Source Software:
+
+Li, C., (2022). helayo: Reconstructing Sanskrit texts from manuscript witnesses. Journal of Open Source Software, 7(71), 4022, https://doi.org/10.21105/joss.04022
+
