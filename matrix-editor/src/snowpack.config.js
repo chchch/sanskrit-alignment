@@ -37,6 +37,7 @@ module.exports = {
   exclude: [
     '**/chaff/**',
     '**/node_modules/**',
+    '**/tests/**',
     '**/CHANGELOG',
     '**/README.md',
     '**/*.lock',
