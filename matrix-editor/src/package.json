@@ -8,9 +8,9 @@
   "license": "BSD-3-Clause-Attribution",
   "devDependencies": {
     "@snowpack/plugin-webpack": "^3.0.0",
-    "fs": "^0.0.1-security",
-    "jsdom": "^19.0.0",
-    "saxon-js": "^2.3.0",
+    "fs": "^0.0.2",
+    "jsdom": "^20.0.0",
+    "saxon-js": "^2.4.0",
     "snowpack": "^3.8.8",
     "snowpack-plugin-unicode": "^1.0.0"
   },
