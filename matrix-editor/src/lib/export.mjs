@@ -198,15 +198,25 @@ END;
             const teiheader = newdoc.createElementNS(TeiNS,'teiHeader');
             const filedesc = newdoc.createElementNS(TeiNS,'fileDesc');
             const sourcedesc = newdoc.createElementNS(TeiNS,'sourceDesc');
+            
+            const msdesc = newdoc.createElementNS(TeiNS,'msDesc');
+            const msid = newdoc.createElementNS(TeiNS,'msIdentifier');
+            const siglum = newdoc.createElementNS(TeiNS,'abbr');
+            siglum.setAttribute('type','siglum');
+            siglum.append(newdoc.documentElement.getAttribute('n'));
+            msid.appendChild(siglum);
+            msdesc.appendChild(msid);
+            sourcedesc.appendChild(msdesc);
+
             const listwit = newdoc.createElementNS(TeiNS,'listWit');
             for(const text of Find.teis(doc)) {
                 const n = text.getAttribute('n');
                 const wit = newdoc.createElementNS(TeiNS,'witness');
                 wit.setAttribute('xml:id',n);
-                const idno = newdoc.createElementNS(TeiNS,'idno');
-                idno.setAttribute('type','siglum');
-                idno.append(n);
-                wit.appendChild(idno);
+                const abbr = newdoc.createElementNS(TeiNS,'abbr');
+                abbr.setAttribute('type','siglum');
+                abbr.append(n);
+                wit.appendChild(abbr);
                 listwit.appendChild(wit);
             }
             sourcedesc.appendChild(listwit);
@@ -220,9 +230,22 @@ END;
             const normlem = opts.get('option_app_normalize');
 
             const newdoc = document.implementation.createDocument(TeiNS,'',null);
+
             newdoc.appendChild(basetext);
+
+            // add basic text structure
+            const bod = newdoc.createElementNS(TeiNS,'body');
+            const par = newdoc.createElementNS(TeiNS,'p');
+            
+            const oldtext = basetext.querySelector('text');
+            while(oldtext.firstChild)
+                par.appendChild(oldtext.firstChild);
+            bod.appendChild(par);
+            oldtext.appendChild(bod);
+
             const teiheader = exp.makeHeader(newdoc,doc);
             basetext.insertBefore(teiheader,basetext.firstChild);
+
             const words = Find.words(false,basetext);
             for(const word of words) {
                 const dataN = word.getAttribute('n');
@@ -273,6 +296,7 @@ END;
                         word.parentElement.insertBefore(
                             newdoc.createTextNode(' '),
                             word);
+                        lem.textContent = lem.textContent.trimEnd();
                     }
                 }
 
