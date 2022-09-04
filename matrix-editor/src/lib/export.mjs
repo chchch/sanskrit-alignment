@@ -246,13 +246,14 @@ END;
             const teiheader = exp.makeHeader(newdoc,doc);
             basetext.insertBefore(teiheader,basetext.firstChild);
 
+            const siglum = newdoc.documentElement.getAttribute('n');
             const words = Find.words(false,basetext);
             for(const word of words) {
                 const dataN = word.getAttribute('n');
                 const lemma = normlem ? 
                     (word.getAttribute('lemma') || word.textContent) :
                     word.textContent;
-                const posapp = [];
+                const posapp = [siglum];
                 const negapp = new Map();
                 const otherwords = Find.words(dataN,doc);
                 for(const otherword of otherwords) {

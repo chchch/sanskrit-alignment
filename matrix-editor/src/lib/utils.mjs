@@ -287,7 +287,7 @@ const Utils = function(_state) {
             return emptyset;
         },
         
-        emptyRows() {
+        emptyRows(labels = false) {
             const trs = find.trs();
             const emptyrows = new Set();
             for(let n=0;n<trs.length;n++) {
@@ -298,7 +298,8 @@ const Utils = function(_state) {
                             return false;
                     return true;
                 })();
-                if(emptyrow) emptyrows.add(n); 
+                if(emptyrow)
+                    labels ? emptyrows.add(trs[n].dataset.n) : emptyrows.add(n); 
             }
             return emptyrows;
         },

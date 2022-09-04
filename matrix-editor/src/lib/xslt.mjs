@@ -1,9 +1,9 @@
-import csvXSLT from '../xslt/csv.xsl';
-import prettyXSLT from '../xslt/prettyprint.xsl';
-import matrixXSLT from '../xslt/matrix.xsl';
-import treeXSLT from '../xslt/tree.xsl';
-import lemmaXSLT from '../xslt/lemma.xsl';
-import lgXSLT from '../xslt/lg.xsl';
+import csvXSLT from '../xslt/csv.xsl?raw';
+import prettyXSLT from '../xslt/prettyprint.xsl?raw';
+import matrixXSLT from '../xslt/matrix.xsl?raw';
+import treeXSLT from '../xslt/tree.xsl?raw';
+import lemmaXSLT from '../xslt/lemma.xsl?raw';
+import lgXSLT from '../xslt/lg.xsl?raw';
 
 const makeProc = function(sheet) {
     const parser = new DOMParser();

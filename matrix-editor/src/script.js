@@ -12,7 +12,7 @@ import { actions as _Actions } from './lib/actions.mjs';
 import _Hypher from 'hypher';
 import { hyphenation_sa } from './lib/hypher-sa.mjs';
 
-//'use strict';
+'use strict';
 
 window.comboView = (function() {
     
@@ -1606,7 +1606,7 @@ const fullTreeClick = function(e) {
             _state.matrix.boxdiv.querySelector('tbody').appendChild(tr);
             th.scrollIntoView();
 
-            const fitchWorker = new Worker('./worker.js');
+            const fitchWorker = new Worker(new URL('./worker.js', import.meta.url));
             const normalized = Check.normalizedView();
             const serialreadings = Find.serializedtexts(tree.nexml,normalized);
             const readings0 = new Map(serialreadings.map(arr => [arr[0],arr[1][0]]));
