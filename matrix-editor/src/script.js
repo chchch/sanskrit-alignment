@@ -502,6 +502,9 @@ window.comboView = (function() {
             },
             {text: 'Delete empty columns',
                 func: edit.startRemoveEmpty
+            },
+            {text: 'Delete empty rows',
+                func: edit.startRemoveEmptyRows
             }
         ]);
 
@@ -1279,7 +1282,6 @@ const fullTreeClick = function(e) {
                     nums;
 
                 const clgroups = Find.clauses(numss);
-                console.log(clgroups);
                 if(!clgroups) {
                     edit.removeCol.go(numss,'do');
                 }
@@ -1363,7 +1365,11 @@ const fullTreeClick = function(e) {
                 }
             }
         },
-
+        startRemoveEmptyRows: function() {
+            const labels = Find.emptyRows(true);
+            const dolist = [...labels].map(l => [edit.doDeleteRow,[l]]);
+            edit.doMulti(dolist,'do');
+        },
         startEditCell: function(el) {
         //const cell = el || document.querySelector('.matrix td.highlitcell');
             const cell = el || Find.highlitcell();
@@ -1648,7 +1654,10 @@ const fullTreeClick = function(e) {
             view.updateAllHeaders();
             mssMenuPopulate();
             drawTrees();
-            edit.doStack([edit.doUndeleteRow,[htmlrow,xmlrow,index]],doing);
+            if(doing === 'multido')
+                return [edit.doUndeleteRow,[htmlrow,xmlrow,index]];
+            else
+                edit.doStack([edit.doUndeleteRow,[htmlrow,xmlrow,index]],doing);
         },
 
         doUndeleteRow: function(htmlrow,xmlrow,index,doing = 'do') {
@@ -1666,7 +1675,10 @@ const fullTreeClick = function(e) {
             view.updateAllHeaders();
             mssMenuPopulate();
             drawTrees();
-            edit.doStack([edit.doDeleteRow,[label]],doing);
+            if(doing === 'multido')
+                return [edit.doDeleteRow,[label]];
+            else
+                edit.doStack([edit.doDeleteRow,[label]],doing);
         },
 
         doMoveRow: function(movetr,appendafter,doing = 'do') {
@@ -1679,7 +1691,7 @@ const fullTreeClick = function(e) {
                 trs.indexOf(appendafter) :
                 null;
             const HTMLMove = function() {
-                if(appendafter === null)
+                if(appendafter === -1)
                     table.insertBefore(movetr,table.firstChild);
                 else if(appendafter.nextElementSibling)
                     table.insertBefore(movetr,appendafter.nextElementSibling);
@@ -1690,7 +1702,8 @@ const fullTreeClick = function(e) {
                 const root = _state.xml.documentElement;
                 const teis = [...Find.teis()];
                 const moverow = teis[previndex];
-                if(appendindex === null)
+                if(appendindex === -1)
+                //if(appendindex === null)
                     root.insertBefore(moverow,teis[0]);
                 else {
                     const appendxml = teis[appendindex];
@@ -1839,6 +1852,7 @@ const fullTreeClick = function(e) {
         doGroupWords: function() {
             let groupstart = 0;
             const todo = [];
+            const empty = Find.emptyRows();
             for(let n=0;n<=_state.maxlemma;n++) {
                 const tds = Find.tds(n);
                 const classtest = tds[0].classList; 
@@ -1850,12 +1864,14 @@ const fullTreeClick = function(e) {
                     continue;
                 }
 
-                let total = tds.length;
+                let total = tds.length - empty.size;
                 let spaced = 0;
                 if(n === _state.maxlemma) spaced = total;
                 else {
-                    for(const td of tds) {
+                    for(let m=0;m<tds.length;m++) {
+                        if(empty.has(m)) continue;
 
+                        const td = tds[m];
                         const txt = td.IAST ? td.IAST.textContent : td.textContent;
                         //if(txt === '')
                         //    total--;

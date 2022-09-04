@@ -286,6 +286,22 @@ const Utils = function(_state) {
             }
             return emptyset;
         },
+        
+        emptyRows() {
+            const trs = find.trs();
+            const emptyrows = new Set();
+            for(let n=0;n<trs.length;n++) {
+                const tds = find.tds(false,trs[n]);
+                const emptyrow = (() => {
+                    for(const td of tds)
+                        if(td.textContent !== '')
+                            return false;
+                    return true;
+                })();
+                if(emptyrow) emptyrows.add(n); 
+            }
+            return emptyrows;
+        },
 
         prevNonempty(index,arr) {
             for(let n=index;n>=0;n--) {
