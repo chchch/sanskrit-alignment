@@ -1,5 +1,7 @@
 module Main where
 
+import GHC.IO.Encoding (setLocaleEncoding, utf8)
+import System.IO.CodePage (withCP65001)
 import System.Environment (getArgs)
 import System.Console.GetOpt (getOpt, OptDescr(Option), ArgOrder(Permute), ArgDescr(ReqArg))
 import Data.Maybe (fromJust)
@@ -62,8 +64,9 @@ parseArgs argv = case getOpt Permute options argv of
 
 main :: IO ()
 main = do
+    setLocaleEncoding utf8
     (as, fname) <- getArgs >>= parseArgs
-    f <- readFile fname
+    f <- withCP65001 $ readFile fname
     let seqs = parseFasta' f
     let split 
             | optLemma as == "word"   = prepWords seqs
@@ -80,9 +83,9 @@ main = do
             | otherwise               = alignLookup mm
             where mm = makeMatrix . makeArray $ lines contents
     let result = mtr lookupfn penalties split
-    putStrLn $ multiXMLAlign $ alignPrep (allIndices result) (multiTrace result) split
+    withCP65001 $ putStrLn $ multiXMLAlign $ alignPrep (allIndices result) (multiTrace result) split
 
 maybeReadFile:: Maybe FilePath -> IO (String)
 maybeReadFile f
     | f == Nothing  = pure ""
-    | otherwise     = readFile $ fromJust f
+    | otherwise     = withCP65001 $ readFile $ fromJust f

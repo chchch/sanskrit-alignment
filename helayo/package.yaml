@@ -33,8 +33,9 @@ dependencies:
 - hxt-unicode
 - matrix
 - transformers
-- parallel
-- deepseq
+#- parallel
+#- deepseq
+- code-page
 
 # test suite
 - random
