@@ -21,7 +21,7 @@
     <article>
         <h1>Reconstructing a Sanskrit text</h1>
         <p class="subtitle">Charles Li</p>
-        <p>Last updated: 27 March 2022.</p>
+        <p>Last updated: 11 November 2022.</p>
         <section>
             <blockquote>
                 <p>
@@ -59,7 +59,12 @@
                     <li><a href="#transcription">Transcription</a></li>
                     <li><a href="#alignment">Alignment</a>
                         <ul>
-                            <li><a href="#alignment-fastt">Getting FASTT files from saktumiva.org</a></li>
+                            <li>
+                                <ul>
+                                  <li><a href="#alignment-convert">Converting TEI XML to FASTT format</al></li>
+                                  <li><a href="#alignment-fastt">Getting FASTT files from saktumiva.org</a></li>
+                              </ul>
+                            </li>
                             <li><a href="#alignment-prep">Preparing the alignment tool</a></li>
                             <li><a href="#alignment-using">Using the alignment tool</a></li>
                             <li><a href="#alignment-options1">Alignment options: lemma size</a></li>
@@ -92,8 +97,8 @@
             <ol>
                 <li>Transcription
                     <ul>
-                        <li>transcribe your manuscripts in TEI XML on <a href="https://saktumiva.org/">saktumiva.org</a> (or use the example files in the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fastt"><code>example/fastt/</code></a> directory).</li>
-                        <li>export your transcriptions using the <code>Export to FASTT</code> option.</li>
+                        <li>transcribe your manuscripts in TEI XML. Each file needs to have a siglum (<code>&lt;idno type="siglum"&gt;</code>), and each paragraph or verse to be collated needs to have an <code>xml:id</code>. See <a href="https://saktumiva.org/">saktumiva.org</a> for more details.</li>
+                        <li>export your transcriptions using the <a href="../tei-to-fastt/index.html">converter</a>. Alternatively, if you are on saktumiva.org, use the <code>Export to FASTT</code> option. For this tutorial, sample TEI XML transcriptions from the <a href="https://github.com/chchch/dravyasamuddesa">Dravyasamuddeśa</a> can be used, and FASTT files can be found in the <a href="https://github.com/chchch/sanskrit-alignment/tree/master/example/fastt"><code>example/fastt/</code></a> directory.</li>
                     </ul>
                 </li>
                 <li>Alignment
@@ -165,6 +170,9 @@ You will need to download the files in the <a href="https://github.com/chchch/sa
             </span>
 The most arduous task in this process is the collection of witnesses and their transcription. Previously, transcribing each witness individually was considered to be too daunting a task; when a text is collated by hand, the editor only notes the differences between a witness and their edition. But in this process, a lot of information is lost; orthography and punctuation are ignored, and any variant readings that are considered insignificant are not mentioned. But with computer-aided collation, we can create diplomatic transcriptions of our witnesses and then automatically filter out variations that we wish to ignore. In this tutorial, all of the manuscripts have been transcribed in <a href="https://en.wikipedia.org/wiki/International_Alphabet_of_Sanskrit_Transliteration">IAST</a> using <a href="https://tei-c.org/">TEI XML</a>. They have been uploaded to <a href="https://saktumiva.org/">saktumiva.org</a>, where you can automatically generate a critical apparatus comparing one version of the text to the others. For more information on how this works, see <a href="#b-li2017">Li 2017</a> and <a href="#b-li2018">Li 2018</a>.
             </p>
+            <p>
+When producing your transcriptions, each witness should have a siglum (<code>&lt;idno type="siglum"&gt;</code>). Then, each paragraph or verse (<code>&lt;p&gt; or &lt;lg&gt;</code>) should have a unique <code>xml:id</code>, so that the alignment software knows how to collate them. For examples, see the TEI XML transcriptions of the <a href="https://github.com/chchch/dravyasamuddesa">Dravyasamuddeśa</a>.
+            </p>
         </section>
         <section>
             <h2 id="alignment">Alignment</h2>
@@ -189,6 +197,10 @@ dravyam ity asyāpardyāyās tac ca nityam iti smṛtaṃ </code>
             </pre>
             <p>
 In this example, we have three versions of the same text (the first verse of the <cite>Dravyasamudeśa</cite>). Each text begins with the greater-than sign, followed by a siglum (D, K, or V here), a newline, and then the text. 
+            </p>
+            <h3 id="alignment-convert">Converting TEI XML to FASTT format</h3>
+            <p>
+To produce files in this format from your XML transcriptions, you can use the <a href="../tei-to-fastt/index.html">converter</a>. For example files, see the TEI XML transcriptions of the <a href="https://github.com/chchch/dravyasamuddesa">Dravyasamudddeśa</a>.
             </p>
             <h3 id="alignment-fastt">Getting FASTT files from saktumiva.org</h3>
             <p>
