@@ -23,16 +23,16 @@ const collectTexts = (parid, indocs) => {
     return outtext.join('');
 };
 
-const textToFastt = (doc,siglum,id) => {
-    //const corresp = par.getAttribute('corresp')?.replace(/^#/,'') || siglum;
+const textToFastt = (doc,textid,parid) => {
+    //const corresp = par.getAttribute('corresp')?.replace(/^#/,'') || textid;
     //const xml = par.querySelector(`[*|id="${id}"],[corresp="#${id}"]`);
     const xml = doc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}']`) ||
-        doc.querySelector(`text [*|id="${id}"], text [corresp="${id}"]`);
+        doc.querySelector(`text [*|id="${parid}"], text [corresp="${parid}"]`);
     const apps = xml?.querySelectorAll('app');
     const vartexts = apps ? makeVarTexts(xml,apps) : '';
     const txt = xml ? filterXml(xml) : '';
     //return txt ? `>${corresp}\n${txt}${vartexts}\n` : '';
-    return txt ? `>${siglum}\n${txt}${vartexts}\n` : '';
+    return txt ? `>${textid}\n${txt}${vartexts}\n` : '';
 };
 
 const makeVarTexts = (par, apps) => {
