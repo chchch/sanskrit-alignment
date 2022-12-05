@@ -7,31 +7,31 @@ const convertFiles = (indocs, ids) => {
 const collectTexts = (parid, indocs) => {
     const outtext = indocs.map(indoc => {
         const siglum = indoc.querySelector('idno[type="siglum"]')?.textContent;
+        const els = [];
         if(siglum)
-            return textToFastt(indoc,siglum,parid);
+            els.push([siglum,
+                indoc.querySelector(`text [*|id="${parid}"], text [corresp="${parid}"]`)
+            ]);
         else {
             const msItems = indoc.querySelectorAll('msItem[*|id]');
             if(msItems.length === 0) return '';
 
-            const ret = [...msItems].map(msItem => {
+            for(const msItem of msItems) {
                 const textid = msItem.getAttribute('xml:id');
-                return textToFastt(indoc,textid,parid);
-            });
-            return ret.join('');
+                els.push([textid,
+                    indoc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}'], text[corresp='#${textid}'] [*|id='${parid}']`)
+                ]);
+            }
         }
+        return els.map(el => textToFastt(...el) ).join('');
     });
     return outtext.join('');
 };
 
-const textToFastt = (doc,textid,parid) => {
-    //const corresp = par.getAttribute('corresp')?.replace(/^#/,'') || textid;
-    //const xml = par.querySelector(`[*|id="${id}"],[corresp="#${id}"]`);
-    const xml = doc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}']`) ||
-        doc.querySelector(`text [*|id="${parid}"], text [corresp="${parid}"]`);
+const textToFastt = (textid,xml) => {
     const apps = xml?.querySelectorAll('app');
     const vartexts = apps ? makeVarTexts(xml,apps) : '';
     const txt = xml ? filterXml(xml) : '';
-    //return txt ? `>${corresp}\n${txt}${vartexts}\n` : '';
     return txt ? `>${textid}\n${txt}${vartexts}\n` : '';
 };
 
