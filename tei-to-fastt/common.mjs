@@ -37,12 +37,11 @@ const textToFastt = (textid,xml) => {
 
 const makeVarTexts = (par, apps) => {
     const sigla = new Set();
-    // TODO: use listWit if available, adding # to xml:id
     const listWit = par.ownerDocument.querySelector('listWit');
     if(listWit) {
         const wits = listWit.querySelectorAll('witness');
         if(wits)
-            for(const wit of wits) sigla.add(wit.getAttribute('xml:id'));
+            for(const wit of wits) sigla.add('#' + wit.getAttribute('xml:id'));
     }
     else {
         for(const app of apps) {
