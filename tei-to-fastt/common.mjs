@@ -1,25 +1,38 @@
 import { Filter, Tags } from './filters.mjs';
 
 const convertFiles = (indocs, ids) => {
-    return ids.map(id => {return {id: id, text: collectTexts(id, indocs)} });
+    return ids.map(id => {return {id: id, text: collectTexts(id, indocs)}; });
 };
 
-const collectTexts = (id, indocs) => {
+const collectTexts = (parid, indocs) => {
     const outtext = indocs.map(indoc => {
         const siglum = indoc.querySelector('idno[type="siglum"]')?.textContent;
-        const texts = [...indoc.querySelectorAll('text')];
-        return texts.map(text => textToFastt(text,siglum,id)).join('');
+        if(siglum)
+            return textToFastt(indoc,siglum,parid);
+        else {
+            const msItems = indoc.querySelectorAll('msItem[*|id]');
+            if(msItems.length === 0) return '';
+
+            const ret = [...msItems].map(msItem => {
+                const textid = msItem.getAttribute('xml:id');
+                return textToFastt(indoc,textid,parid);
+            });
+            return ret.join('');
+        }
     });
     return outtext.join('');
 };
 
-const textToFastt = (par,siglum,id) => {
-    const corresp = par.getAttribute('corresp')?.replace(/^#/,'') || siglum;
-    const xml = par.querySelector(`[*|id="${id}"],[corresp="#${id}"]`);
+const textToFastt = (doc,siglum,id) => {
+    //const corresp = par.getAttribute('corresp')?.replace(/^#/,'') || siglum;
+    //const xml = par.querySelector(`[*|id="${id}"],[corresp="#${id}"]`);
+    const xml = doc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}']`) ||
+        doc.querySelector(`text [*|id="${id}"], text [corresp="${id}"]`);
     const apps = xml?.querySelectorAll('app');
     const vartexts = apps ? makeVarTexts(xml,apps) : '';
     const txt = xml ? filterXml(xml) : '';
-    return txt ? `>${corresp}\n${txt}${vartexts}\n` : '';
+    //return txt ? `>${corresp}\n${txt}${vartexts}\n` : '';
+    return txt ? `>${siglum}\n${txt}${vartexts}\n` : '';
 };
 
 const makeVarTexts = (par, apps) => {
@@ -72,7 +85,7 @@ const makeVarTexts = (par, apps) => {
 
 const filterXml = (xml, opts) => {
     var ret = '';
-    const walker = xml.ownerDocument.createTreeWalker(xml,4294967295, {acceptNode() {return 1}});
+    const walker = xml.ownerDocument.createTreeWalker(xml,4294967295, {acceptNode() {return 1;} });
     let curnode = walker.currentNode;
     while(curnode) {
         if(curnode.nodeType === 1) {
