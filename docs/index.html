@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reconstructing a Sanskrit text using computers</title>
     <link rel="stylesheet" href="tufte.css">
     <style>
@@ -162,7 +163,7 @@ You will need to download the files in the <a href="https://github.com/chchch/sa
         <section>
             <h2 id="transcription">Transcription</h2>
             <p>
-            <label class="margin-toggle" for="n-ms1">⊕</label>
+            <label class="margin-toggle" for="n-ms1">&dagger;</label>
             <input id="n-ms1" class="margin-toggle" type="checkbox"/>
             <span class="marginnote">
                 <img src="img/rori-ms-4781-small.png" alt="image of a manuscript"/>
@@ -212,7 +213,7 @@ If we have transcribed our texts in TEI XML and uploaded them to saktumiva.org, 
                     <li>In the left-hand sidebar, under <q>Other witnesses</q>, select all of the other witnesses that you want in your alignment. You probably want to omit edited texts.</li>
                     <li>Click <q>Generate apparatus</q>.</li>
                     <li>
-                        <label class="margin-toggle" for="n-alignment2">⊕</label><input id="n-alignment2" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/fastt.png" style="border: 1px solid black" alt="the FASTT export dialog box"/><br/>The FASTT export dialog.</span>
+                        <label class="margin-toggle" for="n-alignment2">&dagger;</label><input id="n-alignment2" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/fastt.png" style="border: 1px solid black" alt="the FASTT export dialog box"/><br/>The FASTT export dialog.</span>
                         In the toolbar on the right-hand side, click <q>Export As...</q> and choose <q>FASTT</q>. This is an ad-hoc acronym for <q>FASTA for Texts</q>.</li>
                     <li>In the options, select the range of the text that you want to align. The start node is the first paragraph/verse included, and the end node ls the last paragraph/verse.</li>
                     <li>If the text is long, you will want to have separate files for each node (as in the tutorial files).</li>
@@ -289,7 +290,7 @@ vastu svalakṣamānam       arthakriyākāri      dravyaṃ<br/>
             </blockquote>
             <h3 id="alignment-options2">Alignment options: match, mismatch, and gap scoring</h3>
             <p>
-By default, the alignment is scored like this:<label class="margin-toggle" for="n-gap-penalties">⊕</label><input id="n-gap-penalties" class="margin-toggle" type="checkbox"/><span class="marginnote"><a href="#b-cartwright2006">Cartwright 2006</a>, suggests an affine gap penalty function of G<sub>A</sub>(k) = 4 + k/4, but, in my work on the <i>Prakīrṇaprakāśa</i> manuscripts, this produced mismatches in places where gaps would have been more appropriate. The match score and the gap opening score have been adjusted accordingly.</span>
+By default, the alignment is scored like this:<label class="margin-toggle" for="n-gap-penalties">&dagger;</label><input id="n-gap-penalties" class="margin-toggle" type="checkbox"/><span class="marginnote"><a href="#b-cartwright2006">Cartwright 2006</a>, suggests an affine gap penalty function of G<sub>A</sub>(k) = 4 + k/4, but, in my work on the <i>Prakīrṇaprakāśa</i> manuscripts, this produced mismatches in places where gaps would have been more appropriate. The match score and the gap opening score have been adjusted accordingly.</span>
             </p>
             <table>
                 <tbody>
@@ -307,7 +308,7 @@ These options can be changed with the corresponding command-line option. For exa
             </p>
             <h3 id="alignment-matrix">The substitution matrix</h3>
             <p>
-            <label class="margin-toggle" for="n-alignment2">⊕</label>
+            <label class="margin-toggle" for="n-alignment2">&dagger;</label>
             <input id="n-alignment2" class="margin-toggle" type="checkbox"/>
             <span class="marginnote">
                 <img src="img/substitution_matrix.png" alt="image of the substitution matrix"/>
@@ -383,7 +384,7 @@ p a d ā r th ā v i t y u k t a ṃ
 the sequence would have been split as <q>padārthāv ity utakṃ</q>.
             </p>
             <p>
-<label class="margin-toggle" for="n-alignment3">⊕</label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
+<label class="margin-toggle" for="n-alignment3">&dagger;</label><input id="n-alignment3" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export.png" style="border: 1px solid black" alt="the NEXUS export dialog box"/><br/>The NEXUS export dialog.</span>
 When you are satisfied with the alignment, you can export it as a NEXUS file, which can be used in phylogenetics software. If you have multiple files, you should open all of them together in the matrix-editor (use Ctrl-Click or Shift-Click to select multiple). Then use the <code>Export</code> menu and click <code>NEXUS</code>. You will probably want to use the normalized text in your phylogenetic analysis, so check the <code>Normalize spellings</code> box.
             </p>
             <p>
@@ -514,7 +515,7 @@ I re-rooted the tree, this time using C<sub>T</sub>, T, H, M, P, and G<sub>V</su
             <h3 id="reconstruction-passage">Reconstructing an entire passage</h3>
             <p>
 Instead of reconstructing the text lemma-by-lemma, we can ask the software to reconstruct the entire text for us. First make sure you are using the normalized readings (<code>View -&gt; Normalized</code>). Then, simply click one node. Presumably, we will want to reconstruct the root — that is, what we hypothesize to be the oldest reachable state of the text, based solely on the manuscript evidence. However, you can also reconstruct the text at any later stage of its evolution; for example, if you wish to reconstruct the northern recension of the text, simply click on the node that groups all the northern witnesses together. Here, for the sake of an example, I have chosen the root.
-                <label class="margin-toggle" for="n-root1">⊕</label>
+                <label class="margin-toggle" for="n-root1">&dagger;</label>
                 <input id="n-root1" class="margin-toggle" type="checkbox"/>
                 <span class="marginnote">
                     <img src="img/reconstruct-dialog.png" style="border:1px solid black;" alt="image of the reconstruction dialog"/><br />
@@ -541,7 +542,7 @@ After reconstructing a passage, the text can be exported in TEI XML format, as a
                 <img src="img/matrix-editor-grouped-words.png">
             </figure>
             <p>
-<label class="margin-toggle" for="n-export-apparatus">⊕</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
+<label class="margin-toggle" for="n-export-apparatus">&dagger;</label><input id="n-export-apparatus" class="margin-toggle" type="checkbox"/><span class="marginnote"><img src="img/matrix-export-apparatus.png" style="border: 1px solid black" alt="the TEI apparatus export dialog box"/><br/>The TEI apparatus export dialog.</span>
 If you want to change the groups, you can select columns and use the <code>Column -&gt; Ungroup columns</code> and <code>Column -&gt; Group columns</code> commands to reform them. Once you are satisfied, you can export the text in TEI XML format, by choosing <code>TEI apparatus</code> from the <code>Export</code> menu.  There, you will be able to choose a base text (probably the reconstructed text). You will want to make sure that <code>Merge groups</code> is checked, so that the apparatus of variants is constructed based on the grouped "words" rather than on each individual character or akṣara.
             </p>
             <p>
