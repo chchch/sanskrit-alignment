@@ -19,7 +19,7 @@ const collectTexts = (parid, indocs) => {
             for(const msItem of msItems) {
                 const textid = msItem.getAttribute('xml:id');
                 els.push([textid,
-                    indoc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}'], text[corresp='#${textid}'] [*|id='${parid}']`)
+                    indoc.querySelector(`text[corresp='#${textid}'] [corresp='${parid}'], [*|id='${parid}']`)
                 ]);
             }
         }
