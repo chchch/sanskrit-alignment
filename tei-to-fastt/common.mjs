@@ -69,8 +69,11 @@ const makeVarTexts = (par, apps) => {
             const rdg = app.querySelector(`rdg[wit~='${siglum}']`);
             if(rdg)
                 app.replaceWith(rdg);
-            else
-                app.replaceWith(app.querySelector('lem'));
+            else {
+                const lem = app.querySelector('lem');
+                if(lem) app.replaceWith(lem);
+                else app.remove();
+            }
         }
         return {siglum: siglum.replace(/^#/,''), text: parclone};
     });

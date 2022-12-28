@@ -13,7 +13,7 @@ const parseString = (str) => {
         alert(`The XML file could not be loaded. Please contact your friendly local system administrator. Error: ${newd.documentElement.textContent}`);
     else
         return newd;
-}
+};
 
 const upload = async (arr) => {
     const files = arr.map(file => {
@@ -50,8 +50,11 @@ const updatePreview = async () => {
             const text = await readOne(file);
             const teixml = parseString(text);
             _selectedfiles.set(file.name,teixml);
-            const els = [...teixml.querySelectorAll('p[*|id],lg[*|id],l[*|id]')];
-            for(const el of els) _selectedids.add(el.getAttribute('xml:id'));
+            const els = [...teixml.querySelectorAll('p[*|id],p[corresp],lg[*|id],lg[corresp],l[*|id],l[corresp]')];
+            for(const el of els) {
+                const id = el.getAttribute('xml:id') || el.getAttribute('corresp');
+                _selectedids.add(id);
+            }
         }
 
         appendList(idpreview, [..._selectedids].sort());
