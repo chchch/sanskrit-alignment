@@ -1,4 +1,5 @@
 import { Filter, Tags } from './filters.mjs';
+import Sanscript from  './sanscript.mjs';
 
 const convertFiles = (indocs, ids) => {
     return ids.map(id => {return {id: id, text: collectTexts(id, indocs)}; });
@@ -27,11 +28,30 @@ const collectTexts = (parid, indocs) => {
     });
     return outtext.join('');
 };
+const scripts = new Map([
+    ['tamil', /[\u0b80-\u0bff]/u],
+    ['devanagari', /[\u0900-\u097f]/u],
+    ['bengali', /[\u0980-\u09ff]/u],
+    ['telugu', /[\u0c00-\u0c7f]/u],
+    ['malayalam',/[\u0d00-\u0d7f]/u]
+]);
+
+const changeScript = (str) => {
+    const script = ((str,scripts) => {
+        for(const [name,range] of scripts) {
+            if(str.match(range)) return name;
+        }
+        return 'iast';
+    })(str,scripts);
+    return script !== 'iast' ?
+        Sanscript.t(str,script,'iast').replaceAll(/\u200D/g,'') :
+        str;
+};
 
 const textToFastt = (textid,xml) => {
     const apps = xml?.querySelectorAll('app');
     const vartexts = apps ? makeVarTexts(xml,apps) : '';
-    const txt = xml ? filterXml(xml) : '';
+    const txt = xml ? changeScript(filterXml(xml)) : '';
     return txt ? `>${textid}\n${txt}${vartexts}\n` : '';
 };
 
