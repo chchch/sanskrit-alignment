@@ -1,7 +1,5 @@
 import { Sanscript } from './sanscript.mjs';
 
-'use strict';
-
 const to = {
 
     smush: function(text,placeholder) {
@@ -123,6 +121,40 @@ const to = {
 
         // use classical tamil kṣi
             .replace(/ക്ഷി/g,'க்ஷி');
+    },
+
+    tamil: function(text) {
+        const txt = to.smush(text);
+        const grv = new Map([
+            ['\u0B82','\u{11300}'],
+            ['\u0BBE','\u{1133E}'],
+            ['\u0BBF','\u{1133F}'],
+            ['\u0BC0','\u{11340}'],
+            ['\u0BC1','\u{11341}'],
+            ['\u0BC2','\u{11342}'],
+            ['\u0BC6','\u{11347}'],
+            ['\u0BC7','\u{11347}'],
+            ['\u0BC8','\u{11348}'],
+            ['\u0BCA','\u{1134B}'],
+            ['\u0BCB','\u{1134B}'],
+            ['\u0BCC','\u{1134C}'],
+            ['\u0BCD','\u{1134D}'],
+            ['\u0BD7','\u{11357}']
+        ]);
+        const grc = ['\u{11316}','\u{11317}','\u{11318}','\u{1131B}','\u{1131D}','\u{11320}','\u{11321}','\u{11322}','\u{11325}','\u{11326}','\u{11327}','\u{1132B}','\u{1132C}','\u{1132D}'];
+
+        const smushed = text
+            .replace(/([kṅcñṭṇtnpmyrlvḻḷṟṉ])\s+([aāiīuūeēoō])/g, '$1$2')
+            //.replace(/ḷ/g,'l̥')
+            .replace(/(^|\s)_ā/g,'$1\u0B85\u200D\u0BBE')
+            .replace(/(\S)([AĀIĪUŪEĒOŌ])/g,'$1\u200C$2')
+            .replace(/(\S)·/g,'$1\u200C')
+            .toLowerCase();
+        const rgex = new RegExp(`([${grc.join('')}])([${[...grv.keys()].join('')}])`,'g');
+        const pretext = Sanscript.t(smushed,'iast','tamil');
+        return pretext.replace(rgex, function(m,p1,p2) {
+            return p1+grv.get(p2); 
+        });
     },
 
     telugu: function(text,p) {
@@ -296,4 +328,4 @@ const replaceTextInNode = function(text, replace, node) {
     }
 };
 
-export { changeScript };
+export { changeScript, to };

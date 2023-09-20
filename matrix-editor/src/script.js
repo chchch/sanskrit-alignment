@@ -2,7 +2,7 @@ import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
 import { Normalizer } from './lib/normalize.mjs';
-import { changeScript } from './lib/transliterate.mjs';
+import { changeScript, to } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
 import { Fitch as _Fitch } from './lib/fitch.mjs';
@@ -381,6 +381,9 @@ window.comboView = (function() {
         const xParser = new DOMParser();
         _state.xml = xParser.parseFromString(e.target.result,'text/xml');
         
+        if(_state.xml.documentElement.getAttribute('xml:lang') === 'ta')
+            _state.scripts = ['iast','tamil'];
+
         const trees = _state.xml.querySelectorAll('teiHeader xenoData stemma nexml');
         for(const tree of trees) {
             const nexml = document.implementation.createDocument('http://www.nexml.org/2009','',null);
@@ -498,7 +501,7 @@ window.comboView = (function() {
                 toggle: Check.anyhighlit,
                 func: multi.highlightAll
             },
-            {text: 'Group all words',
+            {text: 'Group by whitespace',
                 func: edit.doGroupWords
             },
             {text: 'Delete empty columns',
