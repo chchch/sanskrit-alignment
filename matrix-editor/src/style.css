@@ -348,7 +348,7 @@ hr {
 }
 
 
-.lemma {
+.lemma, .tree-lemma {
     font-variant-ligatures: historical-ligatures;
 }
 
