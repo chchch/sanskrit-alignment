@@ -2585,6 +2585,7 @@ const fullTreeClick = function(e) {
         }
 
         cyclescript() {
+            const oldscript = _state.scripts[this.script];
             this.script = this.script + 1;
             if(this.script === _state.scripts.length)
                 this.script = 0;
@@ -2593,13 +2594,15 @@ const fullTreeClick = function(e) {
                 scripter.innerHTML = 'A';
             else
                 scripter.innerHTML = to[_state.scripts[this.script]]('a');
-            if(_state.scripts[this.script] === 'grantha')
+            scripter.classList.add(_state.scripts[this.script]);
+            scripter.classList.remove(oldscript);
+            /*if(_state.scripts[this.script] === 'grantha')
                 scripter.classList.add('grantha');
-            else scripter.classList.remove('grantha');
-            this.updatescript();
+            else scripter.classList.remove('grantha');*/
+            this.updatescript(oldscript);
         }
   
-        updatescript() {
+        updatescript(oldscript) {
             const nodes = this.boxdiv.querySelectorAll('.lemma,.tree-lemma');
             for(const node of nodes) {
                 const hasNormalized = node.dataset.hasOwnProperty('normal');
@@ -2622,9 +2625,15 @@ const fullTreeClick = function(e) {
                 while(newnode.firstChild)
                     node.appendChild(newnode.firstChild);
             }
+            if(oldscript) {
+                this.boxdiv.classList.add(_state.scripts[this.script]);
+                this.boxdiv.classList.remove(oldscript);
+            }
+            /*
             if(_state.scripts[this.script] === 'grantha') 
                 this.boxdiv.classList.add('grantha');
             else this.boxdiv.classList.remove('grantha');
+            */
             if(this.boxdiv.classList.contains('matrix'))
                 view.xScrollToHighlit();
         }
