@@ -336,6 +336,29 @@ var schemes = Sanscript.schemes = {
             'ẏ', // Bengali
             'q','qh','ġ','z','zh','f','ṙ','ṙh','ṫh','ḋh','w'],
             symbols: ['0','1','2','3','4','5','6','7','8','9','oṁ','oḿ','\'','|','||','⁰','⁰⁰','⁰⁰⁰'],
+        },
+        hk: {
+            vowels: ['a','A',
+            'i','I',
+            'u','U',
+            'R','RR',
+            'lR','lRR',
+            'e','E','ai',
+            'o','O','au',
+            'e','ai','o','au'], // Devanāgarī pṛṣthamātrās
+            other_marks: ['M','H','M','H','H','H'],
+            virama: [''],
+            consonants: ['k','kh','g','gh','G',
+            'c','ch','j','jh','J',
+            'T','Th','D','Dh','N',
+            't','th','d','dh','n',
+            'p','ph','b','bh','m',
+            'y','r','l','v',
+            'z','S','s','h',
+            'L','zh','_r','_n',], // Dravidian
+            //'y', // Bengali
+            //'q','qh','g','z','zh','f','ṙ','ṙh','ṫh','ḋh','w'],
+            symbols: ['0','1','2','3','4','5','6','7','8','9','om','om','\'','|','||','⁰','⁰⁰','⁰⁰⁰'],
         }
     },
 
