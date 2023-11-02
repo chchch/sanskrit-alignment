@@ -353,6 +353,8 @@ hr {
 }
 .text-box.tamil {
     word-spacing: 1em;
+    line-height: 1.4em;
+    font-size: 1.3rem;
 }
 
 .lemma:hover {
