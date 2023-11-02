@@ -350,6 +350,8 @@ hr {
 
 .tamil {
     font-variant-ligatures: historical-ligatures;
+}
+.text-box.tamil {
     word-spacing: 1em;
 }
 
