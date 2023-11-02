@@ -9,6 +9,9 @@
     <xsl:template match="para[content-style][not(text())]">
         <xsl:value-of select="normalize-space(.)"/>
     </xsl:template>
+
+    <xsl:template match="x:teiHeader"/>
+
     <xsl:template match="x:teiCorpus">
         <xsl:apply-templates/>
     </xsl:template>

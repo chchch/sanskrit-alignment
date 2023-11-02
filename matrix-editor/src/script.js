@@ -1,7 +1,7 @@
 import { CSV } from './lib/csv.mjs';
 import { Smits } from './lib/jsphylosvg-custom.mjs';
 
-import { Normalizer } from './lib/normalize.mjs';
+import Normalizer from './lib/normalize.mjs';
 import { changeScript, to } from './lib/transliterate.mjs';
 import { xslt as _Xslt } from './lib/xslt.mjs';
 import { Utils as _Utils } from './lib/utils.mjs';
@@ -1426,7 +1426,7 @@ const fullTreeClick = function(e) {
                 break;
             case 'ArrowRight': {
                 const pos = Find.cursorPos(e.target);
-                if(pos[0] === pos[1]) {
+                if(pos[0] === pos[1] && window.getSelection().type === 'Caret') {
                     e.preventDefault();
                     edit.finishEditCell(e);
                     events.cycleVariant({key: 'ArrowRight'});
@@ -1560,7 +1560,11 @@ const fullTreeClick = function(e) {
                 if(br) br.remove();
             }
 
-            if(cancel || content === cell.dataset.oldContent) return;
+            if(cancel) return;
+            if(content === cell.dataset.oldContent) {
+                delete cell.dataset.oldContent;
+                return;
+            }
         
             if(!cell.hasOwnProperty('IAST'))
                 cell.IAST = cell.cloneNode(true);
@@ -2131,17 +2135,20 @@ const fullTreeClick = function(e) {
         },
 
         doRenormalize: function(startnum, endnum, rownum=false, doing='do') {
-            if(!Check.normalizedView()) view.showNormalized();
+            //if(!Check.normalizedView()) view.showNormalized();
             
             const changedrows = new Map();
 
             const htmlrows = [...Find.trs()];
             const xmlrows = [...Find.texts()];
             const rownums = rownum ? [rownum] : [...htmlrows.keys()];
-
+            
+            const tamil = _state.xml.documentElement.getAttribute('xml:lang') === 'ta' ? true : false;
             for(const r of rownums) {
                 const changedrow = new Map();
                 const xmlrow = xmlrows[r];
+                const rowid = xmlrow.parentNode.getAttribute('n');
+                const textbox = document.querySelector(`.text-box[data-id="${rowid}"]`);
                 const allwords = [...Find.words(false,xmlrow)];
                 const firstword = Find.firstword(startnum,xmlrow);
                 const lastword = Find.firstword(endnum,xmlrow);
@@ -2154,7 +2161,7 @@ const fullTreeClick = function(e) {
                 const tds = alltds.slice(startn, endn + 1);
 
                 const unnormwords = words.map(w => w.textContent);
-                const normwords = Normalizer(unnormwords);
+                const normwords = Normalizer(unnormwords,tamil);
                 
                 for(let n=0;n<normwords.length;n++) {
                     const word = words[n];
@@ -2178,11 +2185,16 @@ const fullTreeClick = function(e) {
                     if(normword !== unnormword) {
                         word.setAttribute('lemma',normword);
                         td.dataset.normal = normword;
-                        /*if(showNormalized)*/ td.textContent = normword;
+                        if(textbox)
+                            textbox.querySelector(`.lemma[data-n="${td.dataset.n}"]`)
+                                   .dataset.normal = normword;
+                        ///*if(showNormalized)*/ td.textContent = normword;
                     }
                 }
                 changedrows.set(r,changedrow);
             }
+            view.showNormalized();
+            // TODO: do this more efficiently rather than refreshing every box; also do trees
             view.updateAllHeaders(true);
             view.xScrollToHighlit();
 
@@ -2599,11 +2611,16 @@ const fullTreeClick = function(e) {
             /*if(_state.scripts[this.script] === 'grantha')
                 scripter.classList.add('grantha');
             else scripter.classList.remove('grantha');*/
-            this.updatescript(oldscript);
+            //this.updatescript(oldscript);
+            this.updatescript();
+            this.boxdiv.classList.add(_state.scripts[this.script]);
+            this.boxdiv.classList.remove(oldscript);
         }
   
-        updatescript(oldscript) {
-            const nodes = this.boxdiv.querySelectorAll('.lemma,.tree-lemma');
+        updatescript(/*oldscript*/lemmata) {
+            const nodes = lemmata ?
+                lemmata.map(l => this.boxdiv.querySelector(`.lemma[data-n=${l}]`)) :
+                this.boxdiv.querySelectorAll('.lemma,.tree-lemma');
             for(const node of nodes) {
                 const hasNormalized = node.dataset.hasOwnProperty('normal');
                 if(!hasNormalized && node.textContent.trim() === '') continue;
@@ -2625,10 +2642,12 @@ const fullTreeClick = function(e) {
                 while(newnode.firstChild)
                     node.appendChild(newnode.firstChild);
             }
+            /*
             if(oldscript) {
                 this.boxdiv.classList.add(_state.scripts[this.script]);
                 this.boxdiv.classList.remove(oldscript);
             }
+            */
             /*
             if(_state.scripts[this.script] === 'grantha') 
                 this.boxdiv.classList.add('grantha');

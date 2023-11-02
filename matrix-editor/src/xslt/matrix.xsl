@@ -2,6 +2,9 @@
                 xmlns:x="http://www.tei-c.org/ns/1.0"
                 exclude-result-prefixes="x">
 <xsl:output method="html"/>
+
+<xsl:template match="x:teiHeader"/>
+
 <xsl:template match="x:teiCorpus">
     <xsl:element name="table">
         <xsl:apply-templates/>

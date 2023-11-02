@@ -104,7 +104,6 @@ svg text {
     font-size: 0.9rem;
     font-variant: small-caps;
     cursor: pointer;
-    vertical-align: bottom;
 }
 
 .internal .orphan {
@@ -115,6 +114,7 @@ svg text {
     display: inline-block;
     position: relative;
     left: -3px;
+    top: -2px;
 }
 
 .internal:hover {
@@ -348,8 +348,9 @@ hr {
 }
 
 
-.lemma, .tree-lemma {
+.tamil {
     font-variant-ligatures: historical-ligatures;
+    word-spacing: 1em;
 }
 
 .lemma:hover {
@@ -501,7 +502,7 @@ td[data-binary='true']:empty {
 }
 
 td[data-emended='true'], span.lemma[data-emended='true'] {
-    border: 2px dotted rgb(230,152,174);
+    border-bottom: 2px dotted rgb(230,152,174);
 }
 
 td.pending {
