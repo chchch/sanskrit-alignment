@@ -6,6 +6,7 @@
   "repository": "https://github.com/chchch/sanskrit-alignment",
   "author": "Charles Li",
   "license": "BSD-3-Clause-Attribution",
+  "type": "module",
   "devDependencies": {
     "fs": "^0.0.2",
     "jsdom": "^22.1.0",
