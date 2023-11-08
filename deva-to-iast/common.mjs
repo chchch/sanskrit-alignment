@@ -1,4 +1,3 @@
-import { Filter, Tags } from './filters.mjs';
 import Sanscript from  './sanscript.mjs';
 
 const convertFiles = docs => {
