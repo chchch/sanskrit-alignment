@@ -65,7 +65,6 @@ const appendList = (par, els) => {
 
 const main = async () => {
     const outtexts = convertFiles([..._selectedfiles.values()]);
-    console.log(outtexts);
     const filenames = [..._selectedfiles.keys()];
 
     const zip = new JSZip();
