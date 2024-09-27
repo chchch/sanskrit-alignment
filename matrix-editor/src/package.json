@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "hypher": "^0.2.5",
-    "raphael": "^2.3.0"
+    "raphael": "^2.3.0",
+    "rollup": "^4.22.4"
   }
 }
