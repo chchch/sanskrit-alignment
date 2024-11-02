@@ -3,6 +3,8 @@
                 exclude-result-prefixes="x">
 <xsl:output method="html"/>
 
+<xsl:strip-space elements="x:cl"/>
+
 <xsl:template match="x:teiHeader"/>
 
 <xsl:template match="x:teiCorpus">

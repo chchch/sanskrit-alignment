@@ -86,6 +86,8 @@ You are running Raphaël `+this.version};var xe,K=function(r,s,d){for(var m=x(s)
                 exclude-result-prefixes="x">
 <xsl:output method="html"/>
 
+<xsl:strip-space elements="x:cl"/>
+
 <xsl:template match="x:teiHeader"/>
 
 <xsl:template match="x:teiCorpus">
