@@ -14,18 +14,13 @@ const filters_slpish = [
         replace: () => ''
     },
     {
-        name: 'valapalagilaka',
-        search: 'ṙ',
-        replace: () => 'r'
-    },
-    {
-        name: 'long e',
+        name: 'ignore long/short e',
         group: 'tamil',
         search: 'ē',
         replace: () => 'e'
     },
     {
-        name: 'long o',
+        name: 'ignore long/short o',
         group: 'tamil',
         search: 'ō',
         replace: () => 'o'
@@ -33,19 +28,19 @@ const filters_slpish = [
     {
         name: 'insert glide after back vowels',
         group: 'tamil',
-        search: '([aāuūoō])\\s+([aāiīuūeēoō])',
+        search: '([aāuūoōO])\\s+([aāiīuūeēoōO])',
         replace: (match) => `${match[1]} v${match[2]}`
     },
     {
         name: 'insert glide after front vowels',
         group: 'tamil',
-        search: '([iīeē])\\s+([aāiīuūeēoō])',
+        search: '([iīeēE])\\s+([aāiīuūeēEoōO])',
         replace: (match) => `${match[1]} y${match[2]}`
     },
     {
         name: 'final -m sandhi variants',
         group: 'tamil',
-        search: 'm(\\s*)([ṅkt])',
+        search: 'm(\\s*)([ckt])',
         replace: (match) => `${nasals.get(match[2])}${match[1]}${match[2]}`
     },
     {
@@ -53,6 +48,11 @@ const filters_slpish = [
         group: 'tamil',
         search: '[kṅcñṭtnpmyrlvḻḷṟṉ](?!\\s*[aāiīuūeēEoōOḵh])|[kṅcñṭtnpmyrlvḻḷṟṉ]$',
         replace: (match) => `${match[0]}a`
+    },
+    {
+        name: 'valapalagilaka',
+        search: 'ṙ',
+        replace: () => 'r'
     },
     {
         name: 'pṛṣṭhamātrā e',
@@ -75,15 +75,17 @@ const filters_slpish = [
         replace: () => 'O'
     },
     {
-        name: 'candrabindu',
+        name: 'candrabindu as anusvāra',
         search: 'm̐',
         replace: () => 'ṃ'
     },
+    /*
     {
         name: 'oṃkāras',
         search: 'õ',
         replace: () => 'oṃ'
     },
+    */
     /*{
         name: 'non-ASCII characters',
         search:'&#\\d+;',
