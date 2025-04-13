@@ -168,7 +168,7 @@ const filters_slpish = [
     },
     {
         name: 'internal visarga variants',
-        search: 'ṣ(?=[kK])|s(?=s)',
+        search: '[ṣḥ](?=[kK])|s(?=s)',
         replace: () => 'ḥ'
     },
     {
