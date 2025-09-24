@@ -53,7 +53,7 @@ const actions = function(Utils) {
     return {
         group: group,
         ungroup: ungroup
-    }
+    };
 };
 
 export { actions };

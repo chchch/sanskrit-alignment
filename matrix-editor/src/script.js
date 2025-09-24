@@ -417,13 +417,45 @@ window.comboView = (function() {
                 const siglum = tei.getAttribute('n');
                 oldteis.set(siglum,tei);
             }
-            const oldsigla = new Set(oldteis.keys());
 
             const newteis = new Map();
             for(const tei of newxml.querySelectorAll('TEI')) {
                 const siglum = tei.getAttribute('n');
-                newteis.set(siglum,tei);
+				if(oldteis.has(siglum)) {
+					newteis.set(siglum,tei);
+					continue;
+				}
+
+				const wit = newxml.querySelector(`witness[*|id="${siglum}"]`);
+				
+				// if _state.xml has XXac/XXpc and newxml has XX
+				const oldac = _state.xml.querySelector(`witness[*|id="${siglum}"] [n="ac"]`);
+				if(oldac && oldteis.has(oldac.getAttribute('xml:id'))) {
+					newteis.set(siglum + 'ac',tei);
+					const pcrow = tei.cloneNode(true);
+					pcrow.setAttribute('n',siglum + 'pc');
+					tei.after(pcrow);
+					newteis.set(siglum + 'pc',pcrow);
+					continue;
+				}
+				
+				// if _state.xml has XX and newxml has XXac/XXpc
+				const acpc = wit.getAttribute('n');
+				const parid = wit.parentNode.closest('witness')?.getAttribute('xml:id');
+				if(acpc !== null && oldteis.has(parid)) {
+					const oldrow = oldteis.get(parid);
+					oldrow.setAttribute('n',parid + 'ac');
+					const pcrow = oldrow.cloneNode(true);
+					pcrow.setAttribute('n',parid + 'pc');
+					oldrow.after(pcrow);
+					oldteis.set(parid + 'ac',oldrow);
+					oldteis.set(parid + 'pc',pcrow);
+					oldteis.delete(parid);
+				}
+				// TODO: variant readings
+				newteis.set(siglum,tei);
             }
+            const oldsigla = new Set(oldteis.keys());
             const newsigla = new Set(newteis.keys());
 
             const tofill = setDiff(oldsigla,newsigla);
@@ -434,14 +466,18 @@ window.comboView = (function() {
 
             const addlemma = [...newxml.querySelector('text').querySelectorAll('w[n]')].length;
             const lastlemma = _state.maxlemma + addlemma;
+			const addempty = new Set();
             for(const [key,val] of newteis) {
                 if(!oldteis.has(key)) {
+					addempty.add(key);
+					/*
                     const newtei = Make.xmlel('TEI');
                     newtei.setAttribute('n',key);
                     const newtext = Make.xmlel('text');
                     Make.emptywords(newtext,lastlemma,0);
                     newtei.appendChild(newtext);
                     _state.xml.documentElement.appendChild(newtei);
+					*/
                 }
                 else {
                     const oldtext = oldteis.get(key).querySelector('text');
@@ -450,17 +486,44 @@ window.comboView = (function() {
                     var cur_n = _state.maxlemma + 1;
                     for(const word of newwords) {
                         word.setAttribute('n',cur_n);
-                        oldtext.appendChild(word);
+                        //oldtext.appendChild(word);
                         cur_n = cur_n + 1;
                     }
+					const newclone = newtext.cloneNode(true);
+					while(newclone.firstChild)
+						oldtext.appendChild(newclone.firstChild);
                 }
             }
-
-            for(const el of tofill) {
-                //const oldtext = oldteis.get(el).querySelector('text');
-                const text = oldteis.get(el).querySelector('text');
-                Make.emptywords(text,lastlemma,_state.maxlemma + 1);
-            }
+			if(addempty.size > 0) { // we want to have the <cl>s too
+				const template = _state.xml.querySelector('TEI').cloneNode(true);
+				for(const w of template.querySelectorAll('w')) {
+					w.innerHTML = '';
+					if(w.hasAttribute('lemma')) w.removeAttribute('lemma');
+				}
+				for(const key of addempty) {
+					const newtei = template.cloneNode(true);
+					newtei.setAttribute('n',key);
+					_state.xml.documentElement.appendChild(newtei);
+				}
+			}
+			if(tofill.size > 0) {
+				const template = newxml.querySelector('text').cloneNode(true);
+				var cur_n = _state.maxlemma + 1;
+				for(const w of template.querySelectorAll('w')) {
+					w.innerHTML = '';
+					if(w.hasAttribute('lemma')) w.removeAttribute('lemma');
+					w.setAttribute('n',cur_n);
+					cur_n = cur_n + 1;
+				}
+				for(const el of tofill) {
+					//const oldtext = oldteis.get(el).querySelector('text');
+					const text = oldteis.get(el).querySelector('text');
+					const newtext = template.cloneNode(true);
+					while(newtext.firstChild)
+						text.appendChild(newtext.firstChild);
+					//Make.emptywords(text,lastlemma,_state.maxlemma + 1);
+				}
+			}
 
             _state.maxlemma = Find.maxlemma(); // can probably change this
             if(add.length > 0) matrixLoadAdditional(add);
@@ -485,6 +548,11 @@ window.comboView = (function() {
 
     const menuPopulate = function() {
         mssMenuPopulate();
+
+		const savebox = new menuItem('Save As...');
+		savebox.setFunction(Exporter.saveAs);
+		savebox.setStyle({fontWeight: 'bold'});
+
         const expbox = new menuBox('Export');
         expbox.populate([
             {text: 'TEI corpus', func: Exporter.showOptions.bind(null,Exporter.xml,Exporter.options)},
@@ -587,6 +655,7 @@ window.comboView = (function() {
         left_menu.appendChild(rowbox.box);
         left_menu.appendChild(cellbox.box);
         left_menu.appendChild(expbox.box);
+        left_menu.appendChild(savebox.box);
    
         const views = document.getElementById('views');
         views.style.justifyContent = 'flex-start';
@@ -1329,14 +1398,15 @@ const fullTreeClick = function(e) {
             },
             go: function(nums,doing = 'do') {
                 const remove = function(rowfunc,cellfunc) {
+                    const nummap = n => {
+                        const cell = cellfunc(n,row);
+                        edit.unnormalize(cell);
+                        return cell;
+                    };
                     const rows = rowfunc();
                     const rowsclone = [];
                     for(const row of rows) {
-                        const arr = [...nums].map(n => {
-                            const cell = cellfunc(n,row);
-                            edit.unnormalize(cell);
-                            return cell;
-                        });
+                        const arr = [...nums].map(nummap);
                         const arrclone = arr.map(el => el.cloneNode(true));
                         rowsclone.push(arrclone);
                         for(const td of arr)
@@ -1786,6 +1856,7 @@ const fullTreeClick = function(e) {
             const merge = function(rowfunc,cellfunc,nums) {
                 const rows = rowfunc();
                 var rowsclone = [];
+                const nummap = n => cellfunc(n,row);
                 for(const row of rows) {
                     /*
                     const arr = [...nums].map(n => {
@@ -1794,7 +1865,7 @@ const fullTreeClick = function(e) {
                         return cell;
                     });
                     */
-                    const arr = [...nums].map(n => cellfunc(n,row));
+                    const arr = [...nums].map(nummap);
                     const arrclone = arr.map(el => el.cloneNode(true));
                     rowsclone.push(arrclone);
                     for(const a of arr) edit.unnormalize(a);
@@ -2420,6 +2491,28 @@ const fullTreeClick = function(e) {
 
     /*** Classes ***/
 
+    class menuItem {
+        constructor(name) {
+            this.name = name;
+            this.box = document.createElement('div');
+            this.box.classList.add('menubox');
+            const heading = document.createElement('div');
+            heading.classList.add('heading');
+            heading.appendChild(document.createTextNode(name));
+            this.box.appendChild(heading);
+            this.box.addEventListener('mouseup',this.click.bind(this));
+        }
+		setFunction(func) {
+			this.func = func;
+		}
+		setStyle(obj) {
+			for(const [key, val] of Object.entries(obj))
+			this.box.style[key] = val;
+		}
+		click(e) {
+			this.func(e);
+		}
+	}
     class menuBox {
         constructor(name) {
             this.name = name;

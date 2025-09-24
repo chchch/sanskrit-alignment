@@ -299,7 +299,8 @@ const Utils = function(_state) {
                     return true;
                 })();
                 if(emptyrow)
-                    labels ? emptyrows.add(trs[n].dataset.n) : emptyrows.add(n); 
+                    if(labels) emptyrows.add(trs[n].dataset.n);
+                    else emptyrows.add(n); 
             }
             return emptyrows;
         },
@@ -548,7 +549,7 @@ const Utils = function(_state) {
                     const blackout = document.querySelector('#blackout');
                     blackout.parentNode.removeChild(blackout);
                 }
-            }
+            };
 
             const submit = blackout.querySelector('button');
             submit.addEventListener('click',submitFunc);
