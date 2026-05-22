@@ -110,7 +110,7 @@ const Fitch = function(mss,levels) {
 
     return {
         run: fitch
-    }
+    };
 };
 
 onmessage = function(e) {

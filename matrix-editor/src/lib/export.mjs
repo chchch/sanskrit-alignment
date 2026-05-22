@@ -16,7 +16,7 @@ const Exporter = function(Utils,Xslt) {
 
         xml: async function(doc) {
             const str = new XMLSerializer().serializeToString(
-                Xslt.sheets['xml'].transformToDocument(doc)
+                Xslt.sheets.xml.transformToDocument(doc)
             );
             const file = new Blob([str], {type: 'text/xml;charset=utf-8'});
             const fileURL = Find.basename() + '.xml';
@@ -29,7 +29,7 @@ const Exporter = function(Utils,Xslt) {
         },
 
         csv: async function(doc) {
-            const str = Xslt.sheets['csv'].transformToDocument(doc).documentElement.textContent;
+            const str = Xslt.sheets.csv.transformToDocument(doc).documentElement.textContent;
             const file = new Blob([str], {type: 'text/csv;charset=utf-8'});
             const fileURL = Find.basename() + '.csv';
             const fileHandle = await showSaveFilePicker({
@@ -84,6 +84,7 @@ const Exporter = function(Utils,Xslt) {
             const flatmatrix = matrix.map(arr => arr.join(''))
                 // ignore long gaps, even if "gaps are significant" is selected
                 .map(str => str.replace(/0{8,}/g, match => match.replace(/0/g,'-')))
+                //.map(str => str.replace(/0/g,'-')) // why did I do this????
                 .reduce((acc,cur) => acc + '\n'+cur);
             const str =
 `#NEXUS
@@ -207,19 +208,23 @@ END;
             msid.appendChild(siglum);
             msdesc.appendChild(msid);
             sourcedesc.appendChild(msdesc);
-
-            const listwit = newdoc.createElementNS(TeiNS,'listWit');
-            for(const text of Find.teis(doc)) {
-                const n = text.getAttribute('n');
-                const wit = newdoc.createElementNS(TeiNS,'witness');
-                wit.setAttribute('xml:id',n);
-                const abbr = newdoc.createElementNS(TeiNS,'abbr');
-                abbr.setAttribute('type','siglum');
-                abbr.append(n);
-                wit.appendChild(abbr);
-                listwit.appendChild(wit);
+            
+            const lw = doc.querySelector('listWit');
+            if(lw) sourcedesc.appendChild(lw);
+            else {
+                const listwit = newdoc.createElementNS(TeiNS,'listWit');
+                for(const text of Find.teis(doc)) {
+                    const n = text.getAttribute('n');
+                    const wit = newdoc.createElementNS(TeiNS,'witness');
+                    wit.setAttribute('xml:id',n);
+                    const abbr = newdoc.createElementNS(TeiNS,'abbr');
+                    abbr.setAttribute('type','siglum');
+                    abbr.append(n);
+                    wit.appendChild(abbr);
+                    listwit.appendChild(wit);
+                }
+                sourcedesc.appendChild(listwit);
             }
-            sourcedesc.appendChild(listwit);
             filedesc.appendChild(sourcedesc);
             teiheader.appendChild(filedesc);
             return teiheader;
@@ -253,15 +258,16 @@ END;
                 const lemma = normlem ? 
                     (word.getAttribute('lemma') || word.textContent) :
                     word.textContent;
-                const posapp = [siglum];
+                //const posapp = new Set([siglum]);
+                const posapp = new Set();
                 const negapp = new Map();
                 const otherwords = Find.words(dataN,doc);
                 for(const otherword of otherwords) {
                     const id = otherword.closest('TEI').getAttribute('n');
                     if(normlem && otherword.getAttribute('lemma') === lemma)
-                        posapp.push(id);
+                        posapp.add(id);
                     else if(otherword.textContent === lemma)
-                        posapp.push(id);
+                        posapp.add(id);
                     else {
                         const newstr = otherword.textContent === '' ? 
                             '[om.]' : 
@@ -278,9 +284,9 @@ END;
                 }
                 else {
                     const app = newdoc.createElementNS(TeiNS,'app');
-                    app.setAttribute('n',dataN);
+                    //app.setAttribute('n',dataN);
                     const lem = newdoc.createElementNS(TeiNS,'lem');
-                    const poswits = posapp.map(s => `#${s}`).join(' ');
+                    const poswits = [...posapp].map(s => `#${s}`).join(' ');
                     if(poswits !== '') lem.setAttribute('wit',poswits);
                     while(word.firstChild)
                         lem.appendChild(word.firstChild);
@@ -388,6 +394,11 @@ END;
             
             Make.blackout(htmlfrag,submitfunction);
         },
+
+        saveAs: function() {
+            const doc = Find.curxml().cloneNode(true);
+            exp.xml(doc);
+        },
 /*
         showOptions: function(func,optfunc) {
             const htmlfrag = optfunc();
@@ -426,6 +437,6 @@ END;
     };
 
     return exp;
-}
+};
 
 export { Exporter };
